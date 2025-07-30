@@ -54,7 +54,7 @@ const Profile = () => {
         fullName: user.user_metadata?.full_name || '',
         email: user.email || '',
         phoneNumber: profile.phone_number || '',
-        preferredPharmacy: profile.preferred_pharmacy_id || '',
+        preferredPharmacy: profile.preferred_pharmacy_id || 'none',
         languagePreference: profile.language_preference,
         notificationsEnabled: profile.notifications_enabled,
       });
@@ -98,7 +98,7 @@ const Profile = () => {
     try {
       await updateProfile({
         phone_number: data.phoneNumber || null,
-        preferred_pharmacy_id: data.preferredPharmacy || null,
+        preferred_pharmacy_id: data.preferredPharmacy === 'none' ? null : data.preferredPharmacy || null,
         language_preference: data.languagePreference,
         notifications_enabled: data.notificationsEnabled,
       });
@@ -264,7 +264,7 @@ const Profile = () => {
                       <SelectValue placeholder="Select a pharmacy" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No preference</SelectItem>
+                      <SelectItem value="none">No preference</SelectItem>
                       <SelectItem value="city-pharmacy">City Pharmacy</SelectItem>
                       <SelectItem value="medcenter-plus">MedCenter Plus</SelectItem>
                       <SelectItem value="wellness-drugs">Wellness Drugs</SelectItem>
