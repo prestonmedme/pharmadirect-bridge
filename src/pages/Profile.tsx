@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -222,10 +223,10 @@ const Profile = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <FormLabel className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
                     Preferred Pharmacy
-                  </FormLabel>
+                  </Label>
                   <Select disabled={!isEditing}>
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Select a pharmacy" />
@@ -239,10 +240,10 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <FormLabel className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2">
                     <Globe className="h-4 w-4" />
                     Language Preference
-                  </FormLabel>
+                  </Label>
                   <Select disabled={!isEditing}>
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Select language" />
@@ -258,7 +259,7 @@ const Profile = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Bell className="h-4 w-4" />
-                    <FormLabel>Notifications</FormLabel>
+                    <Label>Notifications</Label>
                   </div>
                   <Switch disabled={!isEditing} defaultChecked />
                 </div>
