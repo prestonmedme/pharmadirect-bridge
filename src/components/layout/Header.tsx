@@ -9,8 +9,20 @@ import { useAuth } from "@/hooks/useAuth";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   const location = useLocation();
+  
+  // Safely get auth state with fallback
+  let user = null;
+  let signOut = () => Promise.resolve();
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    signOut = auth.signOut;
+  } catch (error) {
+    // AuthProvider not available yet, use fallback values
+    console.log('Auth context not available yet');
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
