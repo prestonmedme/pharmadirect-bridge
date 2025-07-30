@@ -78,8 +78,7 @@ const ServicesCarousel = () => {
     if (!container) return;
     
     let animationId: number;
-    let scrollPosition = container.scrollLeft;
-    const scrollSpeed = 0.3; // Reduced speed for smoother animation
+    const scrollSpeed = 0.3;
 
     const autoScroll = () => {
       if (isUserInteracting) {
@@ -89,16 +88,22 @@ const ServicesCarousel = () => {
 
       const scrollWidth = container.scrollWidth;
       const clientWidth = container.clientWidth;
-      const maxScroll = scrollWidth - clientWidth;
-
-      scrollPosition += scrollSpeed;
       
-      // Seamless loop without direction change
-      if (scrollPosition >= scrollWidth) {
-        scrollPosition = 0;
+      // Only animate if there's content to scroll
+      if (scrollWidth <= clientWidth) {
+        animationId = requestAnimationFrame(autoScroll);
+        return;
+      }
+
+      // Increment scroll position
+      container.scrollLeft += scrollSpeed;
+      
+      // Reset to beginning when we've scrolled past the first set of items
+      // This creates a seamless loop effect
+      if (container.scrollLeft >= scrollWidth - clientWidth) {
+        container.scrollLeft = 0;
       }
       
-      container.scrollLeft = scrollPosition;
       animationId = requestAnimationFrame(autoScroll);
     };
 
