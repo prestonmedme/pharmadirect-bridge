@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
+import { useToast } from "@/hooks/use-toast";
 import { 
   MapPin, 
   Calendar as CalendarIcon, 
@@ -24,10 +25,11 @@ import { cn } from "@/lib/utils";
 
 const SearchAndBooking = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
-  const { pharmacies, loading, searchPharmacies, getAllPharmacies } = usePharmacySearch();
+  const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies } = usePharmacySearch();
 
   // Handle URL parameters for service filter
   useEffect(() => {
@@ -38,32 +40,48 @@ const SearchAndBooking = () => {
     }
   }, []);
 
-  // Handle search when location changes
+  // Handle search when location changes with debouncing
   useEffect(() => {
-    if (location.trim()) {
-      searchPharmacies({ location });
-    } else {
-      getAllPharmacies();
-    }
+    const timeoutId = setTimeout(() => {
+      if (location.trim()) {
+        searchPharmacies({ location });
+      } else {
+        getAllPharmacies();
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
   }, [location]);
 
-  // Handle current location
+  // Handle current location with improved radius
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-          // You could also use getNearbyPharmacies here instead
+          // Use the enhanced nearby search with 25km radius
+          getNearbyPharmacies(latitude, longitude, 25);
         },
         (error) => {
           console.error('Error getting location:', error);
+          toast({
+            variant: "destructive",
+            title: "Location access denied",
+            description: "Please enable location access or enter an address manually.",
+          });
         }
       );
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Location not supported",
+        description: "Your browser doesn't support geolocation. Please enter an address manually.",
+      });
     }
   };
 
-  // Generate mock availability and services for display
+  // Generate mock availability and services for display (enhanced with distance)
   const getPharmacyDisplayInfo = (pharmacy: Pharmacy, index: number) => {
     const mockServices = [
       ["Minor ailments", "Flu shots", "Travel Vaccines"],
@@ -73,9 +91,15 @@ const SearchAndBooking = () => {
       ["Vaccinations", "Health screenings", "Consultations"]
     ];
     
+    // Check if pharmacy has a distance property (from search results)
+    const hasDistance = 'distance' in pharmacy;
+    const distance = hasDistance 
+      ? `${(pharmacy as any).distance.toFixed(1)} km` 
+      : `${(Math.random() * 5 + 0.5).toFixed(1)} km`;
+    
     return {
       ...pharmacy,
-      distance: `${(Math.random() * 5 + 0.5).toFixed(1)} km`,
+      distance,
       rating: Number((Math.random() * 1.5 + 3.5).toFixed(1)),
       reviews: Math.floor(Math.random() * 200 + 50),
       isAvailable: Math.random() > 0.3,

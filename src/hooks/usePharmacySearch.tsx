@@ -24,6 +24,59 @@ export const usePharmacySearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Simple geocoding for common zip codes (in a real app, you'd use a geocoding API)
+  const geocodeLocation = async (location: string): Promise<{ lat: number; lng: number } | null> => {
+    // Check if it's coordinates already (from geolocation)
+    const coordsMatch = location.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+    if (coordsMatch) {
+      return {
+        lat: parseFloat(coordsMatch[1]),
+        lng: parseFloat(coordsMatch[2])
+      };
+    }
+
+    // Simple zip code mapping for San Francisco area (demo purposes)
+    const zipCodeMap: Record<string, { lat: number; lng: number }> = {
+      '94102': { lat: 37.7869, lng: -122.4075 },
+      '94103': { lat: 37.7749, lng: -122.4194 },
+      '94104': { lat: 37.7912, lng: -122.4013 },
+      '94105': { lat: 37.7881, lng: -122.3916 },
+      '94107': { lat: 37.7594, lng: -122.3928 },
+      '94108': { lat: 37.7922, lng: -122.4079 },
+      '94109': { lat: 37.7925, lng: -122.4169 },
+      '94110': { lat: 37.7486, lng: -122.4133 },
+      '94111': { lat: 37.7970, lng: -122.3991 },
+      '94112': { lat: 37.7230, lng: -122.4413 },
+      '94114': { lat: 37.7609, lng: -122.4350 },
+      '94115': { lat: 37.7881, lng: -122.4378 },
+      '94116': { lat: 37.7448, lng: -122.4861 },
+      '94117': { lat: 37.7693, lng: -122.4481 },
+      '94118': { lat: 37.7816, lng: -122.4628 },
+      '94121': { lat: 37.7809, lng: -122.4893 },
+      '94122': { lat: 37.7597, lng: -122.4831 },
+      '94123': { lat: 37.7984, lng: -122.4397 },
+      '94124': { lat: 37.7312, lng: -122.3826 },
+      '94127': { lat: 37.7405, lng: -122.4581 },
+      '94131': { lat: 37.7447, lng: -122.4411 },
+      '94132': { lat: 37.7230, lng: -122.4813 },
+      '94133': { lat: 37.8030, lng: -122.4107 },
+      '94134': { lat: 37.7187, lng: -122.4057 }
+    };
+
+    // Check for zip code
+    const zipMatch = location.match(/\b(\d{5})\b/);
+    if (zipMatch && zipCodeMap[zipMatch[1]]) {
+      return zipCodeMap[zipMatch[1]];
+    }
+
+    // For text addresses, use a basic San Francisco center as fallback
+    if (location.toLowerCase().includes('san francisco') || location.toLowerCase().includes('sf')) {
+      return { lat: 37.7749, lng: -122.4194 }; // SF center
+    }
+
+    return null;
+  };
+
   // Calculate distance between two coordinates (Haversine formula)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371; // Earth's radius in kilometers
@@ -37,29 +90,49 @@ export const usePharmacySearch = () => {
     return R * c;
   };
 
-  // Search pharmacies with optional filters
+  // Search pharmacies with location-based filtering
   const searchPharmacies = async (filters: PharmacySearchFilters = {}) => {
     try {
       setLoading(true);
       setError(null);
 
-      let query = supabase
+      // Get all pharmacies first
+      const { data, error } = await supabase
         .from('pharmacies')
-        .select('*');
-
-      // If location is provided, we could add location-based filtering here
-      // For now, we'll just search by name/address if location is provided
-      if (filters.location) {
-        query = query.or(`name.ilike.%${filters.location}%,address.ilike.%${filters.location}%`);
-      }
-
-      const { data, error } = await query.order('name');
+        .select('*')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('name');
 
       if (error) {
         throw error;
       }
 
-      setPharmacies(data || []);
+      let filteredPharmacies = data || [];
+
+      // If location is provided, filter by proximity
+      if (filters.location && filters.location.trim()) {
+        const coords = await geocodeLocation(filters.location.trim());
+        
+        if (coords) {
+          // Filter pharmacies within 50km radius and sort by distance
+          filteredPharmacies = filteredPharmacies
+            .map(pharmacy => ({
+              ...pharmacy,
+              distance: calculateDistance(coords.lat, coords.lng, pharmacy.latitude!, pharmacy.longitude!)
+            }))
+            .filter(pharmacy => pharmacy.distance <= 50) // 50km radius
+            .sort((a, b) => a.distance - b.distance);
+        } else {
+          // Fallback to text search if geocoding fails
+          filteredPharmacies = filteredPharmacies.filter(pharmacy => 
+            pharmacy.name.toLowerCase().includes(filters.location!.toLowerCase()) ||
+            pharmacy.address.toLowerCase().includes(filters.location!.toLowerCase())
+          );
+        }
+      }
+
+      setPharmacies(filteredPharmacies);
     } catch (error) {
       console.error('Error searching pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to search pharmacies';
@@ -104,8 +177,8 @@ export const usePharmacySearch = () => {
     }
   };
 
-  // Get pharmacies near a specific location
-  const getNearbyPharmacies = async (latitude: number, longitude: number, radiusKm: number = 10) => {
+  // Get pharmacies near a specific location with enhanced filtering
+  const getNearbyPharmacies = async (latitude: number, longitude: number, radiusKm: number = 25) => {
     try {
       setLoading(true);
       setError(null);
@@ -120,16 +193,14 @@ export const usePharmacySearch = () => {
         throw error;
       }
 
-      // Filter by distance client-side
-      const nearbyPharmacies = (data || []).filter(pharmacy => {
-        if (!pharmacy.latitude || !pharmacy.longitude) return false;
-        const distance = calculateDistance(latitude, longitude, pharmacy.latitude, pharmacy.longitude);
-        return distance <= radiusKm;
-      }).sort((a, b) => {
-        const distanceA = calculateDistance(latitude, longitude, a.latitude!, a.longitude!);
-        const distanceB = calculateDistance(latitude, longitude, b.latitude!, b.longitude!);
-        return distanceA - distanceB;
-      });
+      // Filter by distance and sort by proximity
+      const nearbyPharmacies = (data || [])
+        .map(pharmacy => ({
+          ...pharmacy,
+          distance: calculateDistance(latitude, longitude, pharmacy.latitude!, pharmacy.longitude!)
+        }))
+        .filter(pharmacy => pharmacy.distance <= radiusKm)
+        .sort((a, b) => a.distance - b.distance);
 
       setPharmacies(nearbyPharmacies);
     } catch (error) {
