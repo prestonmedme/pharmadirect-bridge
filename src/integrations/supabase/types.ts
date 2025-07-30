@@ -44,6 +44,47 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          language_preference: string
+          notifications_enabled: boolean
+          phone_number: string | null
+          preferred_pharmacy_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language_preference?: string
+          notifications_enabled?: boolean
+          phone_number?: string | null
+          preferred_pharmacy_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language_preference?: string
+          notifications_enabled?: boolean
+          phone_number?: string | null
+          preferred_pharmacy_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_preferred_pharmacy_id_fkey"
+            columns: ["preferred_pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
