@@ -79,6 +79,7 @@ const ServicesCarousel = () => {
     
     let animationId: number;
     const scrollSpeed = 0.5;
+    const cardWidth = 320 + 24; // 80 (w-80) * 4 + 24 (gap-6)
 
     const autoScroll = () => {
       if (isUserInteracting) {
@@ -86,21 +87,12 @@ const ServicesCarousel = () => {
         return;
       }
 
-      const scrollWidth = container.scrollWidth;
-      const clientWidth = container.clientWidth;
-      
-      // Only animate if there's content to scroll
-      if (scrollWidth <= clientWidth) {
-        animationId = requestAnimationFrame(autoScroll);
-        return;
-      }
-
-      // Increment scroll position
       container.scrollLeft += scrollSpeed;
       
-      // Reset to beginning when we've scrolled halfway (since we duplicate items)
-      // This creates a seamless infinite loop
-      if (container.scrollLeft >= scrollWidth / 2) {
+      // Reset scroll position for infinite effect
+      // When we've scrolled past one full set of original items
+      const oneSetWidth = services.length * cardWidth;
+      if (container.scrollLeft >= oneSetWidth) {
         container.scrollLeft = 0;
       }
       
@@ -119,6 +111,23 @@ const ServicesCarousel = () => {
       }
     };
   }, [isUserInteracting]);
+  // Handle scroll events for seamless infinite scrolling
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    const cardWidth = 320 + 24; // w-80 + gap-6
+    const oneSetWidth = services.length * cardWidth;
+    
+    // If user scrolls to the end, reset to beginning
+    if (container.scrollLeft >= oneSetWidth) {
+      container.scrollLeft = 0;
+    }
+    // If user scrolls backwards past the beginning, jump to the end
+    else if (container.scrollLeft <= 0 && container.scrollLeft < 0) {
+      container.scrollLeft = oneSetWidth - container.clientWidth;
+    }
+  };
   const handleServiceClick = (serviceId: string) => {
     navigate(`/search?service=${serviceId}`);
   };
@@ -140,7 +149,7 @@ const ServicesCarousel = () => {
           </p>
         </div>
 
-        <div ref={scrollContainerRef} className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{
+        <div ref={scrollContainerRef} className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onScroll={handleScroll} style={{
         scrollbarWidth: 'none',
         msOverflowStyle: 'none'
       }}>
