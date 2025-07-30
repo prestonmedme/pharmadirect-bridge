@@ -36,7 +36,7 @@ const SearchAndBooking = () => {
       rating: 4.5,
       reviews: 127,
       isAvailable: false,
-      services: ["COVID-19", "Flu", "Travel vaccines"],
+      services: ["Minor ailments", "Flu shots", "Travel Vaccines"],
       nextAvailable: "Tomorrow, Jul 30",
       type: "external"
     },
@@ -48,7 +48,7 @@ const SearchAndBooking = () => {
       rating: 4.3,
       reviews: 89,
       isAvailable: true,
-      services: ["COVID-19", "RSV", "Pneumococcal"],
+      services: ["MedsCheck", "Birth Control", "Diabetes"],
       nextAvailable: "Today",
       type: "medme"
     },
@@ -60,7 +60,7 @@ const SearchAndBooking = () => {
       rating: 4.1,
       reviews: 203,
       isAvailable: true,
-      services: ["COVID-19", "Flu", "Shingles"],
+      services: ["Mental Health", "Naloxone Kits", "Pediatric Vax"],
       nextAvailable: "Today",
       type: "medme"
     }
@@ -76,8 +76,8 @@ const SearchAndBooking = () => {
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-primary">COVID-19</h1>
-              <p className="text-sm text-muted-foreground">Find vaccination appointments</p>
+              <h1 className="text-xl font-semibold text-primary">Pharmacy Services</h1>
+              <p className="text-sm text-muted-foreground">Find appointments and services</p>
             </div>
           </div>
         </div>
@@ -150,10 +150,17 @@ const SearchAndBooking = () => {
                       <SelectValue placeholder="All services" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="covid">COVID-19</SelectItem>
-                      <SelectItem value="flu">Flu</SelectItem>
-                      <SelectItem value="rsv">RSV</SelectItem>
-                      <SelectItem value="pneumococcal">Pneumococcal</SelectItem>
+                      <SelectItem value="minor-ailments">Minor ailments</SelectItem>
+                      <SelectItem value="flu-shots">Flu shots</SelectItem>
+                      <SelectItem value="medscheck">MedsCheck</SelectItem>
+                      <SelectItem value="naloxone">Naloxone Kits</SelectItem>
+                      <SelectItem value="birth-control">Birth Control</SelectItem>
+                      <SelectItem value="travel-vaccines">Travel Vaccines</SelectItem>
+                      <SelectItem value="diabetes">Diabetes</SelectItem>
+                      <SelectItem value="mental-health">Mental Health</SelectItem>
+                      <SelectItem value="delivery">Delivery</SelectItem>
+                      <SelectItem value="pediatric-vax">Pediatric Vax</SelectItem>
+                      <SelectItem value="open-now">Open Now</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
