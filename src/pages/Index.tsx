@@ -1,5 +1,6 @@
 import Header from "@/components/layout/Header";
 import HeroSection from "@/components/home/HeroSection";
+import ServicesCarousel from "@/components/home/ServicesCarousel";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -10,6 +11,7 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
+        <ServicesCarousel />
       </main>
     </div>
   );

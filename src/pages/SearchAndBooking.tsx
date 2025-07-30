@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,15 @@ const SearchAndBooking = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
+
+  // Handle URL parameters for service filter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const serviceParam = urlParams.get('service');
+    if (serviceParam) {
+      setSelectedService(serviceParam);
+    }
+  }, []);
 
   // Mock pharmacy data
   const pharmacies = [

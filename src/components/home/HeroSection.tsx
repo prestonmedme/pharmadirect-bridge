@@ -42,6 +42,28 @@ const HeroSection = () => {
               </div>
             </div>
 
+            {/* Feature Cards */}
+            <div className="grid gap-4 sm:grid-cols-3 mb-8">
+              <FeatureCard
+                icon={Search}
+                title="Find Nearby Pharmacies"
+                description="Locate pharmacies in your area with real-time availability and services offered."
+                className="text-center"
+              />
+              <FeatureCard
+                icon={Calendar}
+                title="Easy Online Booking"
+                description="Schedule appointments directly through our platform with instant confirmation."
+                className="text-center"
+              />
+              <FeatureCard
+                icon={Shield}
+                title="Verified Providers"
+                description="All pharmacies are verified and meet our strict quality and safety standards."
+                className="text-center"
+              />
+            </div>
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
@@ -70,23 +92,22 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Feature Cards */}
-          <div className="grid gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <FeatureCard
-              icon={Search}
-              title="Find Nearby Pharmacies"
-              description="Locate pharmacies in your area with real-time availability and services offered."
-            />
-            <FeatureCard
-              icon={Calendar}
-              title="Easy Online Booking"
-              description="Schedule appointments directly through our platform with instant confirmation."
-            />
-            <FeatureCard
-              icon={Shield}
-              title="Verified Providers"
-              description="All pharmacies are verified and meet our strict quality and safety standards."
-            />
+          {/* Right Column - Visual Element */}
+          <div className="relative animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="aspect-square max-w-md mx-auto">
+              <div className="absolute inset-0 bg-gradient-primary rounded-3xl opacity-10" />
+              <div className="absolute inset-4 bg-white rounded-2xl border border-border/20 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 bg-primary-lighter rounded-2xl flex items-center justify-center mx-auto">
+                    <Search className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-primary">Your Health Journey</h3>
+                    <p className="text-sm text-muted-foreground">Starts with finding the right pharmacy</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
