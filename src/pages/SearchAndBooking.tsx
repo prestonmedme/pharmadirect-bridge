@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { BookingDialog } from "@/components/booking/BookingDialog";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,14 @@ const SearchAndBooking = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies } = usePharmacySearch();
+
+  const handleBookNow = (pharmacy: Pharmacy) => {
+    setSelectedPharmacy(pharmacy);
+    setBookingDialogOpen(true);
+  };
 
   // Handle URL parameters for service filter
   useEffect(() => {
@@ -295,7 +303,11 @@ const SearchAndBooking = () => {
                           </div>
                           
                           {displayInfo.type === "medme" ? (
-                            <Button size="sm" variant="medical">
+                            <Button 
+                              size="sm" 
+                              variant="medical"
+                              onClick={() => handleBookNow(pharmacy)}
+                            >
                               Book Now
                             </Button>
                           ) : (
@@ -327,6 +339,13 @@ const SearchAndBooking = () => {
           </div>
         </div>
       </div>
+
+      <BookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        pharmacy={selectedPharmacy}
+        preselectedService={selectedService}
+      />
     </div>
   );
 };
