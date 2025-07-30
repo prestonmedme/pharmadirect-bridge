@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { User, Mail, Phone, MapPin, Globe, Bell, Calendar, Edit2 } from 'lucide-react';
 
@@ -29,6 +30,7 @@ type ProfileForm = z.infer<typeof profileSchema>;
 
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
@@ -36,8 +38,8 @@ const Profile = () => {
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: user?.user_metadata?.full_name || '',
-      email: user?.email || '',
+      fullName: '',
+      email: '',
       phoneNumber: '',
       preferredPharmacy: '',
       languagePreference: 'en',
@@ -45,9 +47,19 @@ const Profile = () => {
     },
   });
 
-  // Update form values when user data loads
+  // Update form values when user and profile data loads
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
+      form.reset({
+        fullName: user.user_metadata?.full_name || '',
+        email: user.email || '',
+        phoneNumber: profile.phone_number || '',
+        preferredPharmacy: profile.preferred_pharmacy_id || '',
+        languagePreference: profile.language_preference,
+        notificationsEnabled: profile.notifications_enabled,
+      });
+    } else if (user && !profileLoading && !profile) {
+      // User exists but no profile - use auth data as defaults
       form.reset({
         fullName: user.user_metadata?.full_name || '',
         email: user.email || '',
@@ -57,7 +69,7 @@ const Profile = () => {
         notificationsEnabled: true,
       });
     }
-  }, [user, form]);
+  }, [user, profile, profileLoading, form]);
 
   // Redirect if not authenticated
   if (!user && !authLoading) {
@@ -65,7 +77,7 @@ const Profile = () => {
   }
 
   // Don't render the page until we have user data or confirmed no user
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -84,19 +96,15 @@ const Profile = () => {
   const onSubmit = async (data: ProfileForm) => {
     setLoading(true);
     try {
-      // Here you would typically update the user profile in your database
-      // For now, we'll just show a success toast
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
+      await updateProfile({
+        phone_number: data.phoneNumber || null,
+        preferred_pharmacy_id: data.preferredPharmacy || null,
+        language_preference: data.languagePreference,
+        notifications_enabled: data.notificationsEnabled,
       });
       setIsEditing(false);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: "Failed to update your profile. Please try again.",
-      });
+      // Error handling is done in the updateProfile hook
     } finally {
       setLoading(false);
     }
@@ -247,11 +255,16 @@ const Profile = () => {
                     <MapPin className="h-4 w-4" />
                     Preferred Pharmacy
                   </Label>
-                  <Select disabled={!isEditing}>
+                  <Select 
+                    disabled={!isEditing}
+                    value={form.watch('preferredPharmacy')}
+                    onValueChange={(value) => form.setValue('preferredPharmacy', value)}
+                  >
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Select a pharmacy" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="">No preference</SelectItem>
                       <SelectItem value="city-pharmacy">City Pharmacy</SelectItem>
                       <SelectItem value="medcenter-plus">MedCenter Plus</SelectItem>
                       <SelectItem value="wellness-drugs">Wellness Drugs</SelectItem>
@@ -264,7 +277,11 @@ const Profile = () => {
                     <Globe className="h-4 w-4" />
                     Language Preference
                   </Label>
-                  <Select disabled={!isEditing}>
+                  <Select 
+                    disabled={!isEditing}
+                    value={form.watch('languagePreference')}
+                    onValueChange={(value) => form.setValue('languagePreference', value)}
+                  >
                     <SelectTrigger className="mt-2">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
@@ -281,7 +298,11 @@ const Profile = () => {
                     <Bell className="h-4 w-4" />
                     <Label>Notifications</Label>
                   </div>
-                  <Switch disabled={!isEditing} defaultChecked />
+                  <Switch 
+                    disabled={!isEditing} 
+                    checked={form.watch('notificationsEnabled')}
+                    onCheckedChange={(checked) => form.setValue('notificationsEnabled', checked)}
+                  />
                 </div>
               </CardContent>
             </Card>
