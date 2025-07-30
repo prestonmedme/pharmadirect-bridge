@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -45,11 +45,26 @@ const Profile = () => {
     },
   });
 
+  // Update form values when user data loads
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        fullName: user.user_metadata?.full_name || '',
+        email: user.email || '',
+        phoneNumber: '',
+        preferredPharmacy: '',
+        languagePreference: 'en',
+        notificationsEnabled: true,
+      });
+    }
+  }, [user, form]);
+
   // Redirect if not authenticated
   if (!user && !authLoading) {
     return <Navigate to="/login" replace />;
   }
 
+  // Don't render the page until we have user data or confirmed no user
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -59,6 +74,11 @@ const Profile = () => {
         </div>
       </div>
     );
+  }
+
+  // Redirect if not authenticated  
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
   const onSubmit = async (data: ProfileForm) => {
