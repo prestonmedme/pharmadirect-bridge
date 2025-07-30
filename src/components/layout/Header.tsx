@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, MapPin, User, Globe } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Menu, X, MapPin, User, Globe, LogOut, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const location = useLocation();
 
   return (
@@ -55,14 +58,50 @@ const Header = () => {
             </button>
           </nav>
 
-          {/* Auth Buttons - Desktop */}
+          {/* Authentication - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="medical-outline" size="sm">
-              Sign In
-            </Button>
-            <Button variant="medical" size="sm">
-              Register
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {user.user_metadata?.full_name || user.email}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    My Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/appointments')}>
+                    <MapPin className="mr-2 h-4 w-4" />
+                    My Appointments
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/login')}
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  className="bg-gradient-primary"
+                  size="sm"
+                  onClick={() => navigate('/register')}
+                >
+                  Register
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,13 +134,60 @@ const Header = () => {
               <Globe className="h-4 w-4" />
               Language
             </a>
-            <div className="flex flex-col space-y-2 pt-4">
-              <Button variant="medical-outline" size="sm">
-                Sign In
-              </Button>
-              <Button variant="medical" size="sm">
-                Register
-              </Button>
+            {/* Mobile Authentication */}
+            <div className="flex flex-col space-y-2 pt-4 border-t">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground">
+                    <User className="h-4 w-4" />
+                    {user.user_metadata?.full_name || user.email}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/profile')}
+                    className="justify-start"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    My Profile
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/appointments')}
+                    className="justify-start"
+                  >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    My Appointments
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={signOut}
+                    className="justify-start"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/login')}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    className="bg-gradient-primary"
+                    size="sm"
+                    onClick={() => navigate('/register')}
+                  >
+                    Register
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>
