@@ -75,35 +75,57 @@ const ServicesCarousel = () => {
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (!container || isUserInteracting) return;
-    const scrollWidth = container.scrollWidth;
-    const clientWidth = container.clientWidth;
-    const maxScroll = scrollWidth - clientWidth;
-    let scrollPosition = 0;
-    const scrollSpeed = 0.5; // pixels per frame
+    if (!container) return;
+    
+    let animationId: number;
+    let scrollPosition = container.scrollLeft;
+    const scrollSpeed = 0.3; // Reduced speed for smoother animation
 
     const autoScroll = () => {
-      if (isUserInteracting) return;
+      if (isUserInteracting) {
+        animationId = requestAnimationFrame(autoScroll);
+        return;
+      }
+
+      const scrollWidth = container.scrollWidth;
+      const clientWidth = container.clientWidth;
+      const maxScroll = scrollWidth - clientWidth;
+
       scrollPosition += scrollSpeed;
-      if (scrollPosition >= maxScroll) {
+      
+      // Seamless loop without direction change
+      if (scrollPosition >= scrollWidth) {
         scrollPosition = 0;
       }
+      
       container.scrollLeft = scrollPosition;
-      requestAnimationFrame(autoScroll);
+      animationId = requestAnimationFrame(autoScroll);
     };
-    const timeoutId = setTimeout(() => {
-      requestAnimationFrame(autoScroll);
-    }, 2000); // Start after 2 seconds
 
-    return () => clearTimeout(timeoutId);
+    // Start animation after a delay
+    const timeoutId = setTimeout(() => {
+      animationId = requestAnimationFrame(autoScroll);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
   }, [isUserInteracting]);
   const handleServiceClick = (serviceId: string) => {
     navigate(`/search?service=${serviceId}`);
   };
   const handleMouseEnter = () => setIsUserInteracting(true);
-  const handleMouseLeave = () => setIsUserInteracting(false);
+  const handleMouseLeave = () => {
+    // Delay before resuming animation to prevent choppiness
+    setTimeout(() => setIsUserInteracting(false), 1000);
+  };
   const handleTouchStart = () => setIsUserInteracting(true);
-  const handleTouchEnd = () => setIsUserInteracting(false);
+  const handleTouchEnd = () => {
+    setTimeout(() => setIsUserInteracting(false), 1000);
+  };
   return <section className="py-16 bg-background border-t border-border/50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
@@ -119,14 +141,14 @@ const ServicesCarousel = () => {
       }}>
           {services.map(service => {
           const Icon = service.icon;
-          return <Button key={service.id} variant="ghost" className="flex-shrink-0 w-80 h-auto p-6 flex flex-col items-start text-left hover:shadow-lg hover:border-primary/20 border border-border rounded-2xl bg-white transition-all duration-300 hover:-translate-y-1" onClick={() => handleServiceClick(service.id)}>
-                <div className={`w-12 h-12 rounded-xl ${service.color} flex items-center justify-center mb-4`}>
+          return <Button key={service.id} variant="ghost" className="flex-shrink-0 w-80 h-40 p-6 flex flex-col items-start text-left hover:shadow-lg hover:border-primary/20 border border-border rounded-2xl bg-white transition-all duration-300 hover:-translate-y-1" onClick={() => handleServiceClick(service.id)}>
+                <div className={`w-12 h-12 rounded-xl ${service.color} flex items-center justify-center mb-3`}>
                   <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-1">
                   {service.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 flex-1">
                   {service.description}
                 </p>
               </Button>;
