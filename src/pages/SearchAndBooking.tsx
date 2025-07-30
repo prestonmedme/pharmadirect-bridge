@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
 import { 
   MapPin, 
   Calendar as CalendarIcon, 
@@ -15,7 +16,8 @@ import {
   Phone,
   ChevronLeft,
   Star,
-  Navigation
+  Navigation,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,7 @@ const SearchAndBooking = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
+  const { pharmacies, loading, searchPharmacies, getAllPharmacies } = usePharmacySearch();
 
   // Handle URL parameters for service filter
   useEffect(() => {
@@ -35,45 +38,52 @@ const SearchAndBooking = () => {
     }
   }, []);
 
-  // Mock pharmacy data
-  const pharmacies = [
-    {
-      id: 1,
-      name: "Costco Pharmacy - San Francisco",
-      address: "450 10TH ST, SAN FRANCISCO, CA",
-      distance: "0.8 km",
-      rating: 4.5,
-      reviews: 127,
-      isAvailable: false,
-      services: ["Minor ailments", "Flu shots", "Travel Vaccines"],
-      nextAvailable: "Tomorrow, Jul 30",
-      type: "external"
-    },
-    {
-      id: 2,
-      name: "Safeway Pharmacy 1507",
-      address: "2020 Market St, San Francisco, CA",
-      distance: "1.2 km",
-      rating: 4.3,
-      reviews: 89,
-      isAvailable: true,
-      services: ["MedsCheck", "Birth Control", "Diabetes"],
-      nextAvailable: "Today",
-      type: "medme"
-    },
-    {
-      id: 3,
-      name: "Walgreens #9847",
-      address: "135 Powell St, San Francisco, CA",
-      distance: "1.5 km", 
-      rating: 4.1,
-      reviews: 203,
-      isAvailable: true,
-      services: ["Mental Health", "Naloxone Kits", "Pediatric Vax"],
-      nextAvailable: "Today",
-      type: "medme"
+  // Handle search when location changes
+  useEffect(() => {
+    if (location.trim()) {
+      searchPharmacies({ location });
+    } else {
+      getAllPharmacies();
     }
-  ];
+  }, [location]);
+
+  // Handle current location
+  const handleUseCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          // You could also use getNearbyPharmacies here instead
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  };
+
+  // Generate mock availability and services for display
+  const getPharmacyDisplayInfo = (pharmacy: Pharmacy, index: number) => {
+    const mockServices = [
+      ["Minor ailments", "Flu shots", "Travel Vaccines"],
+      ["MedsCheck", "Birth Control", "Diabetes"],
+      ["Mental Health", "Naloxone Kits", "Pediatric Vax"],
+      ["Prescription refills", "Blood pressure checks"],
+      ["Vaccinations", "Health screenings", "Consultations"]
+    ];
+    
+    return {
+      ...pharmacy,
+      distance: `${(Math.random() * 5 + 0.5).toFixed(1)} km`,
+      rating: Number((Math.random() * 1.5 + 3.5).toFixed(1)),
+      reviews: Math.floor(Math.random() * 200 + 50),
+      isAvailable: Math.random() > 0.3,
+      services: mockServices[index % mockServices.length],
+      nextAvailable: Math.random() > 0.5 ? "Today" : "Tomorrow",
+      type: Math.random() > 0.3 ? "medme" : "external"
+    };
+  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -116,7 +126,12 @@ const SearchAndBooking = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="medical-outline" size="sm" className="mt-2 w-full">
+                  <Button 
+                    variant="medical-outline" 
+                    size="sm" 
+                    className="mt-2 w-full"
+                    onClick={handleUseCurrentLocation}
+                  >
                     <Navigation className="h-4 w-4 mr-2" />
                     Use current location
                   </Button>
@@ -180,7 +195,14 @@ const SearchAndBooking = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-foreground">
-                  {pharmacies.length} pharmacies found
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Searching...
+                    </div>
+                  ) : (
+                    `${pharmacies.length} pharmacies found`
+                  )}
                 </h3>
                 <Button variant="ghost" size="sm">
                   <Filter className="h-4 w-4 mr-2" />
@@ -188,66 +210,82 @@ const SearchAndBooking = () => {
                 </Button>
               </div>
 
-              {pharmacies.map((pharmacy) => (
-                <Card key={pharmacy.id} className="p-4 hover:shadow-card transition-all duration-300">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-foreground text-sm">
-                          {pharmacy.name}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {pharmacy.address}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs text-muted-foreground">
-                              {pharmacy.rating} ({pharmacy.reviews})
-                            </span>
+              {loading ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                  <p className="text-muted-foreground">Loading pharmacies...</p>
+                </div>
+              ) : pharmacies.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg">No pharmacies found</p>
+                  <p className="text-sm">Try adjusting your search criteria</p>
+                </div>
+              ) : (
+                pharmacies.map((pharmacy, index) => {
+                  const displayInfo = getPharmacyDisplayInfo(pharmacy, index);
+                  return (
+                    <Card key={pharmacy.id} className="p-4 hover:shadow-card transition-all duration-300">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground text-sm">
+                              {pharmacy.name}
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {pharmacy.address}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs text-muted-foreground">
+                                  {displayInfo.rating} ({displayInfo.reviews})
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                • {displayInfo.distance}
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-xs text-muted-foreground">
-                            • {pharmacy.distance}
-                          </span>
+                          
+                          <Badge 
+                            variant={displayInfo.isAvailable ? "default" : "secondary"}
+                            className="text-xs"
+                          >
+                            {displayInfo.isAvailable ? "Available" : "Busy"}
+                          </Badge>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1">
+                          {displayInfo.services.map((service) => (
+                            <Badge key={service} variant="outline" className="text-xs">
+                              {service}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Next: {displayInfo.nextAvailable}
+                          </div>
+                          
+                          {displayInfo.type === "medme" ? (
+                            <Button size="sm" variant="medical">
+                              Book Now
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="medical-outline">
+                              <Phone className="h-3 w-3 mr-1" />
+                              {pharmacy.phone ? 'Call' : 'Contact'}
+                            </Button>
+                          )}
                         </div>
                       </div>
-                      
-                      <Badge 
-                        variant={pharmacy.isAvailable ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {pharmacy.isAvailable ? "Available" : "Busy"}
-                      </Badge>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {pharmacy.services.map((service) => (
-                        <Badge key={service} variant="outline" className="text-xs">
-                          {service}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        Next: {pharmacy.nextAvailable}
-                      </div>
-                      
-                      {pharmacy.type === "medme" ? (
-                        <Button size="sm" variant="medical">
-                          Book Now
-                        </Button>
-                      ) : (
-                        <Button size="sm" variant="medical-outline">
-                          <Phone className="h-3 w-3 mr-1" />
-                          Contact
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                    </Card>
+                  );
+                })
+              )}
             </div>
           </div>
 
