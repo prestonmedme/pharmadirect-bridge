@@ -78,7 +78,7 @@ const ServicesCarousel = () => {
     if (!container) return;
     
     let animationId: number;
-    const scrollSpeed = 0.3;
+    const scrollSpeed = 0.5;
 
     const autoScroll = () => {
       if (isUserInteracting) {
@@ -98,9 +98,9 @@ const ServicesCarousel = () => {
       // Increment scroll position
       container.scrollLeft += scrollSpeed;
       
-      // Reset to beginning when we've scrolled past the first set of items
-      // This creates a seamless loop effect
-      if (container.scrollLeft >= scrollWidth - clientWidth) {
+      // Reset to beginning when we've scrolled halfway (since we duplicate items)
+      // This creates a seamless infinite loop
+      if (container.scrollLeft >= scrollWidth / 2) {
         container.scrollLeft = 0;
       }
       
@@ -144,9 +144,10 @@ const ServicesCarousel = () => {
         scrollbarWidth: 'none',
         msOverflowStyle: 'none'
       }}>
-          {services.map(service => {
+          {/* Render services twice for seamless infinite scroll */}
+          {[...services, ...services].map((service, index) => {
           const Icon = service.icon;
-          return <Button key={service.id} variant="ghost" className="flex-shrink-0 w-80 h-40 p-6 flex flex-col items-start text-left hover:shadow-lg hover:border-primary/20 border border-border rounded-2xl bg-white transition-all duration-300 hover:-translate-y-1" onClick={() => handleServiceClick(service.id)}>
+          return <Button key={`${service.id}-${index}`} variant="ghost" className="flex-shrink-0 w-80 h-40 p-6 flex flex-col items-start text-left hover:shadow-lg hover:border-primary/20 border border-border rounded-2xl bg-white transition-all duration-300 hover:-translate-y-1" onClick={() => handleServiceClick(service.id)}>
                 <div className={`w-12 h-12 rounded-xl ${service.color} flex items-center justify-center mb-3`}>
                   <Icon className="h-6 w-6" />
                 </div>
