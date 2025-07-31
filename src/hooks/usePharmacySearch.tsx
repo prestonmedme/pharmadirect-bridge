@@ -274,10 +274,6 @@ export const usePharmacySearch = () => {
     }
   };
 
-  // Load all pharmacies on initial mount
-  useEffect(() => {
-    getAllPharmacies();
-  }, []);
 
   return {
     pharmacies,
