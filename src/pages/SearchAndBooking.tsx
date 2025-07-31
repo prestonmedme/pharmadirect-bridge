@@ -391,80 +391,84 @@ const SearchAndBooking = () => {
         </div>
 
         {/* Right Column - Map or Calendar */}
-        <div className="w-1/2 h-screen sticky top-0">
-          {calendarOpen ? (
-            <div className="h-full bg-gray-50 flex flex-col animate-in slide-in-from-right duration-300">
-              <div className="p-6 bg-white border-b flex-shrink-0">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold text-primary">Select Date & Time</h3>
-                  <button 
-                    onClick={() => setCalendarOpen(false)}
-                    className="text-muted-foreground hover:text-foreground text-xl"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                  className="pointer-events-auto mx-auto"
-                />
-              </div>
-              
-              <div className="flex-1 p-6 bg-gray-50 space-y-4">
-                <h4 className="text-lg font-medium text-foreground">Preferred Time</h4>
-                
-                {[
-                  { label: "Morning", value: "morning", time: "Before 12pm" },
-                  { label: "Afternoon", value: "afternoon", time: "12pm - 5pm" },
-                  { label: "Evening", value: "evening", time: "After 5pm" }
-                ].map((slot) => (
-                  <div key={slot.value} className="flex items-center justify-between py-4 px-4 bg-white rounded-lg border">
-                    <div className="flex items-center space-x-4">
-                      <Checkbox 
-                        id={slot.value}
-                        checked={selectedTimeSlots.includes(slot.value)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedTimeSlots(prev => [...prev, slot.value]);
-                          } else {
-                            setSelectedTimeSlots(prev => prev.filter(s => s !== slot.value));
-                          }
-                        }}
-                      />
-                      <label 
-                        htmlFor={slot.value} 
-                        className="text-lg font-medium text-foreground cursor-pointer"
-                      >
-                        {slot.label}
-                      </label>
-                    </div>
-                    <span className="text-sm text-muted-foreground">{slot.time}</span>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="p-6 bg-white border-t flex-shrink-0">
-                <Button 
-                  className="w-full py-3 text-lg" 
-                  variant="medical"
+        <div className="w-1/2 h-screen sticky top-0 relative overflow-hidden">
+          {/* Map - Always present */}
+          <GoogleMap
+            center={mapCenter}
+            zoom={mapZoom}
+            markers={createMarkersFromPharmacies()}
+            onMarkerClick={handleMarkerClick}
+            className="h-full w-full"
+          />
+          
+          {/* Calendar Overlay - Slides in from right */}
+          <div 
+            className={`absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out ${
+              calendarOpen ? 'transform translate-x-0' : 'transform translate-x-full'
+            }`}
+          >
+            <div className="p-6 bg-white border-b flex-shrink-0">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-primary">Select Date & Time</h3>
+                <button 
                   onClick={() => setCalendarOpen(false)}
+                  className="text-muted-foreground hover:text-foreground text-xl"
                 >
-                  Done
-                </Button>
+                  ✕
+                </button>
               </div>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                initialFocus
+                className="pointer-events-auto mx-auto"
+              />
             </div>
-          ) : (
-            <GoogleMap
-              center={mapCenter}
-              zoom={mapZoom}
-              markers={createMarkersFromPharmacies()}
-              onMarkerClick={handleMarkerClick}
-              className="h-full w-full"
-            />
-          )}
+            
+            <div className="flex-1 p-6 bg-gray-50 space-y-4">
+              <h4 className="text-lg font-medium text-foreground">Preferred Time</h4>
+              
+              {[
+                { label: "Morning", value: "morning", time: "Before 12pm" },
+                { label: "Afternoon", value: "afternoon", time: "12pm - 5pm" },
+                { label: "Evening", value: "evening", time: "After 5pm" }
+              ].map((slot) => (
+                <div key={slot.value} className="flex items-center justify-between py-4 px-4 bg-white rounded-lg border">
+                  <div className="flex items-center space-x-4">
+                    <Checkbox 
+                      id={slot.value}
+                      checked={selectedTimeSlots.includes(slot.value)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedTimeSlots(prev => [...prev, slot.value]);
+                        } else {
+                          setSelectedTimeSlots(prev => prev.filter(s => s !== slot.value));
+                        }
+                      }}
+                    />
+                    <label 
+                      htmlFor={slot.value} 
+                      className="text-lg font-medium text-foreground cursor-pointer"
+                    >
+                      {slot.label}
+                    </label>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{slot.time}</span>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-6 bg-white border-t flex-shrink-0">
+              <Button 
+                className="w-full py-3 text-lg" 
+                variant="medical"
+                onClick={() => setCalendarOpen(false)}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
