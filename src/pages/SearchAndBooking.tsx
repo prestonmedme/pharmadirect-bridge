@@ -428,7 +428,7 @@ const SearchAndBooking = () => {
               />
             </div>
             
-            <div className="flex-1 p-6 bg-gray-50 space-y-4">
+            <div className="flex-1 p-6 bg-gray-50 space-y-2">
               <h4 className="text-lg font-medium text-foreground">Preferred Time</h4>
               
               {[
