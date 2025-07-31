@@ -404,7 +404,7 @@ const SearchAndBooking = () => {
           {/* Calendar Overlay - Slides in from right */}
           <div 
             className={`absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out ${
-              calendarOpen ? 'translate-x-0' : 'translate-x-full'
+              calendarOpen ? 'translate-x-0' : ''
             }`}
             style={{ transform: calendarOpen ? 'translateX(0)' : 'translateX(100%)' }}
           >
