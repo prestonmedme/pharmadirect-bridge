@@ -10,12 +10,22 @@ export interface Pharmacy {
   website: string | null;
   latitude: number | null;
   longitude: number | null;
+  type?: 'regular' | 'medme';
+}
+
+export interface MedMePharmacy {
+  id: string;
+  name: string | null;
+  "Pharmacy Address__street_address": string | null;
+  "Pharmacy Address__latitude": string | null;
+  "Pharmacy Address__longitude": string | null;
 }
 
 export interface PharmacySearchFilters {
   location?: string;
   service?: string;
   date?: Date;
+  medmeOnly?: boolean;
 }
 
 export const usePharmacySearch = () => {
@@ -23,6 +33,20 @@ export const usePharmacySearch = () => {
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Convert MedMe pharmacy to standard pharmacy format
+  const convertMedMePharmacy = (medmePharmacy: MedMePharmacy): Pharmacy => {
+    return {
+      id: medmePharmacy.id,
+      name: medmePharmacy.name || 'MedMe Pharmacy',
+      address: medmePharmacy["Pharmacy Address__street_address"] || '',
+      phone: null,
+      website: null,
+      latitude: medmePharmacy["Pharmacy Address__latitude"] ? parseFloat(medmePharmacy["Pharmacy Address__latitude"]) : null,
+      longitude: medmePharmacy["Pharmacy Address__longitude"] ? parseFloat(medmePharmacy["Pharmacy Address__longitude"]) : null,
+      type: 'medme'
+    };
+  };
 
   // Simple geocoding for common zip codes (in a real app, you'd use a geocoding API)
   const geocodeLocation = async (location: string): Promise<{ lat: number; lng: number } | null> => {
@@ -96,19 +120,42 @@ export const usePharmacySearch = () => {
       setLoading(true);
       setError(null);
 
-      // Get all pharmacies first
-      const { data, error } = await supabase
+      // Get regular pharmacies
+      const { data: regularPharmacies, error: regularError } = await supabase
         .from('pharmacies')
         .select('*')
         .not('latitude', 'is', null)
         .not('longitude', 'is', null)
         .order('name');
 
-      if (error) {
-        throw error;
+      if (regularError) {
+        throw regularError;
       }
 
-      let filteredPharmacies = data || [];
+      // Get MedMe pharmacies using direct query
+      const { data: medmePharmacies, error: medmeError } = await supabase
+        .from('medme_pharmacies' as any)
+        .select('id, name, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
+        .not('"Pharmacy Address__latitude"', 'is', null)
+        .not('"Pharmacy Address__longitude"', 'is', null)
+        .order('name');
+
+      if (medmeError) {
+        console.warn('Error fetching MedMe pharmacies:', medmeError);
+      }
+
+      // Combine and convert pharmacies
+      let allPharmacies: Pharmacy[] = [
+        ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
+        ...(medmePharmacies || []).map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
+      ];
+
+      // Filter by MedMe only if requested
+      if (filters.medmeOnly) {
+        allPharmacies = allPharmacies.filter(p => p.type === 'medme');
+      }
+
+      let filteredPharmacies = allPharmacies;
 
       // If location is provided, filter by proximity
       if (filters.location && filters.location.trim()) {

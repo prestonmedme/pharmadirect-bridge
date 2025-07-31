@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
 import { useToast } from "@/hooks/use-toast";
 import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import medmeLogo from '@/assets/medme-logo.svg';
 
 const SearchAndBooking = () => {
   const navigate = useNavigate();
@@ -31,11 +33,13 @@ const SearchAndBooking = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
+  const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 37.7749, lng: -122.4194 }); // Default to SF
   const [mapZoom, setMapZoom] = useState<number>(12);
   const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies } = usePharmacySearch();
+
 
   const handleBookNow = (pharmacy: Pharmacy) => {
     setSelectedPharmacy(pharmacy);
@@ -79,18 +83,18 @@ const SearchAndBooking = () => {
     }
   }, []);
 
-  // Handle search when location changes with debouncing
+  // Handle search when location and filters change with debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (location.trim()) {
-        searchPharmacies({ location });
+        searchPharmacies({ location, medmeOnly });
       }
       // Remove getAllPharmacies() call when location is empty
       // Pharmacies should only show after search is performed
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [location]);
+  }, [location, medmeOnly]);
 
   // Handle current location with improved radius
   const handleUseCurrentLocation = () => {
@@ -102,8 +106,8 @@ const SearchAndBooking = () => {
           // Update map center to user's location
           setMapCenter({ lat: latitude, lng: longitude });
           setMapZoom(14);
-          // Use the enhanced nearby search with 25km radius
-          getNearbyPharmacies(latitude, longitude, 25);
+           // Use the enhanced nearby search with 25km radius
+           getNearbyPharmacies(latitude, longitude, 25);
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -145,10 +149,10 @@ const SearchAndBooking = () => {
       rating: Number((Math.random() * 1.5 + 3.5).toFixed(1)),
       reviews: Math.floor(Math.random() * 200 + 50),
       isAvailable: Math.random() > 0.3,
-      services: mockServices[index % mockServices.length],
-      nextAvailable: Math.random() > 0.5 ? "Today" : "Tomorrow",
-      type: Math.random() > 0.3 ? "medme" : "external"
-    };
+       services: mockServices[index % mockServices.length],
+       nextAvailable: Math.random() > 0.5 ? "Today" : "Tomorrow",
+       type: pharmacy.type || (Math.random() > 0.3 ? "medme" : "external")
+     };
   };
 
   return (
@@ -254,6 +258,21 @@ const SearchAndBooking = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* MedMe Filter */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="medme-filter" 
+                    checked={medmeOnly}
+                    onCheckedChange={(checked) => setMedmeOnly(checked === true)}
+                  />
+                  <label 
+                    htmlFor="medme-filter" 
+                    className="text-sm font-medium text-foreground cursor-pointer"
+                  >
+                    MedMe pharmacies only
+                  </label>
+                </div>
               </div>
             </Card>
 
@@ -303,12 +322,21 @@ const SearchAndBooking = () => {
                         }
                       }}
                     >
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-foreground text-sm">
-                              {pharmacy.name}
-                            </h4>
+                       <div className="space-y-3">
+                         <div className="flex justify-between items-start">
+                           <div className="flex-1">
+                             <div className="flex items-center gap-2">
+                               <h4 className="font-semibold text-foreground text-sm">
+                                 {pharmacy.name}
+                               </h4>
+                               {pharmacy.type === 'medme' && (
+                                 <img 
+                                   src={medmeLogo} 
+                                   alt="MedMe Partner" 
+                                   className="h-4 w-4"
+                                 />
+                               )}
+                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                               {pharmacy.address}
                             </p>
