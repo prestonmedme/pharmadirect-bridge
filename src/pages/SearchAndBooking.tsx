@@ -459,16 +459,16 @@ const SearchAndBooking = () => {
                   <span className="text-sm text-muted-foreground">{slot.time}</span>
                 </div>
               ))}
-            </div>
-            
-            <div className="p-6 bg-white border-t flex-shrink-0">
-              <Button 
-                className="w-full py-3 text-lg" 
-                variant="medical"
-                onClick={() => setCalendarOpen(false)}
-              >
-                Done
-              </Button>
+              
+              <div className="pt-4">
+                <Button 
+                  className="w-full py-3 text-lg" 
+                  variant="medical"
+                  onClick={() => setCalendarOpen(false)}
+                >
+                  Done
+                </Button>
+              </div>
             </div>
           </div>
         </div>
