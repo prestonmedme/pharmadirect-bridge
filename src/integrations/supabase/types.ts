@@ -70,6 +70,78 @@ export type Database = {
           },
         ]
       }
+      medme_pharmacies: {
+        Row: {
+          domain: string | null
+          enterprise: string | null
+          google_place_id: string | null
+          id: string
+          name: string | null
+          "Pharmacy Address__city": string | null
+          "Pharmacy Address__country": string | null
+          "Pharmacy Address__latitude": string | null
+          "Pharmacy Address__longitude": string | null
+          "Pharmacy Address__po_box": string | null
+          "Pharmacy Address__postal_code": string | null
+          "Pharmacy Address__province": string | null
+          "Pharmacy Address__street_address": string | null
+          "Pharmacy Address__street_name": string | null
+          "Pharmacy Address__street_number": string | null
+          "Pharmacy Address__unit": string | null
+          province: string | null
+          store_no: string | null
+          tenant_id: string | null
+          time_zone: string | null
+          website: string | null
+        }
+        Insert: {
+          domain?: string | null
+          enterprise?: string | null
+          google_place_id?: string | null
+          id: string
+          name?: string | null
+          "Pharmacy Address__city"?: string | null
+          "Pharmacy Address__country"?: string | null
+          "Pharmacy Address__latitude"?: string | null
+          "Pharmacy Address__longitude"?: string | null
+          "Pharmacy Address__po_box"?: string | null
+          "Pharmacy Address__postal_code"?: string | null
+          "Pharmacy Address__province"?: string | null
+          "Pharmacy Address__street_address"?: string | null
+          "Pharmacy Address__street_name"?: string | null
+          "Pharmacy Address__street_number"?: string | null
+          "Pharmacy Address__unit"?: string | null
+          province?: string | null
+          store_no?: string | null
+          tenant_id?: string | null
+          time_zone?: string | null
+          website?: string | null
+        }
+        Update: {
+          domain?: string | null
+          enterprise?: string | null
+          google_place_id?: string | null
+          id?: string
+          name?: string | null
+          "Pharmacy Address__city"?: string | null
+          "Pharmacy Address__country"?: string | null
+          "Pharmacy Address__latitude"?: string | null
+          "Pharmacy Address__longitude"?: string | null
+          "Pharmacy Address__po_box"?: string | null
+          "Pharmacy Address__postal_code"?: string | null
+          "Pharmacy Address__province"?: string | null
+          "Pharmacy Address__street_address"?: string | null
+          "Pharmacy Address__street_name"?: string | null
+          "Pharmacy Address__street_number"?: string | null
+          "Pharmacy Address__unit"?: string | null
+          province?: string | null
+          store_no?: string | null
+          tenant_id?: string | null
+          time_zone?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       pharmacies: {
         Row: {
           address: string
