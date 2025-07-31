@@ -405,7 +405,8 @@ const SearchAndBooking = () => {
           <div 
             className="absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out"
             style={{ 
-              transform: calendarOpen ? 'translateX(0%)' : 'translateX(100%)'
+              transform: calendarOpen ? 'translateX(0%)' : 'translateX(100%)',
+              pointerEvents: calendarOpen ? 'auto' : 'none'
             }}
           >
             <div className="p-6 bg-white border-b flex-shrink-0">
