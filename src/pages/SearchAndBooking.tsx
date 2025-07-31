@@ -219,7 +219,7 @@ const SearchAndBooking = () => {
                       "w-full justify-start text-left font-normal",
                       !selectedDate && "text-muted-foreground"
                     )}
-                    onClick={() => setCalendarOpen(true)}
+                    onClick={() => setCalendarOpen(!calendarOpen)}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {selectedDate ? format(selectedDate, "PPP") : "Today, Jul 31"}
@@ -403,10 +403,9 @@ const SearchAndBooking = () => {
           
           {/* Calendar Overlay - Slides in from right */}
           <div 
-            className="absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out overflow-hidden"
+            className="absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out"
             style={{ 
-              transform: calendarOpen ? 'translateX(0%)' : 'translateX(100%)',
-              visibility: calendarOpen ? 'visible' : 'hidden'
+              transform: calendarOpen ? 'translateX(0%)' : 'translateX(100%)'
             }}
           >
             <div className="p-6 bg-white border-b flex-shrink-0">
