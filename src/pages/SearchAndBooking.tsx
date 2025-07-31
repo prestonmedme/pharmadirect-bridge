@@ -152,9 +152,9 @@ const SearchAndBooking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-gradient-subtle flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b shadow-sm">
+      <div className="bg-white border-b shadow-sm flex-shrink-0">
         <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
@@ -168,10 +168,10 @@ const SearchAndBooking = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid lg:grid-cols-5 gap-6">
-          {/* Left Column - Filters and Results */}
-          <div className="lg:col-span-2 space-y-6">
+      <div className="flex-1 flex">
+        {/* Left Column - Filters and Results - Scrollable */}
+        <div className="w-1/2 overflow-y-auto">
+          <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {/* Location and Date */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-primary mb-4">
@@ -369,19 +369,17 @@ const SearchAndBooking = () => {
               )}
             </div>
           </div>
+        </div>
 
-          {/* Right Column - Map */}
-          <div className="lg:col-span-3">
-            <Card className="h-[600px] lg:h-[800px] overflow-hidden">
-              <GoogleMap
-                center={mapCenter}
-                zoom={mapZoom}
-                markers={createMarkersFromPharmacies()}
-                onMarkerClick={handleMarkerClick}
-                className="h-full w-full rounded-lg"
-              />
-            </Card>
-          </div>
+        {/* Right Column - Fixed Map Sidebar */}
+        <div className="w-1/2 h-screen sticky top-0">
+          <GoogleMap
+            center={mapCenter}
+            zoom={mapZoom}
+            markers={createMarkersFromPharmacies()}
+            onMarkerClick={handleMarkerClick}
+            className="h-full w-full"
+          />
         </div>
       </div>
 

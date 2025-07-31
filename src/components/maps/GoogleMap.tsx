@@ -166,7 +166,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   return (
     <Wrapper
       apiKey={GOOGLE_MAPS_CONFIG.apiKey}
-      libraries={GOOGLE_MAPS_CONFIG.libraries}
+      libraries={GOOGLE_MAPS_CONFIG.libraries as any}
       render={render}
     >
       <Map
