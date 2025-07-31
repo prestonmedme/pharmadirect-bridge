@@ -121,7 +121,7 @@ const SearchAndBooking = () => {
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
       <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
               <ChevronLeft className="h-5 w-5" />
@@ -134,7 +134,7 @@ const SearchAndBooking = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-5 gap-6">
           {/* Left Column - Filters and Results */}
           <div className="lg:col-span-2 space-y-6">
