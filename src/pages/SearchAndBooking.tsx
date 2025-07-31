@@ -32,6 +32,7 @@ const SearchAndBooking = () => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
+  const [calendarOpen, setCalendarOpen] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
@@ -212,7 +213,7 @@ const SearchAndBooking = () => {
                   <label className="text-sm font-medium text-foreground mb-2 block">
                     Select Date
                   </label>
-                  <Popover>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -225,12 +226,21 @@ const SearchAndBooking = () => {
                         {selectedDate ? format(selectedDate, "PPP") : "Today, Jul 31"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-50" align="start" side="right" sideOffset={10}>
-                      <div className="bg-white border rounded-lg shadow-lg min-w-[400px]">
-                        <div className="p-4 border-b">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-primary">Select Date & Time</h3>
-                            <button className="text-muted-foreground hover:text-foreground">
+                    <PopoverContent 
+                      className="w-full p-0 z-50 border-0 shadow-none bg-transparent" 
+                      align="start" 
+                      side="right" 
+                      sideOffset={-400}
+                      style={{ width: '50vw' }}
+                    >
+                      <div className="bg-white border rounded-lg shadow-lg h-full min-h-[600px] w-full">
+                        <div className="p-6 border-b">
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-semibold text-primary">Select Date & Time</h3>
+                            <button 
+                              onClick={() => setCalendarOpen(false)}
+                              className="text-muted-foreground hover:text-foreground text-xl"
+                            >
                               ✕
                             </button>
                           </div>
@@ -239,20 +249,20 @@ const SearchAndBooking = () => {
                             selected={selectedDate}
                             onSelect={setSelectedDate}
                             initialFocus
-                            className="pointer-events-auto"
+                            className="pointer-events-auto mx-auto"
                           />
                         </div>
                         
-                        <div className="p-4 space-y-3">
-                          <h4 className="font-medium text-foreground">Preferred Time</h4>
+                        <div className="p-6 space-y-4">
+                          <h4 className="text-lg font-medium text-foreground">Preferred Time</h4>
                           
                           {[
                             { label: "Morning", value: "morning", time: "Before 12pm" },
                             { label: "Afternoon", value: "afternoon", time: "12pm - 5pm" },
                             { label: "Evening", value: "evening", time: "After 5pm" }
                           ].map((slot) => (
-                            <div key={slot.value} className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
+                            <div key={slot.value} className="flex items-center justify-between py-3 border-b last:border-b-0">
+                              <div className="flex items-center space-x-4">
                                 <Checkbox 
                                   id={slot.value}
                                   checked={selectedTimeSlots.includes(slot.value)}
@@ -266,7 +276,7 @@ const SearchAndBooking = () => {
                                 />
                                 <label 
                                   htmlFor={slot.value} 
-                                  className="font-medium text-foreground cursor-pointer"
+                                  className="text-lg font-medium text-foreground cursor-pointer"
                                 >
                                   {slot.label}
                                 </label>
@@ -276,8 +286,12 @@ const SearchAndBooking = () => {
                           ))}
                         </div>
                         
-                        <div className="p-4 border-t">
-                          <Button className="w-full" variant="medical">
+                        <div className="p-6 border-t mt-auto">
+                          <Button 
+                            className="w-full py-3 text-lg" 
+                            variant="medical"
+                            onClick={() => setCalendarOpen(false)}
+                          >
                             Done
                           </Button>
                         </div>
