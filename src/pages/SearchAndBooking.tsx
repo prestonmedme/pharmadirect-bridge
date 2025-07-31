@@ -84,9 +84,9 @@ const SearchAndBooking = () => {
     const timeoutId = setTimeout(() => {
       if (location.trim()) {
         searchPharmacies({ location });
-      } else {
-        getAllPharmacies();
       }
+      // Remove getAllPharmacies() call when location is empty
+      // Pharmacies should only show after search is performed
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
