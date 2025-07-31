@@ -31,6 +31,7 @@ const SearchAndBooking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
@@ -221,16 +222,66 @@ const SearchAndBooking = () => {
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : "Today, Jul 29"}
+                        {selectedDate ? format(selectedDate, "PPP") : "Today, Jul 31"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        initialFocus
-                      />
+                    <PopoverContent className="w-auto p-0 z-50" align="start" side="right" sideOffset={10}>
+                      <div className="bg-white border rounded-lg shadow-lg min-w-[400px]">
+                        <div className="p-4 border-b">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-primary">Select Date & Time</h3>
+                            <button className="text-muted-foreground hover:text-foreground">
+                              ✕
+                            </button>
+                          </div>
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </div>
+                        
+                        <div className="p-4 space-y-3">
+                          <h4 className="font-medium text-foreground">Preferred Time</h4>
+                          
+                          {[
+                            { label: "Morning", value: "morning", time: "Before 12pm" },
+                            { label: "Afternoon", value: "afternoon", time: "12pm - 5pm" },
+                            { label: "Evening", value: "evening", time: "After 5pm" }
+                          ].map((slot) => (
+                            <div key={slot.value} className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Checkbox 
+                                  id={slot.value}
+                                  checked={selectedTimeSlots.includes(slot.value)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedTimeSlots(prev => [...prev, slot.value]);
+                                    } else {
+                                      setSelectedTimeSlots(prev => prev.filter(s => s !== slot.value));
+                                    }
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={slot.value} 
+                                  className="font-medium text-foreground cursor-pointer"
+                                >
+                                  {slot.label}
+                                </label>
+                              </div>
+                              <span className="text-sm text-muted-foreground">{slot.time}</span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="p-4 border-t">
+                          <Button className="w-full" variant="medical">
+                            Done
+                          </Button>
+                        </div>
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
