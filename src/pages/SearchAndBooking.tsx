@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
 import { useToast } from "@/hooks/use-toast";
+import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
 import { 
   MapPin, 
   Calendar as CalendarIcon, 
@@ -32,11 +33,41 @@ const SearchAndBooking = () => {
   const [location, setLocation] = useState<string>("");
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 37.7749, lng: -122.4194 }); // Default to SF
+  const [mapZoom, setMapZoom] = useState<number>(12);
   const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies } = usePharmacySearch();
 
   const handleBookNow = (pharmacy: Pharmacy) => {
     setSelectedPharmacy(pharmacy);
     setBookingDialogOpen(true);
+  };
+
+  // Convert pharmacies to map markers
+  const createMarkersFromPharmacies = (): Marker[] => {
+    return pharmacies
+      .filter(pharmacy => pharmacy.latitude && pharmacy.longitude)
+      .map(pharmacy => ({
+        id: pharmacy.id,
+        position: {
+          lat: pharmacy.latitude!,
+          lng: pharmacy.longitude!
+        },
+        title: pharmacy.name,
+        content: `${pharmacy.name}\n${pharmacy.address}`
+      }));
+  };
+
+  // Handle marker click on map
+  const handleMarkerClick = (markerId: string) => {
+    const pharmacy = pharmacies.find(p => p.id === markerId);
+    if (pharmacy) {
+      setSelectedPharmacy(pharmacy);
+      // Optionally scroll to the pharmacy in the list
+      const pharmacyElement = document.getElementById(`pharmacy-${markerId}`);
+      if (pharmacyElement) {
+        pharmacyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
   };
 
   // Handle URL parameters for service filter
@@ -68,6 +99,9 @@ const SearchAndBooking = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          // Update map center to user's location
+          setMapCenter({ lat: latitude, lng: longitude });
+          setMapZoom(14);
           // Use the enhanced nearby search with 25km radius
           getNearbyPharmacies(latitude, longitude, 25);
         },
@@ -257,7 +291,18 @@ const SearchAndBooking = () => {
                 pharmacies.map((pharmacy, index) => {
                   const displayInfo = getPharmacyDisplayInfo(pharmacy, index);
                   return (
-                    <Card key={pharmacy.id} className="p-4 hover:shadow-card transition-all duration-300">
+                    <Card 
+                      key={pharmacy.id} 
+                      id={`pharmacy-${pharmacy.id}`}
+                      className="p-4 hover:shadow-card transition-all duration-300 cursor-pointer"
+                      onClick={() => {
+                        setSelectedPharmacy(pharmacy);
+                        if (pharmacy.latitude && pharmacy.longitude) {
+                          setMapCenter({ lat: pharmacy.latitude, lng: pharmacy.longitude });
+                          setMapZoom(16);
+                        }
+                      }}
+                    >
                       <div className="space-y-3">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -327,14 +372,14 @@ const SearchAndBooking = () => {
 
           {/* Right Column - Map */}
           <div className="lg:col-span-3">
-            <Card className="h-[600px] lg:h-[800px]">
-              <div className="h-full bg-gradient-to-br from-primary/5 to-primary-light/5 rounded-lg flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <MapPin className="h-12 w-12 mx-auto mb-4 text-primary/50" />
-                  <p className="text-lg font-medium">Interactive Map</p>
-                  <p className="text-sm">Google Maps integration would be displayed here</p>
-                </div>
-              </div>
+            <Card className="h-[600px] lg:h-[800px] overflow-hidden">
+              <GoogleMap
+                center={mapCenter}
+                zoom={mapZoom}
+                markers={createMarkersFromPharmacies()}
+                onMarkerClick={handleMarkerClick}
+                className="h-full w-full rounded-lg"
+              />
             </Card>
           </div>
         </div>
