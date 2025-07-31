@@ -132,22 +132,32 @@ export const usePharmacySearch = () => {
         throw regularError;
       }
 
-      // Get MedMe pharmacies using direct query
+      // Get MedMe pharmacies using direct query - be more lenient with filtering
       const { data: medmePharmacies, error: medmeError } = await supabase
         .from('medme_pharmacies' as any)
         .select('id, name, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
-        .not('"Pharmacy Address__latitude"', 'is', null)
-        .not('"Pharmacy Address__longitude"', 'is', null)
         .order('name');
 
       if (medmeError) {
         console.warn('Error fetching MedMe pharmacies:', medmeError);
       }
 
+      console.log('Fetched MedMe pharmacies:', medmePharmacies?.length);
+      console.log('First few MedMe pharmacies:', medmePharmacies?.slice(0, 3));
+
+      // Filter MedMe pharmacies to only include those with valid coordinates
+      const validMedmePharmacies = (medmePharmacies || []).filter((mp: any) => {
+        const lat = mp["Pharmacy Address__latitude"];
+        const lng = mp["Pharmacy Address__longitude"];
+        return lat && lng && lat !== "0" && lng !== "0" && lat !== 0 && lng !== 0;
+      });
+
+      console.log('Valid MedMe pharmacies with coordinates:', validMedmePharmacies.length);
+
       // Combine and convert pharmacies
       let allPharmacies: Pharmacy[] = [
         ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
-        ...(medmePharmacies || []).map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
+        ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
       ];
 
       // Filter by MedMe only if requested
