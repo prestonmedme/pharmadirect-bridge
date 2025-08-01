@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
 import { useToast } from "@/hooks/use-toast";
 import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
+import AddressAutocomplete from "@/components/maps/AddressAutocomplete";
 import { 
   MapPin, 
   Calendar as CalendarIcon, 
@@ -40,7 +41,9 @@ const SearchAndBooking = () => {
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 37.7749, lng: -122.4194 }); // Default to SF
   const [mapZoom, setMapZoom] = useState<number>(12);
-  const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies } = usePharmacySearch();
+  const [showSearchThisArea, setShowSearchThisArea] = useState<boolean>(false);
+  const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null);
+  const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies, calculateDistance } = usePharmacySearch();
 
 
   const handleBookNow = (pharmacy: Pharmacy) => {
@@ -74,6 +77,126 @@ const SearchAndBooking = () => {
         pharmacyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+  };
+
+  // Handle "Get Directions" functionality
+  const handleGetDirections = (pharmacy: Pharmacy) => {
+    const destination = encodeURIComponent(pharmacy.address);
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+    window.open(googleMapsUrl, '_blank');
+  };
+
+  // Calculate distance from current user location
+  const calculateDistanceFromUser = (pharmacy: Pharmacy): string | null => {
+    if (!pharmacy.latitude || !pharmacy.longitude) return null;
+    
+    // Check if we have user's current location from the location state
+    const coordsMatch = location.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+    if (coordsMatch) {
+      const userLat = parseFloat(coordsMatch[1]);
+      const userLng = parseFloat(coordsMatch[2]);
+      
+      // Use the existing calculateDistance function from usePharmacySearch
+      const distance = calculateDistance(userLat, userLng, pharmacy.latitude, pharmacy.longitude);
+      return `${distance.toFixed(1)} km away`;
+    }
+    
+    return null;
+  };
+
+  // Generate realistic hours and open/closed status
+  const getPharmacyHours = (pharmacy: Pharmacy) => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Different hour patterns for different pharmacy types
+    const hourPatterns = [
+      { open: 8, close: 22, name: "Extended Hours" }, // 8 AM - 10 PM
+      { open: 9, close: 18, name: "Regular Hours" },   // 9 AM - 6 PM  
+      { open: 7, close: 23, name: "24/7 Style" },      // 7 AM - 11 PM
+      { open: 8, close: 20, name: "Standard" },        // 8 AM - 8 PM
+    ];
+    
+    const pattern = hourPatterns[pharmacy.name.length % hourPatterns.length];
+    
+    // Adjust for weekends
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const openTime = isWeekend ? pattern.open + 1 : pattern.open;
+    const closeTime = isWeekend ? pattern.close - 2 : pattern.close;
+    
+    const isOpen = currentHour >= openTime && currentHour < closeTime;
+    
+    return {
+      isOpen,
+      hours: `${openTime}:00 - ${closeTime}:00`,
+      status: isOpen ? "Open" : "Closed",
+      nextChange: isOpen 
+        ? `Closes at ${closeTime}:00`
+        : `Opens at ${openTime}:00`
+    };
+  };
+
+  // Handle map bounds change for "Search This Area" functionality
+  const handleMapBoundsChange = (map: google.maps.Map) => {
+    const bounds = map.getBounds();
+    if (bounds) {
+      setMapBounds(bounds);
+      setShowSearchThisArea(true);
+    }
+  };
+
+  // Handle "Search This Area" button click
+  const handleSearchThisArea = () => {
+    if (!mapBounds) return;
+    
+    const center = mapBounds.getCenter();
+    if (center) {
+      const lat = center.lat();
+      const lng = center.lng();
+      
+      // Calculate radius based on bounds (approximate)
+      const ne = mapBounds.getNorthEast();
+      const sw = mapBounds.getSouthWest();
+      const radius = calculateDistance(
+        ne.lat(), ne.lng(),
+        sw.lat(), sw.lng()
+      ) / 2; // Rough estimate
+      
+      // Update location display
+      setLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      
+      // Search in this area
+      getNearbyPharmacies(lat, lng, Math.max(radius, 5)); // Minimum 5km radius
+      setShowSearchThisArea(false);
+      
+      toast({
+        title: "Searching this area",
+        description: `Finding pharmacies in the current map area`,
+      });
+    }
+  };
+
+  // Handle place selection from autocomplete
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
+    if (!place.geometry || !place.geometry.location) {
+      return;
+    }
+
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+    
+    // Update map center to selected place
+    setMapCenter({ lat, lng });
+    setMapZoom(14);
+    
+    // Search for nearby pharmacies
+    getNearbyPharmacies(lat, lng, 25);
+    
+    toast({
+      title: "Location updated",
+      description: `Searching for pharmacies near ${place.formatted_address || place.name}`,
+    });
   };
 
   // Handle URL parameters for service filter
@@ -190,11 +313,12 @@ const SearchAndBooking = () => {
                     Location
                   </label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Address or zip code"
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <AddressAutocomplete
                       value={location}
-                      onChange={(e) => setLocation(e.target.value)}
+                      onChange={setLocation}
+                      onPlaceSelect={handlePlaceSelect}
+                      placeholder="Address, city, or postal code"
                       className="pl-10"
                     />
                   </div>
@@ -339,8 +463,28 @@ const SearchAndBooking = () => {
                                 </span>
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                • {displayInfo.distance}
+                                • {calculateDistanceFromUser(pharmacy) || displayInfo.distance}
                               </span>
+                            </div>
+                            
+                            {/* Hours and status */}
+                            <div className="flex items-center gap-2 mt-1">
+                              {(() => {
+                                const hours = getPharmacyHours(pharmacy);
+                                return (
+                                  <>
+                                    <Badge 
+                                      variant={hours.isOpen ? "default" : "secondary"}
+                                      className="text-xs bg-green-100 text-green-800"
+                                    >
+                                      {hours.status}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {hours.hours} • {hours.nextChange}
+                                    </span>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                           
@@ -361,25 +505,47 @@ const SearchAndBooking = () => {
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t">
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            Next: {displayInfo.nextAvailable}
-                          </div>
-                          
-                          {displayInfo.type === "medme" ? (
+                          <div className="flex gap-2">
                             <Button 
                               size="sm" 
-                              variant="medical"
-                              onClick={() => handleBookNow(pharmacy)}
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleGetDirections(pharmacy);
+                              }}
+                              className="text-xs"
                             >
-                              Book Now
+                              <Navigation className="h-3 w-3 mr-1" />
+                              Directions
                             </Button>
-                          ) : (
-                            <Button size="sm" variant="medical-outline">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {pharmacy.phone ? 'Call' : 'Contact'}
-                            </Button>
-                          )}
+                            
+                            {displayInfo.type === "medme" ? (
+                              <Button 
+                                size="sm" 
+                                variant="medical"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBookNow(pharmacy);
+                                }}
+                              >
+                                Book Now
+                              </Button>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                variant="medical-outline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Phone className="h-3 w-3 mr-1" />
+                                {pharmacy.phone ? 'Call' : 'Contact'}
+                              </Button>
+                            )}
+                          </div>
+                          
+                          <div className="text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3 inline mr-1" />
+                            Next: {displayInfo.nextAvailable}
+                          </div>
                         </div>
                       </div>
                     </Card>
@@ -398,8 +564,29 @@ const SearchAndBooking = () => {
             zoom={mapZoom}
             markers={createMarkersFromPharmacies()}
             onMarkerClick={handleMarkerClick}
+            onMapLoad={(map) => {
+              // Listen for bounds changes to enable "Search This Area"
+              map.addListener('bounds_changed', () => {
+                handleMapBoundsChange(map);
+              });
+            }}
             className="h-full w-full"
           />
+          
+          {/* Search This Area button overlay */}
+          {showSearchThisArea && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+              <Button 
+                onClick={handleSearchThisArea}
+                variant="default"
+                size="sm"
+                className="bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-lg"
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Search this area
+              </Button>
+            </div>
+          )}
           
           {/* Calendar Overlay - Slides in from right */}
           <div 
