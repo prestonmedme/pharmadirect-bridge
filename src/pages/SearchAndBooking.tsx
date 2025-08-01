@@ -405,7 +405,7 @@ const SearchAndBooking = () => {
           <div 
             className="absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out"
             style={{ 
-              transform: calendarOpen ? 'translateX(0%)' : 'translateX(110%)',
+              transform: calendarOpen ? 'translateX(0%)' : 'translateX(0%)',
               zIndex: calendarOpen ? 10 : -1
             }}
           >
