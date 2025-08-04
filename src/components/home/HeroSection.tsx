@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Shield, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FeatureCard from "./FeatureCard";
+import HomeMap from "./HomeMap";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -92,20 +93,12 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Visual Element */}
+          {/* Right Column - Interactive Map */}
           <div className="relative animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-gradient-primary rounded-3xl opacity-10" />
-              <div className="absolute inset-4 bg-white rounded-2xl border border-border/20 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-primary-lighter rounded-2xl flex items-center justify-center mx-auto">
-                    <Search className="h-8 w-8 text-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-primary">Your Health Journey</h3>
-                    <p className="text-sm text-muted-foreground">Starts with finding the right pharmacy</p>
-                  </div>
-                </div>
+              <div className="absolute inset-4 bg-white rounded-2xl border border-border/20 overflow-hidden">
+                <HomeMap className="h-full w-full" />
               </div>
             </div>
           </div>

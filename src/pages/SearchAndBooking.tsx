@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
+import { generateStableDisplayData, type PharmacyDisplayData } from "@/lib/pharmacyDataUtils";
 import { useToast } from "@/hooks/use-toast";
 import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
 import AddressAutocomplete from "@/components/maps/AddressAutocomplete";
@@ -22,7 +23,8 @@ import {
   ChevronLeft,
   Star,
   Navigation,
-  Loader2
+  Loader2,
+  Search
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -37,9 +39,12 @@ const SearchAndBooking = () => {
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
+  const [selectedRadius, setSelectedRadius] = useState<number>(25);
+  const [userLocationCoords, setUserLocationCoords] = useState<google.maps.LatLngLiteral | null>(null);
+  const [isUsingPreciseCoords, setIsUsingPreciseCoords] = useState<boolean>(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
-  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 37.7749, lng: -122.4194 }); // Default to SF
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 43.6532, lng: -79.3832 }); // Default to Toronto
   const [mapZoom, setMapZoom] = useState<number>(12);
   const [showSearchThisArea, setShowSearchThisArea] = useState<boolean>(false);
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null);
@@ -104,38 +109,7 @@ const SearchAndBooking = () => {
     return null;
   };
 
-  // Generate realistic hours and open/closed status
-  const getPharmacyHours = (pharmacy: Pharmacy) => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
-    
-    // Different hour patterns for different pharmacy types
-    const hourPatterns = [
-      { open: 8, close: 22, name: "Extended Hours" }, // 8 AM - 10 PM
-      { open: 9, close: 18, name: "Regular Hours" },   // 9 AM - 6 PM  
-      { open: 7, close: 23, name: "24/7 Style" },      // 7 AM - 11 PM
-      { open: 8, close: 20, name: "Standard" },        // 8 AM - 8 PM
-    ];
-    
-    const pattern = hourPatterns[pharmacy.name.length % hourPatterns.length];
-    
-    // Adjust for weekends
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const openTime = isWeekend ? pattern.open + 1 : pattern.open;
-    const closeTime = isWeekend ? pattern.close - 2 : pattern.close;
-    
-    const isOpen = currentHour >= openTime && currentHour < closeTime;
-    
-    return {
-      isOpen,
-      hours: `${openTime}:00 - ${closeTime}:00`,
-      status: isOpen ? "Open" : "Closed",
-      nextChange: isOpen 
-        ? `Closes at ${closeTime}:00`
-        : `Opens at ${openTime}:00`
-    };
-  };
+
 
   // Handle map bounds change for "Search This Area" functionality
   const handleMapBoundsChange = (map: google.maps.Map) => {
@@ -154,6 +128,7 @@ const SearchAndBooking = () => {
     if (center) {
       const lat = center.lat();
       const lng = center.lng();
+      const coords = { lat, lng };
       
       // Calculate radius based on bounds (approximate)
       const ne = mapBounds.getNorthEast();
@@ -163,39 +138,52 @@ const SearchAndBooking = () => {
         sw.lat(), sw.lng()
       ) / 2; // Rough estimate
       
-      // Update location display
+      // Update location display and coordinates
       setLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      setIsUsingPreciseCoords(true);
+      setUserLocationCoords(coords);
       
-      // Search in this area
-      getNearbyPharmacies(lat, lng, Math.max(radius, 5)); // Minimum 5km radius
+      // Search in this area using selected radius
+      getNearbyPharmacies(lat, lng, Math.max(selectedRadius, 5)); // Use selected radius with minimum 5km
       setShowSearchThisArea(false);
       
       toast({
         title: "Searching this area",
-        description: `Finding pharmacies in the current map area`,
+        description: `Finding pharmacies within ${selectedRadius}km of this area`,
       });
     }
   };
 
   // Handle place selection from autocomplete
   const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
+    console.log('🎯 Place selected from autocomplete:', place);
+    
     if (!place.geometry || !place.geometry.location) {
+      console.warn('❌ No geometry data for selected place');
       return;
     }
 
     const lat = place.geometry.location.lat();
     const lng = place.geometry.location.lng();
+    const coords = { lat, lng };
     
-    // Update map center to selected place
-    setMapCenter({ lat, lng });
-    setMapZoom(14);
+    console.log('📍 Autocomplete: Updating map center to:', coords);
     
-    // Search for nearby pharmacies
-    getNearbyPharmacies(lat, lng, 25);
+    // Mark that we're using precise coordinates from Google Places
+    setIsUsingPreciseCoords(true);
+    
+    // Update location coordinates and map center
+    setUserLocationCoords(coords);
+    setMapCenter(coords);
+    setMapZoom(15); // Good zoom level for autocomplete selections
+    
+    // Search for nearby pharmacies using selected radius
+    console.log(`🔍 Autocomplete: Searching for pharmacies within ${selectedRadius}km of selected location`);
+    getNearbyPharmacies(lat, lng, selectedRadius);
     
     toast({
-      title: "Location updated",
-      description: `Searching for pharmacies near ${place.formatted_address || place.name}`,
+      title: "Location selected!",
+      description: `Searching for pharmacies within ${selectedRadius}km of ${place.formatted_address || place.name}`,
     });
   };
 
@@ -209,17 +197,82 @@ const SearchAndBooking = () => {
   }, []);
 
   // Handle search when location and filters change with debouncing
+  // Only for manual input - not when using precise coordinates from autocomplete
   useEffect(() => {
+    // Don't trigger internal geocoding if we're using precise coordinates
+    if (isUsingPreciseCoords) {
+      console.log('⏭️ Skipping debounced search - using precise coordinates from autocomplete');
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
+      console.log('⏱️ Debounced search triggered for manual input');
       if (location.trim()) {
-        searchPharmacies({ location, medmeOnly });
+        console.log(`🔍 Manual search: Searching for "${location}"`);
+        searchPharmacies({ location, medmeOnly, radiusKm: selectedRadius });
+      } else {
+        // Show all pharmacies when no location is specified
+        searchPharmacies({ medmeOnly });
       }
-      // Remove getAllPharmacies() call when location is empty
-      // Pharmacies should only show after search is performed
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [location, medmeOnly]);
+  }, [location, medmeOnly, selectedRadius, isUsingPreciseCoords]);
+
+  // Reset precise coords flag when user starts typing manually
+  const handleLocationInputChange = (newLocation: string) => {
+    // If the location is being changed and we were using precise coords,
+    // reset the flag so manual search can work
+    if (isUsingPreciseCoords && newLocation !== location) {
+      console.log('📝 User started typing manually - resetting precise coords flag');
+      setIsUsingPreciseCoords(false);
+      setUserLocationCoords(null); // Clear old precise coordinates
+    }
+    setLocation(newLocation);
+  };
+
+  // Handle re-search when radius changes and we have user coordinates
+  useEffect(() => {
+    if (userLocationCoords) {
+      getNearbyPharmacies(userLocationCoords.lat, userLocationCoords.lng, selectedRadius);
+    }
+  }, [selectedRadius]); // Only trigger when radius changes
+
+  // Don't load ALL pharmacies on initial page load for performance
+  // Instead, wait for user to select a location or use current location
+  // This prevents slow initial loading of hundreds of pharmacies
+
+  // Try to get user's location on initial load for better default experience
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const coords = { lat: latitude, lng: longitude };
+          
+          console.log('🌍 Got user location on load:', coords);
+          
+          // Only update map center if we haven't already set a user location
+          if (!userLocationCoords) {
+            setMapCenter(coords);
+            setMapZoom(13);
+            setIsUsingPreciseCoords(true);
+            setUserLocationCoords(coords);
+            console.log('📍 Updated map to user location');
+            
+            // Also load nearby pharmacies automatically with default radius
+            console.log('🔍 Auto-loading nearby pharmacies for detected user location');
+            getNearbyPharmacies(latitude, longitude, selectedRadius);
+          }
+        },
+        (error) => {
+          console.log('📍 Could not get user location on load, using default:', error.message);
+          // Don't show error toast on initial load, just use default location
+        },
+        { timeout: 5000, enableHighAccuracy: false } // Quick, low-accuracy check
+      );
+    }
+  }, []); // Run once on mount
 
   // Handle current location with improved radius
   const handleUseCurrentLocation = () => {
@@ -227,12 +280,21 @@ const SearchAndBooking = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          const coords = { lat: latitude, lng: longitude };
+          
           setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-          // Update map center to user's location
-          setMapCenter({ lat: latitude, lng: longitude });
+          setIsUsingPreciseCoords(true);
+          setUserLocationCoords(coords);
+          setMapCenter(coords);
           setMapZoom(14);
-           // Use the enhanced nearby search with 25km radius
-           getNearbyPharmacies(latitude, longitude, 25);
+          
+          // Use the enhanced nearby search with selected radius
+          getNearbyPharmacies(latitude, longitude, selectedRadius);
+          
+          toast({
+            title: "Location updated",
+            description: `Using your current location. Searching within ${selectedRadius}km radius.`,
+          });
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -252,32 +314,151 @@ const SearchAndBooking = () => {
     }
   };
 
-  // Generate mock availability and services for display (enhanced with distance)
-  const getPharmacyDisplayInfo = (pharmacy: Pharmacy, index: number) => {
-    const mockServices = [
-      ["Minor ailments", "Flu shots", "Travel Vaccines"],
-      ["MedsCheck", "Birth Control", "Diabetes"],
-      ["Mental Health", "Naloxone Kits", "Pediatric Vax"],
-      ["Prescription refills", "Blood pressure checks"],
-      ["Vaccinations", "Health screenings", "Consultations"]
-    ];
+  // Handle geocoding typed address using Google's Geocoding API
+  const handleGeocodeTypedAddress = async () => {
+    if (!location.trim()) {
+      toast({
+        variant: "destructive",
+        title: "No address entered",
+        description: "Please enter an address to search for.",
+      });
+      return;
+    }
+
+    if (!window.google || !window.google.maps) {
+      toast({
+        variant: "destructive",
+        title: "Google Maps not loaded",
+        description: "Please wait for Google Maps to load and try again.",
+      });
+      return;
+    }
+
+    try {
+      console.log(`🌍 Geocoding typed address: "${location}"`);
+      
+      const geocoder = new window.google.maps.Geocoder();
+      
+      const response = await new Promise<google.maps.GeocoderResponse>((resolve, reject) => {
+        geocoder.geocode(
+          { 
+            address: location,
+            componentRestrictions: { country: 'CA' }, // Restrict to Canada
+            region: 'CA' // Prefer Canadian results
+          },
+          (results, status) => {
+            if (status === 'OK' && results) {
+              resolve({ results, status });
+            } else {
+              reject(new Error(`Geocoding failed: ${status}`));
+            }
+          }
+        );
+      });
+
+      if (response.results && response.results.length > 0) {
+        console.log(`📊 Found ${response.results.length} geocoding results`);
+        
+        // Filter and rank results by specificity (avoid broad results like "Canada")
+        const filteredResults = response.results.filter(result => {
+          const types = result.types || [];
+          console.log(`🔍 Result: ${result.formatted_address} (Types: ${types.join(', ')})`);
+          
+          // Reject results that are too broad
+          const isTooBroad = types.includes('country') || 
+                           types.includes('administrative_area_level_1') ||
+                           (result.formatted_address.toLowerCase().trim() === 'canada');
+          
+          if (isTooBroad) {
+            console.log(`🚫 Rejecting broad result: ${result.formatted_address}`);
+            return false;
+          }
+          
+          return true;
+        });
+
+        // Sort remaining results by specificity preference
+        const sortedResults = filteredResults.sort((a, b) => {
+          const aTypes = a.types || [];
+          const bTypes = b.types || [];
+          
+          // Prefer street addresses, then establishments, then localities
+          const getSpecificityScore = (types: string[]) => {
+            if (types.includes('street_address')) return 100;
+            if (types.includes('premise')) return 90;
+            if (types.includes('establishment')) return 80;
+            if (types.includes('subpremise')) return 70;
+            if (types.includes('route')) return 60;
+            if (types.includes('intersection')) return 50;
+            if (types.includes('locality')) return 40;
+            if (types.includes('sublocality')) return 30;
+            return 0;
+          };
+          
+          return getSpecificityScore(bTypes) - getSpecificityScore(aTypes);
+        });
+
+        if (sortedResults.length === 0) {
+          throw new Error('Only broad location results found. Please enter a more specific address.');
+        }
+
+        const bestResult = sortedResults[0];
+        const location_data = bestResult.geometry.location;
+        const lat = location_data.lat();
+        const lng = location_data.lng();
+        const coords = { lat, lng };
+
+        console.log(`✅ Selected best result: ${bestResult.formatted_address}`);
+        console.log(`📍 Coordinates: ${lat}, ${lng}`);
+        console.log(`🏷️ Types: ${bestResult.types?.join(', ')}`);
+
+        // Update location with the formatted address from Google
+        setLocation(bestResult.formatted_address);
+        setIsUsingPreciseCoords(true);
+        setUserLocationCoords(coords);
+        setMapCenter(coords);
+        setMapZoom(16); // Zoom in more for specific addresses
+
+        // Search for nearby pharmacies
+        getNearbyPharmacies(lat, lng, selectedRadius);
+
+        toast({
+          title: "Address found!",
+          description: `Searching for pharmacies within ${selectedRadius}km of ${bestResult.formatted_address}`,
+        });
+      } else {
+        throw new Error('No results found');
+      }
+    } catch (error) {
+      console.error('❌ Geocoding error:', error);
+      toast({
+        variant: "destructive",
+        title: "Address not found",
+        description: error instanceof Error 
+          ? error.message 
+          : `Could not find location "${location}". Please check the address and try again.`,
+      });
+    }
+  };
+
+  // Get stable display info for pharmacy - uses pre-computed data to avoid cycling
+  const getPharmacyDisplayInfo = (pharmacy: Pharmacy, index: number): PharmacyDisplayData & { 
+    distance: string; 
+    type: string;
+  } => {
+    // Use pre-computed display data if available, otherwise generate stable data
+    const displayData = pharmacy.displayData || generateStableDisplayData(pharmacy.id, pharmacy.name, index);
     
-    // Check if pharmacy has a distance property (from search results)
-    const hasDistance = 'distance' in pharmacy;
-    const distance = hasDistance 
-      ? `${(pharmacy as any).distance.toFixed(1)} km` 
-      : `${(Math.random() * 5 + 0.5).toFixed(1)} km`;
+    // Calculate distance display
+    const distance = pharmacy.distance 
+      ? `${pharmacy.distance.toFixed(1)} km` 
+      : calculateDistanceFromUser(pharmacy) || displayData.distance || `${(Math.random() * 5 + 0.5).toFixed(1)} km`;
     
     return {
-      ...pharmacy,
+      ...displayData,
       distance,
-      rating: Number((Math.random() * 1.5 + 3.5).toFixed(1)),
-      reviews: Math.floor(Math.random() * 200 + 50),
-      isAvailable: Math.random() > 0.3,
-       services: mockServices[index % mockServices.length],
-       nextAvailable: Math.random() > 0.5 ? "Today" : "Tomorrow",
-       type: pharmacy.type || (Math.random() > 0.3 ? "medme" : "external")
-     };
+      type: pharmacy.type || "regular"
+    };
   };
 
   return (
@@ -316,21 +497,33 @@ const SearchAndBooking = () => {
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
                     <AddressAutocomplete
                       value={location}
-                      onChange={setLocation}
+                      onChange={handleLocationInputChange}
                       onPlaceSelect={handlePlaceSelect}
                       placeholder="Address, city, or postal code"
                       className="pl-10"
                     />
                   </div>
-                  <Button 
-                    variant="medical-outline" 
-                    size="sm" 
-                    className="mt-2 w-full"
-                    onClick={handleUseCurrentLocation}
-                  >
-                    <Navigation className="h-4 w-4 mr-2" />
-                    Use current location
-                  </Button>
+                  <div className="mt-2 flex gap-2">
+                    <Button 
+                      variant="medical-outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={handleUseCurrentLocation}
+                    >
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Use current location
+                    </Button>
+                    <Button 
+                      variant="medical" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={handleGeocodeTypedAddress}
+                      disabled={!location.trim()}
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Search address
+                    </Button>
+                  </div>
                 </div>
 
                 <div>
@@ -388,6 +581,39 @@ const SearchAndBooking = () => {
                     MedMe pharmacies only
                   </label>
                 </div>
+
+                {/* Radius Filter */}
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">
+                    Search Radius
+                  </label>
+                  <Select 
+                    value={selectedRadius.toString()} 
+                    onValueChange={(value) => {
+                      const radius = parseInt(value);
+                      setSelectedRadius(radius);
+                      
+                      // Show feedback to user - the useEffect will handle the actual search
+                      if (userLocationCoords) {
+                        toast({
+                          title: "Radius updated",
+                          description: `Searching within ${radius}km radius`,
+                        });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select radius" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 km</SelectItem>
+                      <SelectItem value="10">10 km</SelectItem>
+                      <SelectItem value="25">25 km</SelectItem>
+                      <SelectItem value="50">50 km</SelectItem>
+                      <SelectItem value="100">100 km</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </Card>
 
@@ -398,10 +624,10 @@ const SearchAndBooking = () => {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Searching...
+                      Searching for pharmacies...
                     </div>
                   ) : (
-                    `${pharmacies.length} pharmacies found`
+                    `${pharmacies.length} pharmacies ${location.trim() ? `near ${location}` : 'available'}`
                   )}
                 </h3>
                 <Button variant="ghost" size="sm">
@@ -418,8 +644,27 @@ const SearchAndBooking = () => {
               ) : pharmacies.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">No pharmacies found</p>
-                  <p className="text-sm">Try adjusting your search criteria</p>
+                  <p className="text-lg">Ready to find pharmacies</p>
+                  <p className="text-sm">Enter a location above or use current location to get started</p>
+                  <div className="mt-4 flex gap-2 justify-center">
+                    <Button 
+                      variant="medical-outline" 
+                      size="sm"
+                      onClick={handleUseCurrentLocation}
+                    >
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Use my location
+                    </Button>
+                    <Button 
+                      variant="medical" 
+                      size="sm"
+                      onClick={handleGeocodeTypedAddress}
+                      disabled={!location.trim()}
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Search address
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 pharmacies.map((pharmacy, index) => {
@@ -469,22 +714,15 @@ const SearchAndBooking = () => {
                             
                             {/* Hours and status */}
                             <div className="flex items-center gap-2 mt-1">
-                              {(() => {
-                                const hours = getPharmacyHours(pharmacy);
-                                return (
-                                  <>
-                                    <Badge 
-                                      variant={hours.isOpen ? "default" : "secondary"}
-                                      className="text-xs bg-green-100 text-green-800"
-                                    >
-                                      {hours.status}
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground">
-                                      {hours.hours} • {hours.nextChange}
-                                    </span>
-                                  </>
-                                );
-                              })()}
+                              <Badge 
+                                variant={displayInfo.hours.isOpen ? "default" : "secondary"}
+                                className="text-xs bg-green-100 text-green-800"
+                              >
+                                {displayInfo.hours.status}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {displayInfo.hours.hours} • {displayInfo.hours.nextChange}
+                              </span>
                             </div>
                           </div>
                           
@@ -564,6 +802,8 @@ const SearchAndBooking = () => {
             zoom={mapZoom}
             markers={createMarkersFromPharmacies()}
             onMarkerClick={handleMarkerClick}
+            userLocation={userLocationCoords}
+            shouldFitBounds={!userLocationCoords && pharmacies.length > 1} // Only auto-fit when no specific location and multiple pharmacies
             onMapLoad={(map) => {
               // Listen for bounds changes to enable "Search This Area"
               map.addListener('bounds_changed', () => {

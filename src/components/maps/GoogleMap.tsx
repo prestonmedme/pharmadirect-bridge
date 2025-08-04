@@ -15,11 +15,14 @@ interface Marker {
   position: google.maps.LatLngLiteral;
   title: string;
   content?: string;
+  type?: 'pharmacy' | 'location';
 }
 
 interface GoogleMapProps extends MapProps {
   markers?: Marker[];
   onMarkerClick?: (markerId: string) => void;
+  userLocation?: google.maps.LatLngLiteral;
+  shouldFitBounds?: boolean;
 }
 
 // Map component that renders the actual Google Map
@@ -100,7 +103,9 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   zoom, 
   markers = [], 
   onMarkerClick,
-  className = "h-full w-full" 
+  className = "h-full w-full",
+  userLocation,
+  shouldFitBounds = true
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [mapMarkers, setMapMarkers] = useState<google.maps.Marker[]>([]);
@@ -116,52 +121,91 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     // Clear existing markers
     mapMarkers.forEach(marker => marker.setMap(null));
 
-    // Add new markers
-    const newMarkers = markers.map(markerData => {
+    // Add pharmacy markers
+    const pharmacyMarkers = markers.map(markerData => {
+      const isLocationMarker = markerData.type === 'location';
       const marker = new window.google.maps.Marker({
         position: markerData.position,
         map,
         title: markerData.title,
         icon: {
-          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-            <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20c0-6.627-5.373-12-12-12z" fill="#2563eb"/>
-              <circle cx="12" cy="12" r="6" fill="white"/>
-              <circle cx="12" cy="12" r="3" fill="#2563eb"/>
-            </svg>
-          `),
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+            isLocationMarker
+              ? `<svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20c0-6.627-5.373-12-12-12z" fill="#dc2626"/>
+                  <circle cx="12" cy="12" r="6" fill="white"/>
+                  <circle cx="12" cy="12" r="3" fill="#dc2626"/>
+                </svg>`
+              : `<svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20c0-6.627-5.373-12-12-12z" fill="#2563eb"/>
+                  <circle cx="12" cy="12" r="6" fill="white"/>
+                  <circle cx="12" cy="12" r="3" fill="#2563eb"/>
+                </svg>`
+          ),
           scaledSize: new window.google.maps.Size(24, 32),
           anchor: new window.google.maps.Point(12, 32)
         }
       });
 
-      if (onMarkerClick) {
+      if (onMarkerClick && !isLocationMarker) {
         marker.addListener('click', () => onMarkerClick(markerData.id));
       }
 
       return marker;
     });
 
-    setMapMarkers(newMarkers);
-
-    // Fit bounds to show all markers if there are any
-    if (newMarkers.length > 0) {
-      const bounds = new window.google.maps.LatLngBounds();
-      newMarkers.forEach(marker => {
-        bounds.extend(marker.getPosition()!);
+    // Add user location marker if provided
+    if (userLocation) {
+      const locationMarker = new window.google.maps.Marker({
+        position: userLocation,
+        map,
+        title: 'Selected Location',
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20c0-6.627-5.373-12-12-12z" fill="#dc2626"/>
+              <circle cx="12" cy="12" r="6" fill="white"/>
+              <circle cx="12" cy="12" r="3" fill="#dc2626"/>
+            </svg>
+          `),
+          scaledSize: new window.google.maps.Size(24, 32),
+          anchor: new window.google.maps.Point(12, 32)
+        }
       });
+      pharmacyMarkers.push(locationMarker);
+    }
+
+    setMapMarkers(pharmacyMarkers);
+
+    // Only fit bounds if shouldFitBounds is true and we have pharmacy markers
+    const onlyPharmacyMarkers = markers.filter(m => m.type !== 'location');
+    if (shouldFitBounds && onlyPharmacyMarkers.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      onlyPharmacyMarkers.forEach(markerData => {
+        bounds.extend(markerData.position);
+      });
+      
+      // Include user location in bounds if available
+      if (userLocation) {
+        bounds.extend(userLocation);
+      }
+      
       map.fitBounds(bounds);
       
       // Don't zoom in too much for single markers
-      if (newMarkers.length === 1) {
-        map.setZoom(Math.min(map.getZoom()!, 15));
+      if (onlyPharmacyMarkers.length === 1) {
+        setTimeout(() => {
+          if (map.getZoom()! > 15) {
+            map.setZoom(15);
+          }
+        }, 100);
       }
     }
 
     return () => {
-      newMarkers.forEach(marker => marker.setMap(null));
+      pharmacyMarkers.forEach(marker => marker.setMap(null));
     };
-  }, [map, markers, onMarkerClick]);
+  }, [map, markers, onMarkerClick, userLocation, shouldFitBounds]);
 
   return (
     <Wrapper

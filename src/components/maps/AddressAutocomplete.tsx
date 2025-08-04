@@ -22,6 +22,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+  const [suppressOnChange, setSuppressOnChange] = useState(false);
 
   useEffect(() => {
     const checkGoogleMaps = () => {
@@ -89,14 +90,30 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       const handlePlaceChanged = () => {
         const place = autocomplete.getPlace();
         
+        console.log('Place changed:', place);
+        
         if (!place.geometry || !place.geometry.location) {
           console.warn('No location data for selected place');
           return;
         }
 
+        // Temporarily suppress onChange to prevent conflicts
+        setSuppressOnChange(true);
+        
         // Update input value with formatted address
         const displayAddress = place.formatted_address || place.name || '';
-        onChange(displayAddress);
+        console.log('Setting display address:', displayAddress);
+        
+        // Update the input field directly to ensure it shows the selected address
+        if (inputRef.current) {
+          inputRef.current.value = displayAddress;
+        }
+        
+        // Call onChange after a brief delay to ensure the input is updated
+        setTimeout(() => {
+          onChange(displayAddress);
+          setSuppressOnChange(false);
+        }, 10);
 
         // Call the callback with full place details
         if (onPlaceSelect) {
@@ -121,7 +138,9 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    if (!suppressOnChange) {
+      onChange(e.target.value);
+    }
   };
 
   if (isLoading) {
