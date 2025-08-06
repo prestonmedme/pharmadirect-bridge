@@ -8,7 +8,7 @@ export interface ThemeConfig {
 }
 
 export const defaultTheme: ThemeConfig = {
-  logoUrl: '/src/assets/medme-logo.svg',
+  logoUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><text x="10" y="25" font-family="Arial" font-size="16" fill="%23007acc">MedMe</text></svg>',
   primaryColor: '#007acc',
   secondaryColor: '#00b2a9',
   fontFamily: 'Inter, sans-serif',
@@ -168,11 +168,22 @@ export function getThemeFromQuery(): string | null {
 
 // Main theme detection function
 export function detectTheme(): ThemeConfig {
-  // Priority: URL query > subdomain > default
-  const queryTheme = getThemeFromQuery();
-  const subdomainTheme = getThemeFromSubdomain();
-  
-  const themeKey = queryTheme || subdomainTheme || 'default';
-  
-  return exampleThemes[themeKey] || defaultTheme;
+  console.log('detectTheme: Starting theme detection');
+  try {
+    // Priority: URL query > subdomain > default
+    const queryTheme = getThemeFromQuery();
+    const subdomainTheme = getThemeFromSubdomain();
+    console.log('detectTheme: Query theme:', queryTheme, 'Subdomain theme:', subdomainTheme);
+    
+    const themeKey = queryTheme || subdomainTheme || 'default';
+    console.log('detectTheme: Selected theme key:', themeKey);
+    
+    const selectedTheme = exampleThemes[themeKey] || defaultTheme;
+    console.log('detectTheme: Final theme:', selectedTheme);
+    
+    return selectedTheme;
+  } catch (error) {
+    console.error('detectTheme: Error during theme detection:', error);
+    return defaultTheme;
+  }
 }

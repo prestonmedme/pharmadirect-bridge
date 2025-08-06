@@ -26,40 +26,45 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
+  console.log('ThemeProvider: Starting ThemeProvider initialization');
   const [theme, setTheme] = useState<ThemeConfig>(defaultTheme);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Set to false initially to avoid loading screen
 
   useEffect(() => {
-    // Detect and apply theme on mount
-    const detectedTheme = detectTheme();
-    setTheme(detectedTheme);
-    applyThemeToDocument(detectedTheme);
-    setIsLoading(false);
+    console.log('ThemeProvider: useEffect running - detecting theme');
+    try {
+      // Detect and apply theme on mount
+      const detectedTheme = detectTheme();
+      console.log('ThemeProvider: Detected theme:', detectedTheme);
+      setTheme(detectedTheme);
+      applyThemeToDocument(detectedTheme);
+      console.log('ThemeProvider: Theme applied successfully');
+    } catch (error) {
+      console.error('ThemeProvider: Error in theme initialization:', error);
+      // Keep default theme on error
+    }
   }, []);
 
   useEffect(() => {
     // Apply theme changes
     if (theme) {
-      applyThemeToDocument(theme);
+      console.log('ThemeProvider: Applying theme update:', theme);
+      try {
+        applyThemeToDocument(theme);
+      } catch (error) {
+        console.error('ThemeProvider: Error applying theme:', error);
+      }
     }
   }, [theme]);
 
   const handleSetTheme = (newTheme: ThemeConfig) => {
+    console.log('ThemeProvider: Setting new theme:', newTheme);
     setTheme(newTheme);
   };
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme: handleSetTheme, isLoading }}>
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading theme...</p>
-          </div>
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </ThemeContext.Provider>
   );
 }
