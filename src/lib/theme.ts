@@ -5,14 +5,20 @@ export interface ThemeConfig {
   secondaryColor: string;
   fontFamily: string;
   ctaStyle: 'rounded' | 'pill' | 'block';
+  gradientEnabled?: boolean;
+  gradientStartColor?: string;
+  gradientEndColor?: string;
 }
 
 export const defaultTheme: ThemeConfig = {
-  logoUrl: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><text x="10" y="25" font-family="Arial" font-size="16" fill="%23007acc">MedMe</text></svg>',
+  logoUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjMDA3YWNjIj5NZWRNZTwvdGV4dD48L3N2Zz4=',
   primaryColor: '#007acc',
   secondaryColor: '#00b2a9',
   fontFamily: 'Inter, sans-serif',
-  ctaStyle: 'rounded'
+  ctaStyle: 'rounded',
+  gradientEnabled: true,
+  gradientStartColor: '#007acc',
+  gradientEndColor: '#00b2a9'
 };
 
 export const exampleThemes: Record<string, ThemeConfig> = {
@@ -21,14 +27,20 @@ export const exampleThemes: Record<string, ThemeConfig> = {
     primaryColor: '#00487C',
     secondaryColor: '#00B2A9',
     fontFamily: 'Lato, sans-serif',
-    ctaStyle: 'pill'
+    ctaStyle: 'pill',
+    gradientEnabled: true,
+    gradientStartColor: '#00487C',
+    gradientEndColor: '#00B2A9'
   },
   pharmaplus: {
     logoUrl: 'https://example.com/logos/pharmaplus.png',
     primaryColor: '#8B0000',
     secondaryColor: '#FFD700',
     fontFamily: 'Roboto, sans-serif',
-    ctaStyle: 'rounded'
+    ctaStyle: 'rounded',
+    gradientEnabled: true,
+    gradientStartColor: '#8B0000',
+    gradientEndColor: '#FFD700'
   },
   default: defaultTheme
 };
@@ -97,8 +109,18 @@ export function applyThemeToDocument(theme: ThemeConfig): void {
   root.style.setProperty('--secondary-foreground', secondaryVariants.primaryForeground);
   
   // Set gradients
-  root.style.setProperty('--gradient-primary', `linear-gradient(135deg, hsl(${primaryVariants.primary}), hsl(${primaryVariants.primaryLight}))`);
-  root.style.setProperty('--gradient-hero', `linear-gradient(135deg, hsl(${primaryVariants.primary}) 0%, hsl(${secondaryVariants.primary}) 100%)`);
+  const gradientStart = theme.gradientStartColor || theme.primaryColor;
+  const gradientEnd = theme.gradientEndColor || theme.secondaryColor;
+  const gradientStartHsl = generateColorVariants(gradientStart);
+  const gradientEndHsl = generateColorVariants(gradientEnd);
+  
+  if (theme.gradientEnabled !== false) {
+    root.style.setProperty('--gradient-primary', `linear-gradient(135deg, hsl(${gradientStartHsl.primary}), hsl(${gradientStartHsl.primaryLight}))`);
+    root.style.setProperty('--gradient-hero', `linear-gradient(135deg, hsl(${gradientStartHsl.primary}) 0%, hsl(${gradientEndHsl.primary}) 100%)`);
+  } else {
+    root.style.setProperty('--gradient-primary', `hsl(${primaryVariants.primary})`);
+    root.style.setProperty('--gradient-hero', `hsl(${primaryVariants.primary})`);
+  }
   
   // Apply custom properties for button variants
   root.style.setProperty('--cta-border-radius', 

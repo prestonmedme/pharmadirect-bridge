@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 
 export function ThemeDemo() {
   const { theme, setTheme } = useTheme();
@@ -15,6 +16,11 @@ export function ThemeDemo() {
   const [customSecondaryColor, setCustomSecondaryColor] = useState(theme?.secondaryColor || '#00b2a9');
   const [primaryHex, setPrimaryHex] = useState(theme?.primaryColor || '#007acc');
   const [secondaryHex, setSecondaryHex] = useState(theme?.secondaryColor || '#00b2a9');
+  const [gradientEnabled, setGradientEnabled] = useState(theme?.gradientEnabled !== false);
+  const [gradientStartColor, setGradientStartColor] = useState(theme?.gradientStartColor || theme?.primaryColor || '#007acc');
+  const [gradientEndColor, setGradientEndColor] = useState(theme?.gradientEndColor || theme?.secondaryColor || '#00b2a9');
+  const [gradientStartHex, setGradientStartHex] = useState(theme?.gradientStartColor || theme?.primaryColor || '#007acc');
+  const [gradientEndHex, setGradientEndHex] = useState(theme?.gradientEndColor || theme?.secondaryColor || '#00b2a9');
   
   const currentThemeKey = Object.keys(exampleThemes).find(
     key => JSON.stringify(exampleThemes[key]) === JSON.stringify(theme)
@@ -25,6 +31,9 @@ export function ThemeDemo() {
       ...theme,
       primaryColor: customPrimaryColor,
       secondaryColor: customSecondaryColor,
+      gradientEnabled,
+      gradientStartColor,
+      gradientEndColor,
       logoUrl: theme?.logoUrl || exampleThemes.default.logoUrl,
       fontFamily: theme?.fontFamily || exampleThemes.default.fontFamily,
       ctaStyle: theme?.ctaStyle || exampleThemes.default.ctaStyle
@@ -43,6 +52,20 @@ export function ThemeDemo() {
     setSecondaryHex(value);
     if (/^#[0-9A-F]{6}$/i.test(value)) {
       setCustomSecondaryColor(value);
+    }
+  };
+
+  const handleGradientStartHexChange = (value: string) => {
+    setGradientStartHex(value);
+    if (/^#[0-9A-F]{6}$/i.test(value)) {
+      setGradientStartColor(value);
+    }
+  };
+
+  const handleGradientEndHexChange = (value: string) => {
+    setGradientEndHex(value);
+    if (/^#[0-9A-F]{6}$/i.test(value)) {
+      setGradientEndColor(value);
     }
   };
 
@@ -172,6 +195,104 @@ export function ThemeDemo() {
             <Button onClick={applyCustomTheme} className="px-6">
               Apply Custom Theme
             </Button>
+          </div>
+        </div>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold mb-4">Gradient Background Settings</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Control gradient backgrounds and customize gradient colors.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="gradient-toggle"
+                checked={gradientEnabled}
+                onCheckedChange={setGradientEnabled}
+              />
+              <Label htmlFor="gradient-toggle" className="text-sm font-medium">
+                Enable gradient backgrounds
+              </Label>
+            </div>
+
+            {gradientEnabled && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Gradient Start Color</Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="w-full max-w-[200px]">
+                        <HexColorPicker 
+                          color={gradientStartColor} 
+                          onChange={setGradientStartColor}
+                          style={{ width: '100%', height: '150px' }}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          value={gradientStartHex}
+                          onChange={(e) => handleGradientStartHexChange(e.target.value)}
+                          placeholder="#007acc"
+                          className="font-mono text-sm"
+                        />
+                        <div 
+                          className="w-8 h-8 rounded border border-border"
+                          style={{ backgroundColor: gradientStartColor }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Gradient End Color</Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="w-full max-w-[200px]">
+                        <HexColorPicker 
+                          color={gradientEndColor} 
+                          onChange={setGradientEndColor}
+                          style={{ width: '100%', height: '150px' }}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          value={gradientEndHex}
+                          onChange={(e) => handleGradientEndHexChange(e.target.value)}
+                          placeholder="#00b2a9"
+                          className="font-mono text-sm"
+                        />
+                        <div 
+                          className="w-8 h-8 rounded border border-border"
+                          style={{ backgroundColor: gradientEndColor }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2">
+                  <Label className="text-sm font-medium">Gradient Preview</Label>
+                  <div 
+                    className="mt-2 w-full h-16 rounded-lg border border-border"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${gradientStartColor} 0%, ${gradientEndColor} 100%)` 
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-start">
+              <Button onClick={applyCustomTheme} className="px-6">
+                Apply Custom Theme
+              </Button>
+            </div>
           </div>
         </div>
 
