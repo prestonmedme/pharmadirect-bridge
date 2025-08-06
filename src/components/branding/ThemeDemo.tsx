@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { useTheme } from '@/contexts/ThemeContext';
 import { exampleThemes, ThemeConfig } from '@/lib/theme';
