@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { ThemedButton } from "@/components/branding/ThemedButton";
 import { Search, Shield, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FeatureCard from "./FeatureCard";
@@ -67,17 +67,17 @@ const HeroSection = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
+              <ThemedButton 
                 variant="medical" 
                 size="lg" 
                 className="w-full sm:w-auto"
                 onClick={() => navigate('/search')}
               >
                 Find a Pharmacy
-              </Button>
-              <Button variant="medical-outline" size="lg" className="w-full sm:w-auto">
+              </ThemedButton>
+              <ThemedButton variant="medical-outline" size="lg" className="w-full sm:w-auto">
                 Check Eligibility
-              </Button>
+              </ThemedButton>
             </div>
 
             {/* Trust indicators */}

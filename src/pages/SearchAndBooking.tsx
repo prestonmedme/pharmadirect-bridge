@@ -364,7 +364,7 @@ const SearchAndBooking = () => {
           },
           (results, status) => {
             if (status === 'OK' && results) {
-              resolve({ results, status });
+              resolve({ results } as google.maps.GeocoderResponse);
             } else {
               reject(new Error(`Geocoding failed: ${status}`));
             }

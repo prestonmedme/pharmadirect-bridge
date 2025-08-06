@@ -5,6 +5,7 @@ import { Menu, X, MapPin, User, Globe, LogOut, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { DynamicLogo } from '@/components/branding/DynamicLogo';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,10 +34,7 @@ const Header = () => {
             className="flex items-center space-x-3 cursor-pointer" 
             onClick={() => navigate('/')}
           >
-            <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
-            </div>
-            <span className="text-xl font-bold text-primary">MedMe</span>
+            <DynamicLogo className="h-8 w-auto" alt="MedMe Logo" />
           </div>
 
           {/* Desktop Navigation */}

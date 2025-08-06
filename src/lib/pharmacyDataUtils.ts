@@ -143,7 +143,11 @@ export async function searchPharmacyPlaces(pharmacyName: string, address: string
             place_id: place.place_id,
             rating: place.rating,
             user_ratings_total: place.user_ratings_total,
-            opening_hours: place.opening_hours,
+            opening_hours: place.opening_hours ? {
+              open_now: place.opening_hours.open_now ?? false,
+              periods: place.opening_hours.periods,
+              weekday_text: place.opening_hours.weekday_text
+            } : { open_now: false },
             reviews: place.reviews
           });
         } else {
@@ -189,7 +193,11 @@ export async function getPlaceDetails(placeId: string): Promise<GooglePlacesData
             place_id: placeId,
             rating: place.rating,
             user_ratings_total: place.user_ratings_total,
-            opening_hours: place.opening_hours,
+            opening_hours: place.opening_hours ? {
+              open_now: place.opening_hours.open_now ?? false,
+              periods: place.opening_hours.periods,
+              weekday_text: place.opening_hours.weekday_text
+            } : { open_now: false },
             reviews: place.reviews
           });
         } else {
