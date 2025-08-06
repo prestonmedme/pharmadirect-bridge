@@ -1,16 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
 import { useTheme } from '@/contexts/ThemeContext';
-import { exampleThemes } from '@/lib/theme';
+import { exampleThemes, ThemeConfig } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 
 export function ThemeDemo() {
   const { theme, setTheme } = useTheme();
+  const [customPrimaryColor, setCustomPrimaryColor] = useState(theme?.primaryColor || '#007acc');
+  const [customSecondaryColor, setCustomSecondaryColor] = useState(theme?.secondaryColor || '#00b2a9');
+  const [primaryHex, setPrimaryHex] = useState(theme?.primaryColor || '#007acc');
+  const [secondaryHex, setSecondaryHex] = useState(theme?.secondaryColor || '#00b2a9');
   
   const currentThemeKey = Object.keys(exampleThemes).find(
     key => JSON.stringify(exampleThemes[key]) === JSON.stringify(theme)
   ) || 'custom';
+
+  const applyCustomTheme = () => {
+    const customTheme: ThemeConfig = {
+      ...theme,
+      primaryColor: customPrimaryColor,
+      secondaryColor: customSecondaryColor,
+      logoUrl: theme?.logoUrl || exampleThemes.default.logoUrl,
+      fontFamily: theme?.fontFamily || exampleThemes.default.fontFamily,
+      ctaStyle: theme?.ctaStyle || exampleThemes.default.ctaStyle
+    };
+    setTheme(customTheme);
+  };
+
+  const handlePrimaryHexChange = (value: string) => {
+    setPrimaryHex(value);
+    if (/^#[0-9A-F]{6}$/i.test(value)) {
+      setCustomPrimaryColor(value);
+    }
+  };
+
+  const handleSecondaryHexChange = (value: string) => {
+    setSecondaryHex(value);
+    if (/^#[0-9A-F]{6}$/i.test(value)) {
+      setCustomSecondaryColor(value);
+    }
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -68,8 +102,83 @@ export function ThemeDemo() {
           ))}
         </div>
 
-        <div className="border-t pt-6">
-          <h3 className="font-semibold mb-4">URL-based Theme Testing</h3>
+        <Separator className="my-6" />
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold mb-4">Custom Color Theme</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Create your own theme by selecting custom colors using the color picker or entering hex codes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">Primary Color</Label>
+                <div className="mt-2 space-y-3">
+                  <div className="w-full max-w-[200px]">
+                    <HexColorPicker 
+                      color={customPrimaryColor} 
+                      onChange={setCustomPrimaryColor}
+                      style={{ width: '100%', height: '150px' }}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={primaryHex}
+                      onChange={(e) => handlePrimaryHexChange(e.target.value)}
+                      placeholder="#007acc"
+                      className="font-mono text-sm"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: customPrimaryColor }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">Secondary Color</Label>
+                <div className="mt-2 space-y-3">
+                  <div className="w-full max-w-[200px]">
+                    <HexColorPicker 
+                      color={customSecondaryColor} 
+                      onChange={setCustomSecondaryColor}
+                      style={{ width: '100%', height: '150px' }}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={secondaryHex}
+                      onChange={(e) => handleSecondaryHexChange(e.target.value)}
+                      placeholder="#00b2a9"
+                      className="font-mono text-sm"
+                    />
+                    <div 
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: customSecondaryColor }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-start">
+            <Button onClick={applyCustomTheme} className="px-6">
+              Apply Custom Theme
+            </Button>
+          </div>
+        </div>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-4">
+          <h3 className="font-semibold">URL-based Theme Testing</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="font-medium">Subdomain examples:</p>
