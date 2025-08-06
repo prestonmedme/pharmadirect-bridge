@@ -109,6 +109,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [mapMarkers, setMapMarkers] = useState<google.maps.Marker[]>([]);
+  const [userLocationMarker, setUserLocationMarker] = useState<google.maps.Marker | null>(null);
 
   const handleMapLoad = useCallback((loadedMap: google.maps.Map) => {
     setMap(loadedMap);
@@ -154,7 +155,20 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       return marker;
     });
 
-    // Add user location marker if provided
+    setMapMarkers(pharmacyMarkers);
+  }, [map, markers, onMarkerClick, shouldFitBounds]);
+
+  // Handle user location marker separately to prevent flickering
+  useEffect(() => {
+    if (!map || !window.google) return;
+
+    // Remove existing user location marker
+    if (userLocationMarker) {
+      userLocationMarker.setMap(null);
+      setUserLocationMarker(null);
+    }
+
+    // Add new user location marker if provided
     if (userLocation) {
       const locationMarker = new window.google.maps.Marker({
         position: userLocation,
@@ -172,14 +186,22 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
           anchor: new window.google.maps.Point(12, 32)
         }
       });
-      pharmacyMarkers.push(locationMarker);
+      setUserLocationMarker(locationMarker);
     }
 
-    setMapMarkers(pharmacyMarkers);
+    return () => {
+      if (userLocationMarker) {
+        userLocationMarker.setMap(null);
+      }
+    };
+  }, [map, userLocation]);
 
-    // Only fit bounds if shouldFitBounds is true and we have pharmacy markers
+  // Handle bounds fitting separately
+  useEffect(() => {
+    if (!map || !shouldFitBounds) return;
+
     const onlyPharmacyMarkers = markers.filter(m => m.type !== 'location');
-    if (shouldFitBounds && onlyPharmacyMarkers.length > 0) {
+    if (onlyPharmacyMarkers.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
       onlyPharmacyMarkers.forEach(markerData => {
         bounds.extend(markerData.position);
@@ -201,11 +223,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         }, 100);
       }
     }
-
-    return () => {
-      pharmacyMarkers.forEach(marker => marker.setMap(null));
-    };
-  }, [map, markers, onMarkerClick, userLocation, shouldFitBounds]);
+  }, [map, markers, userLocation, shouldFitBounds]);
 
   return (
     <Wrapper

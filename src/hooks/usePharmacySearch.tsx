@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -44,6 +44,8 @@ export const usePharmacySearch = () => {
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastErrorRef = useRef<string | null>(null);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Convert MedMe pharmacy to standard pharmacy format
   const convertMedMePharmacy = (medmePharmacy: MedMePharmacy): Pharmacy => {
@@ -397,11 +399,16 @@ export const usePharmacySearch = () => {
       console.error('❌ Error searching pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to search pharmacies';
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Search failed",
-        description: errorMessage,
-      });
+      
+      // Only show toast if this is a new error (prevent spam)
+      if (lastErrorRef.current !== errorMessage) {
+        lastErrorRef.current = errorMessage;
+        toast({
+          variant: "destructive",
+          title: "Search failed",
+          description: errorMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -432,11 +439,16 @@ export const usePharmacySearch = () => {
       console.error('Error fetching pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch pharmacies';
       setError(errorMessage);
-      toast({
-        variant: "destructive", 
-        title: "Failed to load pharmacies",
-        description: errorMessage,
-      });
+      
+      // Only show toast if this is a new error (prevent spam)
+      if (lastErrorRef.current !== errorMessage) {
+        lastErrorRef.current = errorMessage;
+        toast({
+          variant: "destructive", 
+          title: "Failed to load pharmacies",
+          description: errorMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -539,11 +551,16 @@ export const usePharmacySearch = () => {
       console.error('❌ Error fetching nearby pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch nearby pharmacies';
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Failed to load nearby pharmacies", 
-        description: errorMessage,
-      });
+      
+      // Only show toast if this is a new error (prevent spam)
+      if (lastErrorRef.current !== errorMessage) {
+        lastErrorRef.current = errorMessage;
+        toast({
+          variant: "destructive",
+          title: "Failed to load nearby pharmacies", 
+          description: errorMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BookingDialog } from "@/components/booking/BookingDialog";
@@ -205,6 +205,12 @@ const SearchAndBooking = () => {
       return;
     }
 
+    // Don't trigger search if we already have user coordinates (avoid duplicate searches)
+    if (userLocationCoords) {
+      console.log('⏭️ Skipping debounced search - already have user coordinates');
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
       console.log('⏱️ Debounced search triggered for manual input');
       if (location.trim()) {
@@ -217,7 +223,7 @@ const SearchAndBooking = () => {
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [location, medmeOnly, selectedRadius, isUsingPreciseCoords]);
+  }, [location, medmeOnly, selectedRadius, isUsingPreciseCoords, userLocationCoords]);
 
   // Reset precise coords flag when user starts typing manually
   const handleLocationInputChange = (newLocation: string) => {
@@ -232,19 +238,32 @@ const SearchAndBooking = () => {
   };
 
   // Handle re-search when radius changes and we have user coordinates
+  const prevRadiusRef = useRef<number | null>(null);
   useEffect(() => {
-    if (userLocationCoords) {
+    // Only trigger if we have coords AND radius actually changed (not initial set)
+    if (userLocationCoords && prevRadiusRef.current !== null && prevRadiusRef.current !== selectedRadius) {
+      console.log(`🔄 Radius changed from ${prevRadiusRef.current}km to ${selectedRadius}km - re-searching`);
       getNearbyPharmacies(userLocationCoords.lat, userLocationCoords.lng, selectedRadius);
     }
-  }, [selectedRadius]); // Only trigger when radius changes
+    prevRadiusRef.current = selectedRadius;
+  }, [selectedRadius, userLocationCoords, getNearbyPharmacies]); // Include getNearbyPharmacies to avoid stale closure
 
   // Don't load ALL pharmacies on initial page load for performance
   // Instead, wait for user to select a location or use current location
   // This prevents slow initial loading of hundreds of pharmacies
 
   // Try to get user's location on initial load for better default experience
+  const hasAttemptedLocationRef = useRef(false);
   useEffect(() => {
+    // Only attempt location detection once
+    if (hasAttemptedLocationRef.current || userLocationCoords) {
+      return;
+    }
+    
+    hasAttemptedLocationRef.current = true;
+    
     if (navigator.geolocation) {
+      console.log('🌍 Attempting to get user location on initial load...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -252,18 +271,15 @@ const SearchAndBooking = () => {
           
           console.log('🌍 Got user location on load:', coords);
           
-          // Only update map center if we haven't already set a user location
-          if (!userLocationCoords) {
-            setMapCenter(coords);
-            setMapZoom(13);
-            setIsUsingPreciseCoords(true);
-            setUserLocationCoords(coords);
-            console.log('📍 Updated map to user location');
-            
-            // Also load nearby pharmacies automatically with default radius
-            console.log('🔍 Auto-loading nearby pharmacies for detected user location');
-            getNearbyPharmacies(latitude, longitude, selectedRadius);
-          }
+          setMapCenter(coords);
+          setMapZoom(13);
+          setIsUsingPreciseCoords(true);
+          setUserLocationCoords(coords);
+          console.log('📍 Updated map to user location');
+          
+          // Also load nearby pharmacies automatically with default radius
+          console.log('🔍 Auto-loading nearby pharmacies for detected user location');
+          getNearbyPharmacies(latitude, longitude, selectedRadius);
         },
         (error) => {
           console.log('📍 Could not get user location on load, using default:', error.message);

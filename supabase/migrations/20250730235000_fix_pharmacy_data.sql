@@ -1,4 +1,10 @@
--- Insert sample pharmacy data with realistic Canadian information
+-- Fix pharmacy data to use correct Canadian coordinates instead of San Francisco
+-- This corrects the data mismatch between the app configuration (Canada) and sample data (US)
+
+-- Clear existing pharmacy data
+DELETE FROM public.pharmacies;
+
+-- Insert corrected Canadian pharmacy data
 INSERT INTO public.pharmacies (name, address, phone, website, latitude, longitude) VALUES
 ('Shoppers Drug Mart #1075', '100 King St W, Toronto, ON M5X 1C9', '(416) 977-1711', 'https://www.shoppersdrugmart.ca', 43.6481, -79.3817),
 ('Rexall Drug Store #8456', '1 Dundas St E, Toronto, ON M5B 2R8', '(416) 861-1211', 'https://www.rexall.ca', 43.6565, -79.3799),
