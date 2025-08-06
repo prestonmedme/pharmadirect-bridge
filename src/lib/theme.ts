@@ -77,11 +77,15 @@ export function generateColorVariants(hex: string) {
 
 // Apply theme to document
 export function applyThemeToDocument(theme: ThemeConfig): void {
+  console.log('applyThemeToDocument: Applying theme:', theme);
   const root = document.documentElement;
   
   // Generate color variants
   const primaryVariants = generateColorVariants(theme.primaryColor);
   const secondaryVariants = generateColorVariants(theme.secondaryColor);
+  
+  console.log('applyThemeToDocument: Primary variants:', primaryVariants);
+  console.log('applyThemeToDocument: Secondary variants:', secondaryVariants);
   
   // Set CSS variables
   root.style.setProperty('--primary', primaryVariants.primary);
@@ -112,6 +116,8 @@ export function applyThemeToDocument(theme: ThemeConfig): void {
   if (theme.faviconUrl) {
     updateFavicon(theme.faviconUrl);
   }
+  
+  console.log('applyThemeToDocument: Theme applied successfully');
 }
 
 // Load custom font

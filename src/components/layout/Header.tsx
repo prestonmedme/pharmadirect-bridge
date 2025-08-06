@@ -80,8 +80,12 @@ const Header = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    <Settings className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-4 w-4" />
                     My Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/appointments')}>
                     <MapPin className="mr-2 h-4 w-4" />
@@ -158,8 +162,17 @@ const Header = () => {
                     onClick={() => navigate('/profile')}
                     className="justify-start"
                   >
-                    <Settings className="mr-2 h-4 w-4" />
+                    <User className="mr-2 h-4 w-4" />
                     My Profile
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/settings')}
+                    className="justify-start"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
                   </Button>
                   <Button 
                     variant="outline" 
