@@ -9,9 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Upload, X } from 'lucide-react';
 
 export function ThemeDemo() {
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
   const [customPrimaryColor, setCustomPrimaryColor] = useState(theme?.primaryColor || '#007acc');
   const [customSecondaryColor, setCustomSecondaryColor] = useState(theme?.secondaryColor || '#00b2a9');
   const [primaryHex, setPrimaryHex] = useState(theme?.primaryColor || '#007acc');
@@ -21,10 +25,76 @@ export function ThemeDemo() {
   const [gradientEndColor, setGradientEndColor] = useState(theme?.gradientEndColor || theme?.secondaryColor || '#00b2a9');
   const [gradientStartHex, setGradientStartHex] = useState(theme?.gradientStartColor || theme?.primaryColor || '#007acc');
   const [gradientEndHex, setGradientEndHex] = useState(theme?.gradientEndColor || theme?.secondaryColor || '#00b2a9');
+  const [customLogoUrl, setCustomLogoUrl] = useState(theme?.logoUrl || '');
+  const [uploading, setUploading] = useState(false);
   
   const currentThemeKey = Object.keys(exampleThemes).find(
     key => JSON.stringify(exampleThemes[key]) === JSON.stringify(theme)
   ) || 'custom';
+
+  const uploadLogo = async (file: File) => {
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath);
+
+      setCustomLogoUrl(publicUrl);
+      
+      toast({
+        title: "Logo uploaded successfully",
+        description: "Your logo has been uploaded and is ready to use.",
+      });
+
+      return publicUrl;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.message || "Failed to upload logo",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please select a file smaller than 5MB",
+        });
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: "Please select an image file",
+        });
+        return;
+      }
+      
+      uploadLogo(file);
+    }
+  };
 
   const applyCustomTheme = () => {
     const customTheme: ThemeConfig = {
@@ -34,7 +104,7 @@ export function ThemeDemo() {
       gradientEnabled,
       gradientStartColor,
       gradientEndColor,
-      logoUrl: theme?.logoUrl || exampleThemes.default.logoUrl,
+      logoUrl: customLogoUrl || theme?.logoUrl || exampleThemes.default.logoUrl,
       fontFamily: theme?.fontFamily || exampleThemes.default.fontFamily,
       ctaStyle: theme?.ctaStyle || exampleThemes.default.ctaStyle
     };
@@ -187,6 +257,80 @@ export function ThemeDemo() {
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-start">
+            <Button onClick={applyCustomTheme} className="px-6">
+              Apply Custom Theme
+            </Button>
+          </div>
+        </div>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold mb-4">Custom Logo</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Upload your own logo to customize the branding. Supported formats: PNG, JPG, SVG (max 5MB).
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Current Logo</Label>
+              <div className="mt-2 p-4 border border-border rounded-lg bg-muted/50">
+                {customLogoUrl ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <img 
+                        src={customLogoUrl} 
+                        alt="Custom logo" 
+                        className="h-12 w-auto object-contain"
+                      />
+                      <div className="text-sm">
+                        <p className="font-medium">Custom logo uploaded</p>
+                        <p className="text-muted-foreground">Ready to use</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCustomLogoUrl('')}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8 text-muted-foreground">
+                    <div className="text-center space-y-2">
+                      <Upload className="h-8 w-8 mx-auto" />
+                      <p className="text-sm">No custom logo uploaded</p>
+                      <p className="text-xs">Using default theme logo</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium">Upload New Logo</Label>
+              <div className="mt-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={uploading}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
+                {uploading && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Uploading logo...
+                  </p>
+                )}
               </div>
             </div>
           </div>
