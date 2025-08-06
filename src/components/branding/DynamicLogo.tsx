@@ -12,7 +12,7 @@ export function DynamicLogo({ className = "h-8 w-auto", alt = "Logo" }: DynamicL
   
   return (
     <img 
-      src={theme.logoUrl} 
+      src={theme?.logoUrl || medmeLogo} 
       alt={alt}
       className={className}
       onError={(e) => {
