@@ -61,10 +61,10 @@ export const usePharmacySearch = () => {
     };
   };
 
-  // Simple geocoding for common zip codes (in a real app, you'd use a geocoding API)
+  // Geocode input using Google Maps Geocoding when available; fallback to heuristics
   const geocodeLocation = async (location: string): Promise<{ lat: number; lng: number } | null> => {
     console.log(`🌍 Geocoding location: "${location}"`);
-    
+
     // Check if it's coordinates already (from geolocation)
     const coordsMatch = location.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
     if (coordsMatch) {
@@ -76,120 +76,66 @@ export const usePharmacySearch = () => {
       return coords;
     }
 
-    // Simple zip code mapping for San Francisco area (demo purposes)
-    const zipCodeMap: Record<string, { lat: number; lng: number }> = {
-      '94102': { lat: 37.7869, lng: -122.4075 },
-      '94103': { lat: 37.7749, lng: -122.4194 },
-      '94104': { lat: 37.7912, lng: -122.4013 },
-      '94105': { lat: 37.7881, lng: -122.3916 },
-      '94107': { lat: 37.7594, lng: -122.3928 },
-      '94108': { lat: 37.7922, lng: -122.4079 },
-      '94109': { lat: 37.7925, lng: -122.4169 },
-      '94110': { lat: 37.7486, lng: -122.4133 },
-      '94111': { lat: 37.7970, lng: -122.3991 },
-      '94112': { lat: 37.7230, lng: -122.4413 },
-      '94114': { lat: 37.7609, lng: -122.4350 },
-      '94115': { lat: 37.7881, lng: -122.4378 },
-      '94116': { lat: 37.7448, lng: -122.4861 },
-      '94117': { lat: 37.7693, lng: -122.4481 },
-      '94118': { lat: 37.7816, lng: -122.4628 },
-      '94121': { lat: 37.7809, lng: -122.4893 },
-      '94122': { lat: 37.7597, lng: -122.4831 },
-      '94123': { lat: 37.7984, lng: -122.4397 },
-      '94124': { lat: 37.7312, lng: -122.3826 },
-      '94127': { lat: 37.7405, lng: -122.4581 },
-      '94131': { lat: 37.7447, lng: -122.4411 },
-      '94132': { lat: 37.7230, lng: -122.4813 },
-      '94133': { lat: 37.8030, lng: -122.4107 },
-      '94134': { lat: 37.7187, lng: -122.4057 }
-    };
+    // Prefer Google Maps Geocoding if available
+    try {
+      if ((window as any).google?.maps) {
+        const geocoder = new window.google.maps.Geocoder();
+        const response = await new Promise<google.maps.GeocoderResponse>((resolve, reject) => {
+          geocoder.geocode(
+            {
+              address: location,
+              componentRestrictions: { country: 'CA' },
+              region: 'CA',
+            },
+            (results, status) => {
+              if (status === 'OK' && results && results.length > 0) {
+                resolve({ results } as google.maps.GeocoderResponse);
+              } else {
+                reject(new Error(`Geocoding failed: ${status}`));
+              }
+            }
+          );
+        });
 
-    // Check for zip code
-    const zipMatch = location.match(/\b(\d{5})\b/);
-    if (zipMatch && zipCodeMap[zipMatch[1]]) {
-      return zipCodeMap[zipMatch[1]];
+        const best = response.results[0];
+        const loc = best.geometry.location;
+        const coords = { lat: loc.lat(), lng: loc.lng() };
+        console.log('✅ Google geocode result:', best.formatted_address, coords);
+        return coords;
+      }
+    } catch (err) {
+      console.warn('Google geocoding failed, falling back to heuristics:', err);
     }
 
-    // For text addresses, try to match common city names and locations
+    // Heuristic fallback: prefer major Canadian cities
     const locationLower = location.toLowerCase();
-    
-    // San Francisco variations
-    if (locationLower.includes('san francisco') || locationLower.includes('sf') || 
-        locationLower.includes('frisco') || locationLower.includes('the city')) {
-      return { lat: 37.7749, lng: -122.4194 }; // SF center
+    const cityMap: Array<{ key: string | RegExp; lat: number; lng: number }> = [
+      { key: 'vancouver', lat: 49.2827, lng: -123.1207 },
+      { key: 'victoria', lat: 48.4284, lng: -123.3656 },
+      { key: 'kelowna', lat: 49.8879, lng: -119.4960 },
+      { key: 'surrey', lat: 49.1913, lng: -122.8490 },
+      { key: 'burnaby', lat: 49.2488, lng: -122.9805 },
+      { key: 'richmond', lat: 49.1666, lng: -123.1336 },
+      { key: 'coquitlam', lat: 49.2838, lng: -122.7919 },
+      { key: 'calgary', lat: 51.0447, lng: -114.0719 },
+      { key: 'edmonton', lat: 53.5461, lng: -113.4938 },
+      { key: 'winnipeg', lat: 49.8951, lng: -97.1384 },
+      { key: 'toronto', lat: 43.6532, lng: -79.3832 },
+      { key: 'ottawa', lat: 45.4215, lng: -75.6972 },
+      { key: 'montreal', lat: 45.5017, lng: -73.5673 },
+      { key: 'quebec', lat: 46.8139, lng: -71.2080 },
+      { key: 'halifax', lat: 44.6488, lng: -63.5752 },
+    ];
+    for (const entry of cityMap) {
+      if (typeof entry.key === 'string' ? locationLower.includes(entry.key) : entry.key.test(locationLower)) {
+        return { lat: entry.lat, lng: entry.lng };
+      }
     }
-    
-    // Major Canadian cities
-    if (locationLower.includes('toronto') || locationLower.includes('gta')) {
-      const coords = { lat: 43.6532, lng: -79.3832 };
-      console.log('📍 Matched Toronto:', coords);
-      return coords;
-    }
-    if (locationLower.includes('montreal') || locationLower.includes('montréal')) {
-      const coords = { lat: 45.5017, lng: -73.5673 };
-      console.log('📍 Matched Montreal:', coords);
-      return coords;
-    }
-    if (locationLower.includes('vancouver')) {
-      const coords = { lat: 49.2827, lng: -123.1207 };
-      console.log('📍 Matched Vancouver:', coords);
-      return coords;
-    }
-    if (locationLower.includes('calgary')) {
-      const coords = { lat: 51.0447, lng: -114.0719 };
-      console.log('📍 Matched Calgary:', coords);
-      return coords;
-    }
-    if (locationLower.includes('ottawa')) {
-      const coords = { lat: 45.4215, lng: -75.6972 };
-      console.log('📍 Matched Ottawa:', coords);
-      return coords;
-    }
-    if (locationLower.includes('edmonton')) {
-      const coords = { lat: 53.5461, lng: -113.4938 };
-      console.log('📍 Matched Edmonton:', coords);
-      return coords;
-    }
-    if (locationLower.includes('mississauga')) {
-      const coords = { lat: 43.5890, lng: -79.6441 };
-      console.log('📍 Matched Mississauga:', coords);
-      return coords;
-    }
-    if (locationLower.includes('winnipeg')) {
-      const coords = { lat: 49.8951, lng: -97.1384 };
-      console.log('📍 Matched Winnipeg:', coords);
-      return coords;
-    }
-    if (locationLower.includes('quebec') || locationLower.includes('québec')) {
-      const coords = { lat: 46.8139, lng: -71.2080 };
-      console.log('📍 Matched Quebec:', coords);
-      return coords;
-    }
-    if (locationLower.includes('hamilton')) {
-      const coords = { lat: 43.2557, lng: -79.8711 };
-      console.log('📍 Matched Hamilton:', coords);
-      return coords;
-    }
-    
-    // Legacy California cities (for any existing US data)
-    if (locationLower.includes('los angeles') || locationLower.includes('la')) {
-      return { lat: 34.0522, lng: -118.2437 };
-    }
-    if (locationLower.includes('oakland')) {
-      return { lat: 37.8044, lng: -122.2712 };
-    }
-    if (locationLower.includes('berkeley')) {
-      return { lat: 37.8715, lng: -122.2730 };
-    }
-    if (locationLower.includes('san jose')) {
-      return { lat: 37.3382, lng: -121.8863 };
-    }
-    
-    // For any unrecognized location, return Toronto as fallback for Canadian app
-    console.warn(`Location "${location}" not recognized, using Toronto as fallback`);
-    const fallbackCoords = { lat: 43.6532, lng: -79.3832 };
-    console.log('📍 Returning fallback coordinates:', fallbackCoords);
-    return fallbackCoords;
+
+    // As a last resort, return Canada's centroid
+    const fallback = { lat: 56.1304, lng: -106.3468 };
+    console.warn(`Location "${location}" not recognized; using Canada fallback`, fallback);
+    return fallback;
   };
 
   // Calculate distance between two coordinates (Haversine formula)

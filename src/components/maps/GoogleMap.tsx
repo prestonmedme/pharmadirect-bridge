@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 import { GOOGLE_MAPS_CONFIG } from '@/lib/config';
 import { Loader2 } from 'lucide-react';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
 interface MapProps {
   center: google.maps.LatLngLiteral;
@@ -23,34 +24,55 @@ interface GoogleMapProps extends MapProps {
   onMarkerClick?: (markerId: string) => void;
   userLocation?: google.maps.LatLngLiteral;
   shouldFitBounds?: boolean;
+  fitRadiusKm?: number; // When provided with userLocation, ensure this radius fits in view
 }
 
 // Map component that renders the actual Google Map
 const Map: React.FC<MapProps> = ({ center, zoom, onMapLoad, className }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [googleReady, setGoogleReady] = useState<boolean>(false);
+
+  // Poll for Google Maps readiness to avoid accessing window.google before it's available
+  useEffect(() => {
+    if (googleReady) return;
+    let intervalId: number | undefined;
+    const check = () => {
+      if ((window as any).google?.maps) {
+        setGoogleReady(true);
+        if (intervalId) window.clearInterval(intervalId);
+      }
+    };
+    check();
+    if (!googleReady) {
+      intervalId = window.setInterval(check, 100);
+    }
+    return () => {
+      if (intervalId) window.clearInterval(intervalId);
+    };
+  }, [googleReady]);
 
   useEffect(() => {
-    if (ref.current && !map) {
-      const newMap = new window.google.maps.Map(ref.current, {
-        center,
-        zoom,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        styles: [
-          {
-            featureType: 'poi',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }]
-          }
-        ]
-      });
-      
-      setMap(newMap);
-      onMapLoad?.(newMap);
-    }
-  }, [ref, map, center, zoom, onMapLoad]);
+    if (!ref.current || map || !googleReady) return;
+
+    const newMap = new window.google.maps.Map(ref.current, {
+      center,
+      zoom,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      styles: [
+        {
+          featureType: 'poi',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }]
+        }
+      ]
+    });
+    
+    setMap(newMap);
+    onMapLoad?.(newMap);
+  }, [googleReady, ref, map, center, zoom, onMapLoad]);
 
   // Update map center and zoom when props change
   useEffect(() => {
@@ -105,22 +127,32 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
   onMarkerClick,
   className = "h-full w-full",
   userLocation,
-  shouldFitBounds = true
+  shouldFitBounds = true,
+  fitRadiusKm
 }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [mapMarkers, setMapMarkers] = useState<google.maps.Marker[]>([]);
   const [userLocationMarker, setUserLocationMarker] = useState<google.maps.Marker | null>(null);
+  const markerClusterRef = useRef<MarkerClusterer | null>(null);
 
   const handleMapLoad = useCallback((loadedMap: google.maps.Map) => {
     setMap(loadedMap);
   }, []);
 
-  // Add markers to map
+  // Add markers to map (with clustering)
   useEffect(() => {
-    if (!map || !window.google) return;
+    if (!map || !(window as any).google?.maps) return;
 
     // Clear existing markers
     mapMarkers.forEach(marker => marker.setMap(null));
+    if (markerClusterRef.current) {
+      try {
+        markerClusterRef.current.clearMarkers();
+      } catch (e) {
+        // no-op
+      }
+      markerClusterRef.current = null;
+    }
 
     // Add pharmacy markers
     const pharmacyMarkers = markers.map(markerData => {
@@ -155,12 +187,20 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       return marker;
     });
 
+    // Create clusterer for the markers for performance on large sets
+    try {
+      markerClusterRef.current = new MarkerClusterer({ map, markers: pharmacyMarkers });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('MarkerClusterer failed to initialize, rendering plain markers:', e);
+    }
+
     setMapMarkers(pharmacyMarkers);
   }, [map, markers, onMarkerClick, shouldFitBounds]);
 
   // Handle user location marker separately to prevent flickering
   useEffect(() => {
-    if (!map || !window.google) return;
+    if (!map || !(window as any).google?.maps) return;
 
     // Remove existing user location marker
     if (userLocationMarker) {
@@ -198,7 +238,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
 
   // Handle bounds fitting separately
   useEffect(() => {
-    if (!map || !shouldFitBounds) return;
+    if (!map || !shouldFitBounds || !(window as any).google?.maps) return;
 
     const onlyPharmacyMarkers = markers.filter(m => m.type !== 'location');
     if (onlyPharmacyMarkers.length > 0) {
@@ -210,6 +250,17 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       // Include user location in bounds if available
       if (userLocation) {
         bounds.extend(userLocation);
+      }
+
+      // If a radius is provided, expand bounds to include the full radius around user location
+      // This ensures the map shows the entire search area even if markers are clustered on one side
+      if (userLocation && typeof fitRadiusKm === 'number' && fitRadiusKm > 0) {
+        const latRadius = fitRadiusKm / 111; // ~111km per degree latitude
+        const lngRadius = fitRadiusKm / (111 * Math.cos((userLocation.lat * Math.PI) / 180));
+        const ne = new window.google.maps.LatLng(userLocation.lat + latRadius, userLocation.lng + lngRadius);
+        const sw = new window.google.maps.LatLng(userLocation.lat - latRadius, userLocation.lng - lngRadius);
+        bounds.extend(ne);
+        bounds.extend(sw);
       }
       
       map.fitBounds(bounds);
@@ -223,7 +274,16 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         }, 100);
       }
     }
-  }, [map, markers, userLocation, shouldFitBounds]);
+  }, [map, markers, userLocation, shouldFitBounds, fitRadiusKm]);
+
+  // For initial Canada-wide view, ensure we do not auto-fit on first load unless markers exist
+  useEffect(() => {
+    if (!map || !(window as any).google?.maps) return;
+    if (!markers || markers.length === 0) {
+      // Keep provided center/zoom
+      return;
+    }
+  }, [map, markers]);
 
   return (
     <Wrapper

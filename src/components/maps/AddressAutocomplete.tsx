@@ -9,6 +9,8 @@ interface AddressAutocompleteProps {
   onPlaceSelect?: (place: google.maps.places.PlaceResult) => void;
   placeholder?: string;
   className?: string;
+  center?: google.maps.LatLngLiteral | null; // Bias/Restrict results around this center
+  radiusKm?: number; // Radius to restrict suggestions when center is provided
 }
 
 const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
@@ -16,13 +18,16 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   onChange,
   onPlaceSelect,
   placeholder = "Enter address or location",
-  className
+  className,
+  center,
+  radiusKm
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [suppressOnChange, setSuppressOnChange] = useState(false);
+  const lastBoundsKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkGoogleMaps = () => {
@@ -68,20 +73,34 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
     try {
       // Initialize autocomplete
+      const options: google.maps.places.AutocompleteOptions = {
+        types: ['geocode', 'establishment'],
+        componentRestrictions: { country: 'ca' },
+        fields: [
+          'place_id',
+          'formatted_address',
+          'name',
+          'geometry.location',
+          'address_components',
+          'types'
+        ],
+      };
+
+      // If a center is provided, set bounds and strict mode to restrict results in radius
+      if (center && typeof radiusKm === 'number' && radiusKm > 0) {
+        const latRadius = radiusKm / 111; // degrees approx per km for latitude
+        const lngRadius = radiusKm / (111 * Math.cos((center.lat * Math.PI) / 180));
+        const ne = new window.google.maps.LatLng(center.lat + latRadius, center.lng + lngRadius);
+        const sw = new window.google.maps.LatLng(center.lat - latRadius, center.lng - lngRadius);
+        const bounds = new window.google.maps.LatLngBounds(sw, ne);
+        options.bounds = bounds;
+        options.strictBounds = true;
+        lastBoundsKeyRef.current = `${center.lat.toFixed(4)},${center.lng.toFixed(4)}:${radiusKm}`;
+      }
+
       const autocomplete = new window.google.maps.places.Autocomplete(
         inputRef.current,
-        {
-          types: ['geocode', 'establishment'],
-          componentRestrictions: { country: 'ca' }, // Restrict to Canada
-          fields: [
-            'place_id',
-            'formatted_address', 
-            'name',
-            'geometry.location',
-            'address_components',
-            'types'
-          ]
-        }
+        options
       );
 
       autocompleteRef.current = autocomplete;
@@ -134,7 +153,29 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       console.error('Error initializing autocomplete:', error);
       setIsLoading(false);
     }
-  }, [isGoogleLoaded, onChange, onPlaceSelect]);
+  }, [isGoogleLoaded, onChange, onPlaceSelect, center?.lat, center?.lng, radiusKm]);
+
+  // Update bounds when center/radius changes after initialization
+  useEffect(() => {
+    if (!isGoogleLoaded || !autocompleteRef.current) return;
+    if (!center || !radiusKm || radiusKm <= 0) return;
+
+    const key = `${center.lat.toFixed(4)},${center.lng.toFixed(4)}:${radiusKm}`;
+    if (lastBoundsKeyRef.current === key) return;
+
+    const latRadius = radiusKm / 111;
+    const lngRadius = radiusKm / (111 * Math.cos((center.lat * Math.PI) / 180));
+    const ne = new window.google.maps.LatLng(center.lat + latRadius, center.lng + lngRadius);
+    const sw = new window.google.maps.LatLng(center.lat - latRadius, center.lng - lngRadius);
+    const bounds = new window.google.maps.LatLngBounds(sw, ne);
+    try {
+      autocompleteRef.current.setBounds(bounds);
+      // strictBounds is set in options on init; keep it effectively enforced via setBounds
+      lastBoundsKeyRef.current = key;
+    } catch (e) {
+      console.warn('Failed to update autocomplete bounds:', e);
+    }
+  }, [center?.lat, center?.lng, radiusKm, isGoogleLoaded]);
 
   // Handle manual input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

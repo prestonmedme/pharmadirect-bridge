@@ -2,11 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BookingDialog } from "@/components/booking/BookingDialog";
-import { Input } from "@/components/ui/input";
+// Removed date selection feature - no input needed here
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
@@ -16,7 +14,6 @@ import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
 import AddressAutocomplete from "@/components/maps/AddressAutocomplete";
 import { 
   MapPin, 
-  Calendar as CalendarIcon, 
   Filter, 
   Clock, 
   Phone,
@@ -26,16 +23,11 @@ import {
   Loader2,
   Search
 } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import medmeLogo from '@/assets/medme-logo.svg';
 
 const SearchAndBooking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
-  const [calendarOpen, setCalendarOpen] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
@@ -44,8 +36,9 @@ const SearchAndBooking = () => {
   const [isUsingPreciseCoords, setIsUsingPreciseCoords] = useState<boolean>(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
-  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 43.6532, lng: -79.3832 }); // Default to Toronto
-  const [mapZoom, setMapZoom] = useState<number>(12);
+  // Default to showing all of Canada
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 56.1304, lng: -106.3468 });
+  const [mapZoom, setMapZoom] = useState<number>(4);
   const [showSearchThisArea, setShowSearchThisArea] = useState<boolean>(false);
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null);
   const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies, calculateDistance } = usePharmacySearch();
@@ -179,7 +172,11 @@ const SearchAndBooking = () => {
     
     // Search for nearby pharmacies using selected radius
     console.log(`🔍 Autocomplete: Searching for pharmacies within ${selectedRadius}km of selected location`);
-    getNearbyPharmacies(lat, lng, selectedRadius);
+    getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+      // After pharmacies load, ensure map centers and fits area for better UX
+      setMapCenter(coords);
+      setMapZoom(12);
+    });
     
     toast({
       title: "Location selected!",
@@ -279,7 +276,10 @@ const SearchAndBooking = () => {
           
           // Also load nearby pharmacies automatically with default radius
           console.log('🔍 Auto-loading nearby pharmacies for detected user location');
-          getNearbyPharmacies(latitude, longitude, selectedRadius);
+          getNearbyPharmacies(latitude, longitude, selectedRadius).then(() => {
+            setMapCenter(coords);
+            setMapZoom(12);
+          });
         },
         (error) => {
           console.log('📍 Could not get user location on load, using default:', error.message);
@@ -355,12 +355,23 @@ const SearchAndBooking = () => {
       
       const geocoder = new window.google.maps.Geocoder();
       
+      // Bias geocoding to user's precise location if available
+      let bounds: google.maps.LatLngBounds | undefined = undefined;
+      if (userLocationCoords) {
+        const latRadius = selectedRadius / 111;
+        const lngRadius = selectedRadius / (111 * Math.cos((userLocationCoords.lat * Math.PI) / 180));
+        const ne = new window.google.maps.LatLng(userLocationCoords.lat + latRadius, userLocationCoords.lng + lngRadius);
+        const sw = new window.google.maps.LatLng(userLocationCoords.lat - latRadius, userLocationCoords.lng - lngRadius);
+        bounds = new window.google.maps.LatLngBounds(sw, ne);
+      }
+
       const response = await new Promise<google.maps.GeocoderResponse>((resolve, reject) => {
         geocoder.geocode(
           { 
             address: location,
             componentRestrictions: { country: 'CA' }, // Restrict to Canada
-            region: 'CA' // Prefer Canadian results
+            region: 'CA', // Prefer Canadian results
+            bounds
           },
           (results, status) => {
             if (status === 'OK' && results) {
@@ -436,7 +447,10 @@ const SearchAndBooking = () => {
         setMapZoom(16); // Zoom in more for specific addresses
 
         // Search for nearby pharmacies
-        getNearbyPharmacies(lat, lng, selectedRadius);
+        getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+          setMapCenter(coords);
+          setMapZoom(12);
+        });
 
         toast({
           title: "Address found!",
@@ -517,6 +531,8 @@ const SearchAndBooking = () => {
                       onPlaceSelect={handlePlaceSelect}
                       placeholder="Address, city, or postal code"
                       className="pl-10"
+                      center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
+                      radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
                     />
                   </div>
                   <div className="mt-2 flex gap-2">
@@ -542,22 +558,7 @@ const SearchAndBooking = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    Select Date
-                  </label>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                    onClick={() => setCalendarOpen(!calendarOpen)}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Today, Jul 31"}
-                  </Button>
-                </div>
+                {/* Date selection removed */}
 
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">
@@ -819,11 +820,18 @@ const SearchAndBooking = () => {
             markers={createMarkersFromPharmacies()}
             onMarkerClick={handleMarkerClick}
             userLocation={userLocationCoords}
-            shouldFitBounds={!userLocationCoords && pharmacies.length > 1} // Only auto-fit when no specific location and multiple pharmacies
+            shouldFitBounds={pharmacies.length > 0}
+            fitRadiusKm={userLocationCoords ? selectedRadius : undefined}
             onMapLoad={(map) => {
-              // Listen for bounds changes to enable "Search This Area"
+              // Listen for bounds changes with debounce to enable "Search This Area" without spamming state
+              let boundsChangedTimer: number | undefined;
               map.addListener('bounds_changed', () => {
-                handleMapBoundsChange(map);
+                if (boundsChangedTimer) {
+                  window.clearTimeout(boundsChangedTimer);
+                }
+                boundsChangedTimer = window.setTimeout(() => {
+                  handleMapBoundsChange(map);
+                }, 300);
               });
             }}
             className="h-full w-full"
@@ -844,76 +852,7 @@ const SearchAndBooking = () => {
             </div>
           )}
           
-          {/* Calendar Overlay - Slides in from right */}
-          <div 
-            className="absolute inset-0 h-full bg-gray-50 flex flex-col transition-transform duration-300 ease-out"
-            style={{ 
-              transform: calendarOpen ? 'translateX(0%)' : 'translateX(0%)',
-              zIndex: calendarOpen ? 10 : -1
-            }}
-          >
-            <div className="p-6 bg-white border-b flex-shrink-0">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-primary">Select Date & Time</h3>
-                <button 
-                  onClick={() => setCalendarOpen(false)}
-                  className="text-muted-foreground hover:text-foreground text-xl"
-                >
-                  ✕
-                </button>
-              </div>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                initialFocus
-                className="pointer-events-auto mx-auto"
-              />
-            </div>
-            
-            <div className="flex-1 p-6 bg-gray-50 space-y-2">
-              <h4 className="text-lg font-medium text-foreground">Preferred Time</h4>
-              
-              {[
-                { label: "Morning", value: "morning", time: "Before 12pm" },
-                { label: "Afternoon", value: "afternoon", time: "12pm - 5pm" },
-                { label: "Evening", value: "evening", time: "After 5pm" }
-              ].map((slot) => (
-                <div key={slot.value} className="flex items-center justify-between py-4 px-4 bg-white rounded-lg border">
-                  <div className="flex items-center space-x-4">
-                    <Checkbox 
-                      id={slot.value}
-                      checked={selectedTimeSlots.includes(slot.value)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedTimeSlots(prev => [...prev, slot.value]);
-                        } else {
-                          setSelectedTimeSlots(prev => prev.filter(s => s !== slot.value));
-                        }
-                      }}
-                    />
-                    <label 
-                      htmlFor={slot.value} 
-                      className="text-lg font-medium text-foreground cursor-pointer"
-                    >
-                      {slot.label}
-                    </label>
-                  </div>
-                  <span className="text-sm text-muted-foreground">{slot.time}</span>
-                </div>
-              ))}
-              
-              <div className="pt-4">
-                <Button 
-                  className="w-full py-3 text-lg" 
-                  variant="medical"
-                  onClick={() => setCalendarOpen(false)}
-                >
-                  Done
-                </Button>
-              </div>
-            </div>
-          </div>
+          {/* Date/time overlay removed */}
         </div>
       </div>
 

@@ -111,7 +111,7 @@ function generateStableHours(pharmacyId: string, pharmacyName: string) {
 }
 
 // Search for pharmacy using Google Places API
-export async function searchPharmacyPlaces(pharmacyName: string, address: string): Promise<GooglePlacesData | null> {
+export async function searchPharmacyPlaces(pharmacyName: string, address: string, opts?: { center?: google.maps.LatLngLiteral; radiusKm?: number }): Promise<GooglePlacesData | null> {
   try {
     if (!window.google || !window.google.maps) {
       console.warn('Google Maps API not loaded');
@@ -122,7 +122,7 @@ export async function searchPharmacyPlaces(pharmacyName: string, address: string
       document.createElement('div')
     );
 
-    const request = {
+    const request: google.maps.places.TextSearchRequest = {
       query: `${pharmacyName} ${address}`,
       fields: [
         'place_id',
@@ -132,8 +132,18 @@ export async function searchPharmacyPlaces(pharmacyName: string, address: string
         'opening_hours',
         'reviews',
         'formatted_address'
-      ]
+      ] as any,
     };
+
+    // Bias results toward provided center within radius
+    if (opts?.center && opts.radiusKm && opts.radiusKm > 0) {
+      const latRadius = opts.radiusKm / 111;
+      const lngRadius = opts.radiusKm / (111 * Math.cos((opts.center.lat * Math.PI) / 180));
+      const ne = new window.google.maps.LatLng(opts.center.lat + latRadius, opts.center.lng + lngRadius);
+      const sw = new window.google.maps.LatLng(opts.center.lat - latRadius, opts.center.lng - lngRadius);
+      request.bounds = new window.google.maps.LatLngBounds(sw, ne);
+      // Note: TextSearch respects bounds as a bias; there's no strict radius filter available client-side
+    }
 
     return new Promise((resolve) => {
       service.textSearch(request, (results, status) => {
