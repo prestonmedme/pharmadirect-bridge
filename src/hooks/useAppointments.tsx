@@ -49,8 +49,9 @@ export const useAppointments = () => {
         throw new Error('User not authenticated');
       }
 
+      // Use the secure view that masks sensitive data by default
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_safe_view')
         .select(`
           *,
           pharmacy:pharmacies (
