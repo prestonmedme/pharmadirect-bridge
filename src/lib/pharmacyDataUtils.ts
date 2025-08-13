@@ -122,9 +122,9 @@ export async function searchPharmacyPlaces(pharmacyName: string, address: string
       document.createElement('div')
     );
 
-    const request: google.maps.places.TextSearchRequest = {
+    const request = {
       query: `${pharmacyName} ${address}`,
-    };
+    } as google.maps.places.TextSearchRequest;
 
     // Bias results toward provided center within radius
     if (opts?.center && opts.radiusKm && opts.radiusKm > 0) {

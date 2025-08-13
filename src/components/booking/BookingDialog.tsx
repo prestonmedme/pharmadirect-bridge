@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useAppointments, type CreateAppointmentData } from "@/hooks/useAppointments";
+import { useSecureAppointments, type CreateAppointmentData } from "@/hooks/useSecureAppointments";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,7 @@ const serviceTypes = [
 
 export const BookingDialog = ({ open, onOpenChange, pharmacy, preselectedService }: BookingDialogProps) => {
   const { user } = useAuth();
-  const { createAppointment, loading } = useAppointments();
+  const { createAppointment, loading } = useSecureAppointments();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [formData, setFormData] = useState({
     service_type: preselectedService || "",
