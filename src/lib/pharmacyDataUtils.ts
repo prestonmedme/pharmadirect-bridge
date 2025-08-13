@@ -124,15 +124,6 @@ export async function searchPharmacyPlaces(pharmacyName: string, address: string
 
     const request: google.maps.places.TextSearchRequest = {
       query: `${pharmacyName} ${address}`,
-      fields: [
-        'place_id',
-        'name',
-        'rating',
-        'user_ratings_total',
-        'opening_hours',
-        'reviews',
-        'formatted_address'
-      ] as any,
     };
 
     // Bias results toward provided center within radius
