@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_audit_log: {
+        Row: {
+          accessed_fields: string[] | null
+          action: string
+          appointment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          accessed_fields?: string[] | null
+          action: string
+          appointment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          accessed_fields?: string[] | null
+          action?: string
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -215,10 +242,87 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      appointments_safe_view: {
+        Row: {
+          appointment_date: string | null
+          appointment_time: string | null
+          created_at: string | null
+          id: string | null
+          notes: string | null
+          patient_email_masked: string | null
+          patient_name: string | null
+          patient_phone_masked: string | null
+          pharmacy_id: string | null
+          service_type: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          appointment_date?: string | null
+          appointment_time?: string | null
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          patient_email_masked?: never
+          patient_name?: string | null
+          patient_phone_masked?: never
+          pharmacy_id?: string | null
+          service_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          appointment_date?: string | null
+          appointment_time?: string | null
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          patient_email_masked?: never
+          patient_name?: string | null
+          patient_phone_masked?: never
+          pharmacy_id?: string | null
+          service_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_appointment_with_audit: {
+        Args: { appointment_id: string }
+        Returns: {
+          id: string
+          user_id: string
+          pharmacy_id: string
+          service_type: string
+          appointment_date: string
+          appointment_time: string
+          status: string
+          patient_name: string
+          notes: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
+      get_sensitive_appointment_data: {
+        Args: { appointment_id: string; explicit_consent?: boolean }
+        Returns: {
+          patient_phone: string
+          patient_email: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
