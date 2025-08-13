@@ -242,62 +242,7 @@ export type Database = {
       }
     }
     Views: {
-      appointments_safe_view: {
-        Row: {
-          appointment_date: string | null
-          appointment_time: string | null
-          created_at: string | null
-          id: string | null
-          notes: string | null
-          patient_email_masked: string | null
-          patient_name: string | null
-          patient_phone_masked: string | null
-          pharmacy_id: string | null
-          service_type: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          appointment_date?: string | null
-          appointment_time?: string | null
-          created_at?: string | null
-          id?: string | null
-          notes?: string | null
-          patient_email_masked?: never
-          patient_name?: string | null
-          patient_phone_masked?: never
-          pharmacy_id?: string | null
-          service_type?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          appointment_date?: string | null
-          appointment_time?: string | null
-          created_at?: string | null
-          id?: string | null
-          notes?: string | null
-          patient_email_masked?: never
-          patient_name?: string | null
-          patient_phone_masked?: never
-          pharmacy_id?: string | null
-          service_type?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointments_pharmacy_id_fkey"
-            columns: ["pharmacy_id"]
-            isOneToOne: false
-            referencedRelation: "pharmacies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       get_appointment_with_audit: {
