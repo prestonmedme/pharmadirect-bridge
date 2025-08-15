@@ -12,6 +12,11 @@ import { generateStableDisplayData, type PharmacyDisplayData } from "@/lib/pharm
 import { useToast } from "@/hooks/use-toast";
 import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
 import AddressAutocomplete from "@/components/maps/AddressAutocomplete";
+import { PharmacyCard } from "@/types/pharmacy";
+import { adaptPharmacyToCard } from "@/hooks/usePharmacyAdapter";
+import { PharmacyProfileDrawer } from "@/components/pharmacy/PharmacyProfileDrawer";
+import { MapSection } from "@/components/maps/MapSection";
+import { PharmacyResultsList } from "@/components/pharmacy/PharmacyResultsList";
 import { 
   MapPin, 
   Filter, 
@@ -36,6 +41,8 @@ const SearchAndBooking = () => {
   const [isUsingPreciseCoords, setIsUsingPreciseCoords] = useState<boolean>(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
+  const [selectedPharmacyCard, setSelectedPharmacyCard] = useState<PharmacyCard | null>(null);
+  const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
   // Default to showing all of Canada
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 56.1304, lng: -106.3468 });
   const [mapZoom, setMapZoom] = useState<number>(4);
@@ -43,10 +50,46 @@ const SearchAndBooking = () => {
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null);
   const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies, calculateDistance } = usePharmacySearch();
 
+  // Convert pharmacies to PharmacyCard format
+  const pharmacyCards: PharmacyCard[] = pharmacies.map(adaptPharmacyToCard);
+
 
   const handleBookNow = (pharmacy: Pharmacy) => {
     setSelectedPharmacy(pharmacy);
     setBookingDialogOpen(true);
+  };
+
+  // Handle pharmacy selection from map or list
+  const handlePharmacySelect = (pharmacyCard: PharmacyCard) => {
+    setSelectedPharmacyCard(pharmacyCard);
+    setProfileDrawerOpen(true);
+    
+    // Also scroll to the pharmacy in the list for visual feedback
+    const pharmacyElement = document.getElementById(`pharmacy-${pharmacyCard.id}`);
+    if (pharmacyElement) {
+      pharmacyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  // Handle booking from PharmacyCard
+  const handleBookAppointment = (pharmacyCard: PharmacyCard) => {
+    // Convert back to Pharmacy for existing booking dialog
+    const originalPharmacy = pharmacies.find(p => p.id === pharmacyCard.id);
+    if (originalPharmacy) {
+      handleBookNow(originalPharmacy);
+    }
+  };
+
+  // Calculate distance for pharmacy cards
+  const calculatePharmacyDistance = (pharmacyCard: PharmacyCard, userLoc?: google.maps.LatLngLiteral): string => {
+    if (!userLoc) return '';
+    const distance = calculateDistance(
+      userLoc.lat, 
+      userLoc.lng, 
+      pharmacyCard.location.lat, 
+      pharmacyCard.location.lng
+    );
+    return `${distance.toFixed(1)} km`;
   };
 
   // Convert pharmacies to map markers
@@ -644,7 +687,7 @@ const SearchAndBooking = () => {
                       Searching for pharmacies...
                     </div>
                   ) : (
-                    `${pharmacies.length} pharmacies ${location.trim() ? `near ${location}` : 'available'}`
+                    `${pharmacyCards.length} pharmacies ${location.trim() ? `near ${location}` : 'available'}`
                   )}
                 </h3>
                 <Button variant="ghost" size="sm">
@@ -653,206 +696,29 @@ const SearchAndBooking = () => {
                 </Button>
               </div>
 
-              {loading ? (
-                <div className="text-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-                  <p className="text-muted-foreground">Loading pharmacies...</p>
-                </div>
-              ) : pharmacies.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Ready to find pharmacies</p>
-                  <p className="text-sm">Enter a location above or use current location to get started</p>
-                  <div className="mt-4 flex gap-2 justify-center">
-                    <Button 
-                      variant="medical-outline" 
-                      size="sm"
-                      onClick={handleUseCurrentLocation}
-                    >
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Use my location
-                    </Button>
-                    <Button 
-                      variant="medical" 
-                      size="sm"
-                      onClick={handleGeocodeTypedAddress}
-                      disabled={!location.trim()}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Search address
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                pharmacies.map((pharmacy, index) => {
-                  const displayInfo = getPharmacyDisplayInfo(pharmacy, index);
-                  return (
-                    <Card 
-                      key={pharmacy.id} 
-                      id={`pharmacy-${pharmacy.id}`}
-                      className="p-4 hover:shadow-card transition-all duration-300 cursor-pointer"
-                      onClick={() => {
-                        setSelectedPharmacy(pharmacy);
-                        if (pharmacy.latitude && pharmacy.longitude) {
-                          setMapCenter({ lat: pharmacy.latitude, lng: pharmacy.longitude });
-                          setMapZoom(16);
-                        }
-                      }}
-                    >
-                       <div className="space-y-3">
-                         <div className="flex justify-between items-start">
-                           <div className="flex-1">
-                             <div className="flex items-center gap-2">
-                               <h4 className="font-semibold text-foreground text-sm">
-                                 {pharmacy.name}
-                               </h4>
-                               {pharmacy.type === 'medme' && (
-                                 <img 
-                                   src={medmeLogo} 
-                                   alt="MedMe Partner" 
-                                   className="h-4 w-4"
-                                 />
-                               )}
-                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {pharmacy.address}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <div className="flex items-center gap-1">
-                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                <span className="text-xs text-muted-foreground">
-                                  {displayInfo.rating} ({displayInfo.reviews})
-                                </span>
-                              </div>
-                              <span className="text-xs text-muted-foreground">
-                                • {calculateDistanceFromUser(pharmacy) || displayInfo.distance}
-                              </span>
-                            </div>
-                            
-                            {/* Hours and status */}
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge 
-                                variant={displayInfo.hours.isOpen ? "default" : "secondary"}
-                                className="text-xs bg-green-100 text-green-800"
-                              >
-                                {displayInfo.hours.status}
-                              </Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {displayInfo.hours.hours} • {displayInfo.hours.nextChange}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <Badge 
-                            variant={displayInfo.isAvailable ? "default" : "secondary"}
-                            className="text-xs"
-                          >
-                            {displayInfo.isAvailable ? "Available" : "Busy"}
-                          </Badge>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1">
-                          {displayInfo.services.map((service) => (
-                            <Badge key={service} variant="outline" className="text-xs">
-                              {service}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleGetDirections(pharmacy);
-                              }}
-                              className="text-xs"
-                            >
-                              <Navigation className="h-3 w-3 mr-1" />
-                              Directions
-                            </Button>
-                            
-                            {displayInfo.type === "medme" ? (
-                              <Button 
-                                size="sm" 
-                                variant="medical"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBookNow(pharmacy);
-                                }}
-                              >
-                                Book Now
-                              </Button>
-                            ) : (
-                              <Button 
-                                size="sm" 
-                                variant="medical-outline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Phone className="h-3 w-3 mr-1" />
-                                {pharmacy.phone ? 'Call' : 'Contact'}
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3 inline mr-1" />
-                            Next: {displayInfo.nextAvailable}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })
-              )}
+              <PharmacyResultsList
+                pharmacies={pharmacyCards}
+                loading={loading}
+                onPharmacySelect={handlePharmacySelect}
+                onBookAppointment={handleBookAppointment}
+                calculateDistance={calculatePharmacyDistance}
+                userLocation={userLocationCoords}
+              />
             </div>
           </div>
         </div>
 
-        {/* Right Column - Map or Calendar */}
+        {/* Right Column - Map */}
         <div className="w-1/2 h-screen sticky top-0 relative overflow-hidden">
-          {/* Map - Always present */}
-          <GoogleMap
+          <MapSection
+            pharmacies={pharmacyCards}
+            onPharmacySelect={handlePharmacySelect}
             center={mapCenter}
             zoom={mapZoom}
-            markers={createMarkersFromPharmacies()}
-            onMarkerClick={handleMarkerClick}
             userLocation={userLocationCoords}
-            shouldFitBounds={pharmacies.length > 0}
-            fitRadiusKm={userLocationCoords ? selectedRadius : undefined}
-            onMapLoad={(map) => {
-              // Listen for bounds changes with debounce to enable "Search This Area" without spamming state
-              let boundsChangedTimer: number | undefined;
-              map.addListener('bounds_changed', () => {
-                if (boundsChangedTimer) {
-                  window.clearTimeout(boundsChangedTimer);
-                }
-                boundsChangedTimer = window.setTimeout(() => {
-                  handleMapBoundsChange(map);
-                }, 300);
-              });
-            }}
-            className="h-full w-full"
+            showSearchThisArea={showSearchThisArea}
+            onSearchThisArea={handleSearchThisArea}
           />
-          
-          {/* Search This Area button overlay */}
-          {showSearchThisArea && (
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-              <Button 
-                onClick={handleSearchThisArea}
-                variant="default"
-                size="sm"
-                className="bg-white text-gray-900 border border-gray-300 hover:bg-gray-50 shadow-lg"
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Search this area
-              </Button>
-            </div>
-          )}
-          
-          {/* Date/time overlay removed */}
         </div>
       </div>
 
@@ -861,6 +727,13 @@ const SearchAndBooking = () => {
         onOpenChange={setBookingDialogOpen}
         pharmacy={selectedPharmacy}
         preselectedService={selectedService}
+      />
+
+      <PharmacyProfileDrawer
+        pharmacy={selectedPharmacyCard}
+        open={profileDrawerOpen}
+        onOpenChange={setProfileDrawerOpen}
+        onBookAppointment={handleBookAppointment}
       />
     </div>
   );
