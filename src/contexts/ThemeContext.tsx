@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ThemeConfig, detectTheme, applyThemeToDocument, defaultTheme } from '@/lib/theme';
+import { ThemeConfig, detectThemeAsync, applyThemeToDocument, defaultTheme } from '@/lib/theme';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ThemeContextType {
   theme: ThemeConfig;
@@ -28,21 +29,56 @@ interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   console.log('ThemeProvider: Starting ThemeProvider initialization');
   const [theme, setTheme] = useState<ThemeConfig>(defaultTheme);
-  const [isLoading, setIsLoading] = useState(false); // Set to false initially to avoid loading screen
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('ThemeProvider: useEffect running - detecting theme');
-    try {
-      // Detect and apply theme on mount
-      const detectedTheme = detectTheme();
-      console.log('ThemeProvider: Detected theme:', detectedTheme);
-      setTheme(detectedTheme);
-      applyThemeToDocument(detectedTheme);
-      console.log('ThemeProvider: Theme applied successfully');
-    } catch (error) {
-      console.error('ThemeProvider: Error in theme initialization:', error);
-      // Keep default theme on error
-    }
+    console.log('ThemeProvider: useEffect running - detecting theme async');
+    const loadTheme = async () => {
+      setIsLoading(true);
+      try {
+        // Detect and apply theme on mount
+        const detectedTheme = await detectThemeAsync();
+        console.log('ThemeProvider: Detected theme:', detectedTheme);
+        setTheme(detectedTheme);
+        applyThemeToDocument(detectedTheme);
+        console.log('ThemeProvider: Theme applied successfully');
+      } catch (error) {
+        console.error('ThemeProvider: Error in theme initialization:', error);
+        // Keep default theme on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTheme();
+
+    // Listen for real-time brand configuration changes
+    const channel = supabase
+      .channel('brand-config-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'brand_configurations'
+        },
+        async (payload) => {
+          console.log('ThemeProvider: Brand configuration changed', payload);
+          // Reload theme when brand configurations change
+          try {
+            const detectedTheme = await detectThemeAsync();
+            setTheme(detectedTheme);
+            applyThemeToDocument(detectedTheme);
+          } catch (error) {
+            console.error('ThemeProvider: Error reloading theme after change:', error);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {

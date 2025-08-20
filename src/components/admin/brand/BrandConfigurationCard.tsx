@@ -94,7 +94,11 @@ export function BrandConfigurationCard({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPreview(config)}
+            onClick={() => {
+              // Open preview in new tab with brand ID query param
+              const previewUrl = `${window.location.origin}?preview_brand=${config.id}`;
+              window.open(previewUrl, '_blank');
+            }}
             className="flex-1"
           >
             <Eye className="w-4 h-4 mr-1" />

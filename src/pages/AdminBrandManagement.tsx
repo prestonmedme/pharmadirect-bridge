@@ -74,11 +74,9 @@ export default function AdminBrandManagement() {
   };
 
   const handlePreviewConfiguration = (config: BrandConfiguration) => {
-    // TODO: Implement preview functionality
-    toast({
-      title: "Preview",
-      description: "Preview functionality coming soon!",
-    });
+    // Open preview in new tab with brand ID query param
+    const previewUrl = `${window.location.origin}?preview_brand=${config.id}`;
+    window.open(previewUrl, '_blank');
   };
 
   const handleUseTemplate = (template: BrandTemplate) => {

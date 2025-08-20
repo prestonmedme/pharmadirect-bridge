@@ -1,3 +1,7 @@
+import { supabase } from '@/integrations/supabase/client';
+import { safeBrandConfigToTheme } from '@/lib/brandAdapter';
+import type { BrandConfiguration } from '@/hooks/useBrandConfigurations';
+
 export interface ThemeConfig {
   logoUrl: string;
   faviconUrl?: string;
@@ -194,11 +198,65 @@ export function getThemeFromQuery(): string | null {
   return urlParams.get('theme');
 }
 
+/**
+ * Fetches the active brand configuration from Supabase
+ */
+export async function fetchActiveBrandConfig(): Promise<BrandConfiguration | null> {
+  try {
+    const { data, error } = await supabase
+      .from('brand_configurations')
+      .select('*')
+      .eq('is_active', true)
+      .single();
+
+    if (error) {
+      console.log('fetchActiveBrandConfig: No active brand configuration found');
+      return null;
+    }
+
+    return data as BrandConfiguration;
+  } catch (error) {
+    console.error('fetchActiveBrandConfig: Error fetching brand configuration:', error);
+    return null;
+  }
+}
+
+/**
+ * Detects theme by checking brand ID in URL query params
+ */
+export function getBrandIdFromQuery(): string | null {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('brand_id') || urlParams.get('preview_brand');
+}
+
+/**
+ * Fetches a specific brand configuration by ID for preview
+ */
+export async function fetchBrandConfigById(brandId: string): Promise<BrandConfiguration | null> {
+  try {
+    const { data, error } = await supabase
+      .from('brand_configurations')
+      .select('*')
+      .eq('id', brandId)
+      .single();
+
+    if (error) {
+      console.log('fetchBrandConfigById: Brand configuration not found');
+      return null;
+    }
+
+    return data as BrandConfiguration;
+  } catch (error) {
+    console.error('fetchBrandConfigById: Error fetching brand configuration:', error);
+    return null;
+  }
+}
+
 // Main theme detection function
 export function detectTheme(): ThemeConfig {
   console.log('detectTheme: Starting theme detection');
   try {
-    // Priority: URL query > subdomain > default
+    // Priority: URL query > subdomain > default (static themes for now)
     const queryTheme = getThemeFromQuery();
     const subdomainTheme = getThemeFromSubdomain();
     console.log('detectTheme: Query theme:', queryTheme, 'Subdomain theme:', subdomainTheme);
@@ -212,6 +270,44 @@ export function detectTheme(): ThemeConfig {
     return selectedTheme;
   } catch (error) {
     console.error('detectTheme: Error during theme detection:', error);
+    return defaultTheme;
+  }
+}
+
+/**
+ * Async version of detectTheme that checks Supabase first
+ */
+export async function detectThemeAsync(): Promise<ThemeConfig> {
+  console.log('detectThemeAsync: Starting async theme detection');
+  
+  try {
+    // 1. Check for brand preview in URL
+    const brandId = getBrandIdFromQuery();
+    if (brandId) {
+      console.log('detectThemeAsync: Found brand ID in URL:', brandId);
+      const brandConfig = await fetchBrandConfigById(brandId);
+      if (brandConfig) {
+        const theme = safeBrandConfigToTheme(brandConfig);
+        console.log('detectThemeAsync: Using preview brand theme:', theme);
+        return theme;
+      }
+    }
+
+    // 2. Check for active brand configuration
+    const activeBrandConfig = await fetchActiveBrandConfig();
+    if (activeBrandConfig) {
+      const theme = safeBrandConfigToTheme(activeBrandConfig);
+      console.log('detectThemeAsync: Using active brand theme:', theme);
+      return theme;
+    }
+
+    // 3. Fall back to static theme detection (query params, subdomain)
+    const fallbackTheme = detectTheme();
+    console.log('detectThemeAsync: Using fallback theme:', fallbackTheme);
+    return fallbackTheme;
+    
+  } catch (error) {
+    console.error('detectThemeAsync: Error during async theme detection:', error);
     return defaultTheme;
   }
 }
