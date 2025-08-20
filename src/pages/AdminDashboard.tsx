@@ -21,6 +21,17 @@ const AdminDashboard = () => {
 
   const handleSignOut = async () => {
     try {
+      // Clear hardcoded admin session if it exists
+      const hardcodedSession = localStorage.getItem('medme_admin_session');
+      if (hardcodedSession) {
+        localStorage.removeItem('medme_admin_session');
+        toast.success('Signed out successfully');
+        // Redirect to admin login
+        window.location.href = '/admin/login';
+        return;
+      }
+      
+      // Regular auth sign out
       await signOut();
       toast.success('Signed out successfully');
     } catch (error) {
