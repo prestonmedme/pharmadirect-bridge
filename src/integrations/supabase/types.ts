@@ -363,6 +363,216 @@ export type Database = {
         }
         Relationships: []
       }
+      pharmacy_google_cache: {
+        Row: {
+          business_status: string | null
+          cached_at: string
+          created_at: string
+          expires_at: string
+          formatted_address: string | null
+          geometry: Json | null
+          id: string
+          name: string | null
+          opening_hours: Json | null
+          permanently_closed: boolean | null
+          pharmacy_id: string | null
+          phone_number: string | null
+          photos: Json | null
+          place_id: string
+          plus_code: Json | null
+          price_level: number | null
+          rating: number | null
+          reviews: Json | null
+          types: string[] | null
+          updated_at: string
+          user_ratings_total: number | null
+          utc_offset: number | null
+          vicinity: string | null
+          website: string | null
+        }
+        Insert: {
+          business_status?: string | null
+          cached_at?: string
+          created_at?: string
+          expires_at?: string
+          formatted_address?: string | null
+          geometry?: Json | null
+          id?: string
+          name?: string | null
+          opening_hours?: Json | null
+          permanently_closed?: boolean | null
+          pharmacy_id?: string | null
+          phone_number?: string | null
+          photos?: Json | null
+          place_id: string
+          plus_code?: Json | null
+          price_level?: number | null
+          rating?: number | null
+          reviews?: Json | null
+          types?: string[] | null
+          updated_at?: string
+          user_ratings_total?: number | null
+          utc_offset?: number | null
+          vicinity?: string | null
+          website?: string | null
+        }
+        Update: {
+          business_status?: string | null
+          cached_at?: string
+          created_at?: string
+          expires_at?: string
+          formatted_address?: string | null
+          geometry?: Json | null
+          id?: string
+          name?: string | null
+          opening_hours?: Json | null
+          permanently_closed?: boolean | null
+          pharmacy_id?: string | null
+          phone_number?: string | null
+          photos?: Json | null
+          place_id?: string
+          plus_code?: Json | null
+          price_level?: number | null
+          rating?: number | null
+          reviews?: Json | null
+          types?: string[] | null
+          updated_at?: string
+          user_ratings_total?: number | null
+          utc_offset?: number | null
+          vicinity?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_google_cache_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_photos: {
+        Row: {
+          cached_photo_url: string | null
+          created_at: string
+          google_photo_url: string | null
+          height: number | null
+          html_attributions: string[] | null
+          id: string
+          is_primary: boolean | null
+          pharmacy_id: string | null
+          photo_reference: string
+          photo_type: string | null
+          place_id: string
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          cached_photo_url?: string | null
+          created_at?: string
+          google_photo_url?: string | null
+          height?: number | null
+          html_attributions?: string[] | null
+          id?: string
+          is_primary?: boolean | null
+          pharmacy_id?: string | null
+          photo_reference: string
+          photo_type?: string | null
+          place_id: string
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          cached_photo_url?: string | null
+          created_at?: string
+          google_photo_url?: string | null
+          height?: number | null
+          html_attributions?: string[] | null
+          id?: string
+          is_primary?: boolean | null
+          pharmacy_id?: string | null
+          photo_reference?: string
+          photo_type?: string | null
+          place_id?: string
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_photos_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_reviews_cache: {
+        Row: {
+          author_name: string | null
+          author_url: string | null
+          cached_at: string
+          created_at: string
+          google_review_id: string | null
+          id: string
+          is_featured: boolean | null
+          language: string | null
+          pharmacy_id: string | null
+          place_id: string
+          profile_photo_url: string | null
+          rating: number | null
+          relative_time_description: string | null
+          review_text: string | null
+          review_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          author_url?: string | null
+          cached_at?: string
+          created_at?: string
+          google_review_id?: string | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          pharmacy_id?: string | null
+          place_id: string
+          profile_photo_url?: string | null
+          rating?: number | null
+          relative_time_description?: string | null
+          review_text?: string | null
+          review_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          author_url?: string | null
+          cached_at?: string
+          created_at?: string
+          google_review_id?: string | null
+          id?: string
+          is_featured?: boolean | null
+          language?: string | null
+          pharmacy_id?: string | null
+          place_id?: string
+          profile_photo_url?: string | null
+          rating?: number | null
+          relative_time_description?: string | null
+          review_text?: string | null
+          review_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_reviews_cache_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -442,6 +652,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_google_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_appointment_with_audit: {
         Args: { appointment_id: string }
         Returns: {
@@ -456,6 +670,43 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_enhanced_pharmacy_data: {
+        Args: { pharmacy_uuid: string }
+        Returns: {
+          address: string
+          google_business_status: string
+          google_opening_hours: Json
+          google_place_id: string
+          google_rating: number
+          google_reviews_total: number
+          id: string
+          last_synced: string
+          latitude: number
+          longitude: number
+          name: string
+          phone: string
+          photo_count: number
+          website: string
+        }[]
+      }
+      get_pharmacy_google_data: {
+        Args: { pharmacy_place_id: string }
+        Returns: {
+          business_status: string
+          cached_at: string
+          formatted_address: string
+          id: string
+          is_cached: boolean
+          name: string
+          opening_hours: Json
+          phone_number: string
+          photos: Json
+          place_id: string
+          rating: number
+          user_ratings_total: number
+          website: string
         }[]
       }
       get_sensitive_appointment_data: {
