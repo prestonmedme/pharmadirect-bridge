@@ -6,6 +6,7 @@ import { BookingDialog } from "@/components/booking/BookingDialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BubbleFilterSelect } from "@/components/filters/BubbleFilterSelect";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
 import { generateStableDisplayData, type PharmacyDisplayData } from "@/lib/pharmacyDataUtils";
@@ -33,6 +34,21 @@ import medmeLogo from '@/assets/medme-logo.svg';
 const SearchAndBooking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Service options for the bubble filter
+  const serviceOptions = [
+    { value: "minor-ailments", label: "Minor ailments" },
+    { value: "flu-shots", label: "Flu shots" },
+    { value: "medscheck", label: "MedsCheck" },
+    { value: "naloxone", label: "Naloxone Kits" },
+    { value: "birth-control", label: "Birth Control" },
+    { value: "travel-vaccines", label: "Travel Vaccines" },
+    { value: "diabetes", label: "Diabetes" },
+    { value: "mental-health", label: "Mental Health" },
+    { value: "delivery", label: "Delivery" },
+    { value: "pediatric-vax", label: "Pediatric Vax" },
+    { value: "open-now", label: "Open Now" },
+  ];
   const [selectedService, setSelectedService] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
@@ -607,24 +623,12 @@ const SearchAndBooking = () => {
                   <label className="text-sm font-medium text-foreground mb-2 block">
                     Service Type
                   </label>
-                  <Select value={selectedService} onValueChange={setSelectedService}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All services" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="minor-ailments">Minor ailments</SelectItem>
-                      <SelectItem value="flu-shots">Flu shots</SelectItem>
-                      <SelectItem value="medscheck">MedsCheck</SelectItem>
-                      <SelectItem value="naloxone">Naloxone Kits</SelectItem>
-                      <SelectItem value="birth-control">Birth Control</SelectItem>
-                      <SelectItem value="travel-vaccines">Travel Vaccines</SelectItem>
-                      <SelectItem value="diabetes">Diabetes</SelectItem>
-                      <SelectItem value="mental-health">Mental Health</SelectItem>
-                      <SelectItem value="delivery">Delivery</SelectItem>
-                      <SelectItem value="pediatric-vax">Pediatric Vax</SelectItem>
-                      <SelectItem value="open-now">Open Now</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <BubbleFilterSelect
+                    value={selectedService}
+                    onValueChange={setSelectedService}
+                    options={serviceOptions}
+                    placeholder="All services"
+                  />
                 </div>
 
                 {/* MedMe Filter */}
