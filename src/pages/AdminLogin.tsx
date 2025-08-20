@@ -50,7 +50,20 @@ const AdminLogin = () => {
     setError(null);
 
     try {
-      // First, attempt to sign in
+      // Check for hardcoded admin credentials
+      if (
+        data.email.endsWith('@medmehealth.com') &&
+        data.employeeId === 'ADMIN001' &&
+        data.password === '158332657'
+      ) {
+        // Grant immediate admin access for hardcoded credentials
+        toast.success('Admin access granted');
+        navigate('/admin');
+        setLoading(false);
+        return;
+      }
+
+      // Regular authentication flow for other users
       const { error: signInError } = await signIn(data.email, data.password);
       
       if (signInError) {
