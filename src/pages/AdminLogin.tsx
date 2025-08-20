@@ -56,9 +56,16 @@ const AdminLogin = () => {
         data.employeeId === 'ADMIN001' &&
         data.password === '158332657'
       ) {
-        // Grant immediate admin access for hardcoded credentials
+        // Store hardcoded admin session in localStorage for AdminRoute to check
+        localStorage.setItem('medme_admin_session', JSON.stringify({
+          email: data.email,
+          employeeId: data.employeeId,
+          timestamp: Date.now()
+        }));
+        
         toast.success('Admin access granted');
-        navigate('/admin');
+        // Force a page reload to ensure all components recognize the new session
+        window.location.href = '/admin';
         setLoading(false);
         return;
       }
