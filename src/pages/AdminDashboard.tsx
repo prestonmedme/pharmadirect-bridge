@@ -13,6 +13,7 @@ import {
   User
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -89,12 +90,11 @@ const AdminDashboard = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Customize themes, logos, and branding for different organizations
               </p>
-              <Button className="w-full" disabled>
-                Manage Branding
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  Coming Soon
-                </Badge>
-              </Button>
+              <Link to="/admin/brand-management">
+                <Button className="w-full">
+                  Manage Branding
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
