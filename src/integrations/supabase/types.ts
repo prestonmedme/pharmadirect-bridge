@@ -97,6 +97,170 @@ export type Database = {
           },
         ]
       }
+      brand_audit_log: {
+        Row: {
+          action: string
+          brand_config_id: string
+          changes: Json | null
+          created_at: string
+          id: string
+          previous_values: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          brand_config_id: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          previous_values?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          brand_config_id?: string
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          previous_values?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_audit_log_brand_config_id_fkey"
+            columns: ["brand_config_id"]
+            isOneToOne: false
+            referencedRelation: "brand_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brand_configurations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          cta_style: string
+          custom_css: string | null
+          description: string | null
+          domain_mapping: string[] | null
+          favicon_url: string | null
+          font_family: string
+          gradient_enabled: boolean
+          gradient_end_color: string | null
+          gradient_start_color: string | null
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          primary_color: string
+          secondary_color: string
+          subdomain_mapping: string[] | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          cta_style?: string
+          custom_css?: string | null
+          description?: string | null
+          domain_mapping?: string[] | null
+          favicon_url?: string | null
+          font_family?: string
+          gradient_enabled?: boolean
+          gradient_end_color?: string | null
+          gradient_start_color?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          primary_color?: string
+          secondary_color?: string
+          subdomain_mapping?: string[] | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          cta_style?: string
+          custom_css?: string | null
+          description?: string | null
+          domain_mapping?: string[] | null
+          favicon_url?: string | null
+          font_family?: string
+          gradient_enabled?: boolean
+          gradient_end_color?: string | null
+          gradient_start_color?: string | null
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          primary_color?: string
+          secondary_color?: string
+          subdomain_mapping?: string[] | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      brand_templates: {
+        Row: {
+          category: string
+          created_at: string
+          cta_style: string
+          description: string | null
+          font_family: string
+          gradient_enabled: boolean
+          gradient_end_color: string | null
+          gradient_start_color: string | null
+          id: string
+          is_public: boolean
+          logo_url: string | null
+          name: string
+          preview_image_url: string | null
+          primary_color: string
+          secondary_color: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          cta_style?: string
+          description?: string | null
+          font_family: string
+          gradient_enabled?: boolean
+          gradient_end_color?: string | null
+          gradient_start_color?: string | null
+          id?: string
+          is_public?: boolean
+          logo_url?: string | null
+          name: string
+          preview_image_url?: string | null
+          primary_color: string
+          secondary_color: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          cta_style?: string
+          description?: string | null
+          font_family?: string
+          gradient_enabled?: boolean
+          gradient_end_color?: string | null
+          gradient_start_color?: string | null
+          id?: string
+          is_public?: boolean
+          logo_url?: string | null
+          name?: string
+          preview_image_url?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medme_pharmacies: {
         Row: {
           domain: string | null
