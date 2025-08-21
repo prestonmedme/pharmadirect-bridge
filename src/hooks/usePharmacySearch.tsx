@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AnalyticsService } from '@/lib/analytics';
 import { 
   GooglePlacesData, 
   PharmacyDisplayData, 
@@ -323,6 +324,11 @@ export const usePharmacySearch = () => {
 
       console.log(`📍 Final result: ${filteredPharmacies.length} pharmacies to display`);
       
+      // Track search event
+      const medmeCount = filteredPharmacies.filter(p => p.type === 'medme').length;
+      await AnalyticsService.trackSearch(filters.service || 'general', filters.location || 'unknown', filteredPharmacies.length);
+      await AnalyticsService.trackResultsShown(filters.service || 'general', filteredPharmacies.length, medmeCount);
+
       // First, quickly load pharmacies with basic display data
       const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(filteredPharmacies);
       setPharmacies(basicEnhancedPharmacies);
@@ -475,6 +481,10 @@ export const usePharmacySearch = () => {
       nearbyPharmacies.slice(0, 5).forEach((pharmacy, index) => {
         console.log(`${index + 1}. ${pharmacy.name} - ${pharmacy.distance.toFixed(2)}km (${pharmacy.type})`);
       });
+
+      // Track nearby search
+      const medmeCount = nearbyPharmacies.filter(p => p.type === 'medme').length;
+      await AnalyticsService.trackResultsShown('nearby_search', nearbyPharmacies.length, medmeCount);
 
       // First, quickly load pharmacies with basic display data
       const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(nearbyPharmacies);

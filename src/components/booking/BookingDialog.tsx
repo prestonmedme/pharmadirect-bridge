@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Clock, MapPin, Phone } from "lucide-react";
 import type { Pharmacy } from "@/hooks/usePharmacySearch";
+import { AnalyticsService } from "@/lib/analytics";
 
 interface BookingDialogProps {
   open: boolean;
@@ -73,6 +74,15 @@ export const BookingDialog = ({ open, onOpenChange, pharmacy, preselectedService
       };
 
       await createAppointment(appointmentData);
+      
+      // Track successful booking
+      await AnalyticsService.trackBookingStep(
+        'book_confirmed', 
+        pharmacy.id, 
+        formData.service_type,
+        pharmacy.type === 'medme'
+      );
+      
       onOpenChange(false);
       
       // Reset form

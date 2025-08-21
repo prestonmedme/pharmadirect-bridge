@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { PharmacyCard, PharmacyDetails } from "@/types/pharmacy";
 import { getPlaceDetails } from "@/lib/pharmacyDataUtils";
+import { AnalyticsService } from "@/lib/analytics";
 
 interface PharmacyProfileDrawerProps {
   pharmacy: PharmacyCard | null;
@@ -104,6 +105,8 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
 
   const handleGetDirections = () => {
     if (!pharmacy) return;
+    // Track directions click
+    AnalyticsService.trackPharmacyClick('directions', pharmacy.id, pharmacy.source === 'medme', 'profile_view');
     const destination = encodeURIComponent(`${pharmacy.address.line1}, ${pharmacy.address.city}`);
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
     window.open(googleMapsUrl, '_blank');
@@ -111,12 +114,16 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
 
   const handleCallPharmacy = () => {
     if (pharmacy?.phone) {
+      // Track call click from profile
+      AnalyticsService.trackPharmacyClick('call', pharmacy.id, pharmacy.source === 'medme', 'profile_view');
       window.location.href = `tel:${pharmacy.phone}`;
     }
   };
 
   const handleVisitWebsite = () => {
     if (pharmacy?.website) {
+      // Track website click
+      AnalyticsService.trackPharmacyClick('website', pharmacy.id, pharmacy.source === 'medme', 'profile_view');
       window.open(pharmacy.website, '_blank');
     }
   };

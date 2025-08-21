@@ -11,6 +11,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { PharmacyCard } from "@/types/pharmacy";
+import { AnalyticsService } from "@/lib/analytics";
 
 interface PharmacyResultCardProps {
   pharmacy: PharmacyCard;
@@ -26,16 +27,36 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
   distance
 }) => {
   const handleCardClick = () => {
+    // Track pharmacy view
+    AnalyticsService.trackPharmacyView(
+      pharmacy.id, 
+      pharmacy.source === 'medme',
+      'search_results'
+    );
     onSelect(pharmacy);
   };
 
   const handleBookClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Track booking start
+    AnalyticsService.trackBookingStep(
+      'book_start', 
+      pharmacy.id, 
+      'general',
+      pharmacy.source === 'medme'
+    );
     onBookAppointment?.(pharmacy);
   };
 
   const handleCallClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Track call click
+    AnalyticsService.trackPharmacyClick(
+      'call', 
+      pharmacy.id, 
+      pharmacy.source === 'medme',
+      'search_results'
+    );
     if (pharmacy.phone) {
       window.location.href = `tel:${pharmacy.phone}`;
     }
