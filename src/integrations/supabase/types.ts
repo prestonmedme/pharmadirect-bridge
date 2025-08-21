@@ -452,6 +452,42 @@ export type Database = {
           },
         ]
       }
+      pharmacy_impressions: {
+        Row: {
+          created_at: string
+          id: string
+          impression_type: string
+          is_medme_pharmacy: boolean | null
+          metadata: Json | null
+          pharmacy_id: string
+          service_context: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          impression_type: string
+          is_medme_pharmacy?: boolean | null
+          metadata?: Json | null
+          pharmacy_id: string
+          service_context?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          impression_type?: string
+          is_medme_pharmacy?: boolean | null
+          metadata?: Json | null
+          pharmacy_id?: string
+          service_context?: string | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pharmacy_photos: {
         Row: {
           cached_photo_url: string | null
@@ -619,6 +655,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          is_medme_pharmacy: boolean | null
+          pharmacy_id: string | null
+          service_type: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          is_medme_pharmacy?: boolean | null
+          pharmacy_id?: string | null
+          service_type?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          is_medme_pharmacy?: boolean | null
+          pharmacy_id?: string | null
+          service_type?: string | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
