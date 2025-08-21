@@ -10,7 +10,8 @@ import {
   Building2, 
   Settings,
   LogOut,
-  User
+  User,
+  BarChart3
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -104,6 +105,25 @@ const AdminDashboard = () => {
               <Link to="/admin/brand-management">
                 <Button className="w-full">
                   Manage Branding
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Analytics Dashboard
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                View user behavior, conversion metrics, and platform performance
+              </p>
+              <Link to="/admin/analytics">
+                <Button className="w-full">
+                  View Analytics
                 </Button>
               </Link>
             </CardContent>
