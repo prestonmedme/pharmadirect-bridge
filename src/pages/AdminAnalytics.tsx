@@ -10,13 +10,20 @@ import {
   Building2,
   ArrowLeft,
   Calendar,
-  Download
+  Download,
+  MapPin,
+  Clock,
+  Activity
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TopServicesChart } from '@/components/analytics/TopServicesChart';
 import { MedMeClickRate } from '@/components/analytics/MedMeClickRate';
 import { BookingFunnelChart } from '@/components/analytics/BookingFunnelChart';
 import { PharmacyPerformance } from '@/components/analytics/PharmacyPerformance';
+import { GeographicAnalytics } from '@/components/analytics/GeographicAnalytics';
+import { TimeBasedAnalytics } from '@/components/analytics/TimeBasedAnalytics';
+import { UserBehaviorAnalytics } from '@/components/analytics/UserBehaviorAnalytics';
+import { ServiceDeepDive } from '@/components/analytics/ServiceDeepDive';
 
 const AdminAnalytics = () => {
   const [dateRange, setDateRange] = useState('7d');
@@ -68,7 +75,7 @@ const AdminAnalytics = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               Overview
@@ -77,9 +84,21 @@ const AdminAnalytics = () => {
               <BarChart3 className="h-4 w-4" />
               Services
             </TabsTrigger>
-            <TabsTrigger value="funnel" className="gap-2">
+            <TabsTrigger value="deep-dive" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Deep Dive
+            </TabsTrigger>
+            <TabsTrigger value="geographic" className="gap-2">
+              <MapPin className="h-4 w-4" />
+              Geographic
+            </TabsTrigger>
+            <TabsTrigger value="time-based" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Time-based
+            </TabsTrigger>
+            <TabsTrigger value="behavior" className="gap-2">
               <Users className="h-4 w-4" />
-              Funnel
+              Behavior
             </TabsTrigger>
             <TabsTrigger value="pharmacies" className="gap-2">
               <Building2 className="h-4 w-4" />
@@ -130,8 +149,20 @@ const AdminAnalytics = () => {
             <TopServicesChart dateRange={dateRange} />
           </TabsContent>
 
-          <TabsContent value="funnel">
-            <BookingFunnelChart dateRange={dateRange} />
+          <TabsContent value="deep-dive">
+            <ServiceDeepDive dateRange={dateRange} />
+          </TabsContent>
+
+          <TabsContent value="geographic">
+            <GeographicAnalytics dateRange={dateRange} />
+          </TabsContent>
+
+          <TabsContent value="time-based">
+            <TimeBasedAnalytics dateRange={dateRange} />
+          </TabsContent>
+
+          <TabsContent value="behavior">
+            <UserBehaviorAnalytics dateRange={dateRange} />
           </TabsContent>
 
           <TabsContent value="pharmacies">
