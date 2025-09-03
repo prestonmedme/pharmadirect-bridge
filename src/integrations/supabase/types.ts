@@ -14,7 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      medme_pharmacies: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          pharmacy_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          pharmacy_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          pharmacy_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medme_pharmacies_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacies: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          services: string[] | null
+          state: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          services?: string[] | null
+          state: string
+          updated_at?: string
+          zip_code: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          services?: string[] | null
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
+      pharmacy_impressions: {
+        Row: {
+          created_at: string
+          id: string
+          impression_type: string
+          is_medme_pharmacy: boolean | null
+          pharmacy_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          impression_type: string
+          is_medme_pharmacy?: boolean | null
+          pharmacy_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          impression_type?: string
+          is_medme_pharmacy?: boolean | null
+          pharmacy_id?: string
+        }
+        Relationships: []
+      }
+      user_analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          is_medme_pharmacy: boolean | null
+          pharmacy_id: string | null
+          service_type: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          is_medme_pharmacy?: boolean | null
+          pharmacy_id?: string | null
+          service_type?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          is_medme_pharmacy?: boolean | null
+          pharmacy_id?: string | null
+          service_type?: string | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

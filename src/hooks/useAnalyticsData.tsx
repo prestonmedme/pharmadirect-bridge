@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 
 export interface ServiceAnalytics {
   service_type: string;

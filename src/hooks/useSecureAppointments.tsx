@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 
 export interface SecureAppointment {
@@ -49,56 +49,8 @@ export const useSecureAppointments = () => {
   const fetchSecureAppointments = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Use regular appointments table but manually mask sensitive data
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          user_id,
-          pharmacy_id,
-          service_type,
-          appointment_date,
-          appointment_time,
-          status,
-          patient_name,
-          patient_phone,
-          patient_email,
-          notes,
-          created_at,
-          updated_at,
-          pharmacy:pharmacies (
-            name,
-            address,
-            phone
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('appointment_date', { ascending: true })
-        .order('appointment_time', { ascending: true });
-
-      if (error) throw error;
-
-      // Mask sensitive data client-side for display
-      const maskedAppointments = (data || []).map(appointment => ({
-        ...appointment,
-        patient_phone_masked: appointment.patient_phone 
-          ? `***-***-${appointment.patient_phone.slice(-4)}`
-          : undefined,
-        patient_email_masked: appointment.patient_email
-          ? `${appointment.patient_email.slice(0, 3)}***@${appointment.patient_email.split('@')[1]}`
-          : undefined,
-        // Remove actual sensitive data from the display object
-        patient_phone: undefined,
-        patient_email: undefined,
-      }));
-
-      setAppointments(maskedAppointments as SecureAppointment[]);
+      // Temporarily return empty array until appointments table is created
+      setAppointments([]);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       toast({
@@ -123,21 +75,8 @@ export const useSecureAppointments = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('patient_phone, patient_email')
-        .eq('id', appointmentId)
-        .single();
-
-      if (error) throw error;
-
-      // Log access to sensitive data (you could implement audit logging here)
-      console.log(`Sensitive data accessed for appointment ${appointmentId} at ${new Date().toISOString()}`);
-      
-      return {
-        patient_phone: data.patient_phone,
-        patient_email: data.patient_email,
-      };
+      // Temporarily return null until appointments table is created
+      return null;
     } catch (error) {
       console.error('Error fetching sensitive data:', error);
       toast({

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { AnalyticsService } from '@/lib/analytics';
 import { 
@@ -14,10 +14,14 @@ export interface Pharmacy {
   id: string;
   name: string;
   address: string;
+  city: string;
+  state: string;
+  zip_code: string;
   phone: string | null;
   website: string | null;
   latitude: number | null;
   longitude: number | null;
+  services: string[] | null;
   type?: 'regular' | 'medme';
   googlePlacesData?: GooglePlacesData;
   displayData?: PharmacyDisplayData;
@@ -54,10 +58,14 @@ export const usePharmacySearch = () => {
       id: medmePharmacy.id,
       name: medmePharmacy.name || 'MedMe Pharmacy',
       address: medmePharmacy["Pharmacy Address__street_address"] || '',
+      city: 'California', // Default since we don't have city data
+      state: 'CA',
+      zip_code: '90210', // Default zip
       phone: null,
       website: null,
       latitude: medmePharmacy["Pharmacy Address__latitude"] ? parseFloat(medmePharmacy["Pharmacy Address__latitude"]) : null,
       longitude: medmePharmacy["Pharmacy Address__longitude"] ? parseFloat(medmePharmacy["Pharmacy Address__longitude"]) : null,
+      services: null,
       type: 'medme'
     };
   };

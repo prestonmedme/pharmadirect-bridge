@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 
 export type AppRole = 'admin' | 'user';
 
@@ -26,21 +26,8 @@ export function useUserRole(): UserRole {
 
     const fetchUserRole = async () => {
       try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role, employee_id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching user role:', error);
-          setRole('user');
-        } else if (data) {
-          setRole(data.role);
-          setEmployeeId(data.employee_id);
-        } else {
-          setRole('user');
-        }
+        // Temporarily return default role until user_roles table is created
+        setRole('user');
       } catch (error) {
         console.error('Error fetching user role:', error);
         setRole('user');

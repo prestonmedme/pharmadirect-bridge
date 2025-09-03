@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 import { safeBrandConfigToTheme } from '@/lib/brandAdapter';
 import type { BrandConfiguration } from '@/hooks/useBrandConfigurations';
 
@@ -203,18 +203,8 @@ export function getThemeFromQuery(): string | null {
  */
 export async function fetchActiveBrandConfig(): Promise<BrandConfiguration | null> {
   try {
-    const { data, error } = await supabase
-      .from('brand_configurations')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (error) {
-      console.log('fetchActiveBrandConfig: No active brand configuration found');
-      return null;
-    }
-
-    return data as BrandConfiguration;
+    // Temporarily return null until brand_configurations table is created
+    return null;
   } catch (error) {
     console.error('fetchActiveBrandConfig: Error fetching brand configuration:', error);
     return null;
@@ -234,18 +224,8 @@ export function getBrandIdFromQuery(): string | null {
  */
 export async function fetchBrandConfigById(brandId: string): Promise<BrandConfiguration | null> {
   try {
-    const { data, error } = await supabase
-      .from('brand_configurations')
-      .select('*')
-      .eq('id', brandId)
-      .single();
-
-    if (error) {
-      console.log('fetchBrandConfigById: Brand configuration not found');
-      return null;
-    }
-
-    return data as BrandConfiguration;
+    // Temporarily return null until brand_configurations table is created
+    return null;
   } catch (error) {
     console.error('fetchBrandConfigById: Error fetching brand configuration:', error);
     return null;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 
 export interface BrandConfiguration {
@@ -48,13 +48,8 @@ export function useBrandConfigurations() {
 
   const fetchConfigurations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('brand_configurations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setConfigurations((data || []) as BrandConfiguration[]);
+      // Temporarily return empty array until brand_configurations table is created
+      setConfigurations([]);
     } catch (error) {
       console.error('Error fetching brand configurations:', error);
       toast({

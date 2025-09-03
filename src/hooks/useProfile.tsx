@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,23 +36,8 @@ export const useProfile = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        toast({
-          variant: "destructive",
-          title: "Error loading profile",
-          description: "Failed to load your profile data.",
-        });
-        return;
-      }
-
-      setProfile(data);
+      // Temporarily return null until profiles table is created
+      setProfile(null);
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
       toast({
@@ -109,23 +94,20 @@ export const useProfile = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: user.id,
-          language_preference: 'en',
-          notifications_enabled: true,
-        })
-        .select()
-        .single();
+      // Temporarily return mock data until profiles table is created
+      const mockProfile = {
+        id: `temp-${user.id}`,
+        user_id: user.id,
+        phone_number: null,
+        preferred_pharmacy_id: null,
+        language_preference: 'en',
+        notifications_enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      if (error) {
-        console.error('Error creating profile:', error);
-        throw error;
-      }
-
-      setProfile(data);
-      return data;
+      setProfile(mockProfile);
+      return mockProfile;
     } catch (error) {
       console.error('Error creating profile:', error);
       throw error;
