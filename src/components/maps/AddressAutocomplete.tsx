@@ -75,7 +75,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       // Initialize autocomplete
       const options: google.maps.places.AutocompleteOptions = {
         types: ['geocode', 'establishment'],
-        componentRestrictions: { country: 'ca' },
+        componentRestrictions: { country: 'us' },
         fields: [
           'place_id',
           'formatted_address',

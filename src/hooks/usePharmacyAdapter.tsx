@@ -10,10 +10,11 @@ export const adaptPharmacyToCard = (pharmacy: Pharmacy): PharmacyCard => {
   const addressParts = pharmacy.address.split(',').map(part => part.trim());
   const line1 = addressParts[0] || '';
   const city = addressParts[1] || '';
-  const provincePostal = addressParts[2] || '';
-  const [province, postal] = provincePostal.includes(' ') 
-    ? provincePostal.split(' ')
-    : [provincePostal, ''];
+  const stateZip = addressParts[2] || '';
+  // Parse US format: "State ZIP" or "State ZIP-code"
+  const stateZipMatch = stateZip.match(/^(.+?)\s+(\d{5}(?:-\d{4})?)$/);
+  const state = stateZipMatch ? stateZipMatch[1] : stateZip;
+  const zipCode = stateZipMatch ? stateZipMatch[2] : '';
 
   return {
     id: pharmacy.id,
@@ -26,8 +27,8 @@ export const adaptPharmacyToCard = (pharmacy: Pharmacy): PharmacyCard => {
     address: {
       line1,
       city,
-      province: province || '',
-      postal: postal || ''
+      state: state || '',
+      zipCode: zipCode || ''
     },
     phone: pharmacy.phone || undefined,
     website: pharmacy.website || undefined,

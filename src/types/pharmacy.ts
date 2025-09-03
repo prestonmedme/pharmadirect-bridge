@@ -3,7 +3,7 @@ export type PharmacyCard = {
   source: 'medme' | 'google';       // origin
   name: string;
   location: { lat: number; lng: number };
-  address: { line1: string; city: string; province: string; postal: string };
+  address: { line1: string; city: string; state: string; zipCode: string; country?: string };
   phone?: string;
   website?: string;
   rating?: { value?: number; count?: number; source?: 'google' | 'internal' };

@@ -59,8 +59,8 @@ const SearchAndBooking = () => {
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const [selectedPharmacyCard, setSelectedPharmacyCard] = useState<PharmacyCard | null>(null);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
-  // Default to showing all of Canada
-  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 56.1304, lng: -106.3468 });
+   // Default to showing California center
+   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 36.7783, lng: -119.4179 });
   const [mapZoom, setMapZoom] = useState<number>(4);
   const [showSearchThisArea, setShowSearchThisArea] = useState<boolean>(false);
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null);
@@ -428,8 +428,8 @@ const SearchAndBooking = () => {
         geocoder.geocode(
           { 
             address: location,
-            componentRestrictions: { country: 'CA' }, // Restrict to Canada
-            region: 'CA', // Prefer Canadian results
+             componentRestrictions: { country: 'US' }, // Restrict to United States
+             region: 'US', // Prefer US results
             bounds
           },
           (results, status) => {
@@ -445,18 +445,18 @@ const SearchAndBooking = () => {
       if (response.results && response.results.length > 0) {
         console.log(`📊 Found ${response.results.length} geocoding results`);
         
-        // Filter and rank results by specificity (avoid broad results like "Canada")
-        const filteredResults = response.results.filter(result => {
-          const types = result.types || [];
-          console.log(`🔍 Result: ${result.formatted_address} (Types: ${types.join(', ')})`);
-          
-          // Reject results that are too broad
-          const isTooBroad = types.includes('country') || 
-                           types.includes('administrative_area_level_1') ||
-                           (result.formatted_address.toLowerCase().trim() === 'canada');
-          
-          if (isTooBroad) {
-            console.log(`🚫 Rejecting broad result: ${result.formatted_address}`);
+         // Filter and rank results by specificity (avoid broad results like "United States")
+         const filteredResults = response.results.filter(result => {
+           const types = result.types || [];
+           console.log(`🔍 Result: ${result.formatted_address} (Types: ${types.join(', ')})`);
+           
+           // Reject results that are too broad
+           const isTooBroad = types.includes('country') || 
+                            types.includes('administrative_area_level_1') ||
+                            (result.formatted_address.toLowerCase().trim() === 'united states');
+           
+           if (isTooBroad) {
+             console.log(`🚫 Rejecting broad result: ${result.formatted_address}`);
             return false;
           }
           
@@ -588,7 +588,7 @@ const SearchAndBooking = () => {
                       value={location}
                       onChange={handleLocationInputChange}
                       onPlaceSelect={handlePlaceSelect}
-                      placeholder="Address, city, or postal code"
+                      placeholder="Address, city, or ZIP code"
                       className="pl-10"
                       center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
                       radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}

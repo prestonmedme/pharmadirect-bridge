@@ -283,7 +283,7 @@ const OverviewTab: React.FC<{ pharmacy: PharmacyCard; details: PharmacyDetails |
               <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
               <div>
                 <p>{pharmacy.address.line1}</p>
-                <p>{pharmacy.address.city}, {pharmacy.address.province} {pharmacy.address.postal}</p>
+                <p>{pharmacy.address.city}, {pharmacy.address.state} {pharmacy.address.zipCode}</p>
               </div>
             </div>
             

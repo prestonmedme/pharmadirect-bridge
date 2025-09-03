@@ -276,7 +276,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }
   }, [map, markers, userLocation, shouldFitBounds, fitRadiusKm]);
 
-  // For initial Canada-wide view, ensure we do not auto-fit on first load unless markers exist
+  // For initial California-wide view, ensure we do not auto-fit on first load unless markers exist
   useEffect(() => {
     if (!map || !(window as any).google?.maps) return;
     if (!markers || markers.length === 0) {

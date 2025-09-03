@@ -85,8 +85,8 @@ export const usePharmacySearch = () => {
           geocoder.geocode(
             {
               address: location,
-              componentRestrictions: { country: 'CA' },
-              region: 'CA',
+              componentRestrictions: { country: 'US' },
+              region: 'US',
             },
             (results, status) => {
               if (status === 'OK' && results && results.length > 0) {
@@ -108,24 +108,24 @@ export const usePharmacySearch = () => {
       console.warn('Google geocoding failed, falling back to heuristics:', err);
     }
 
-    // Heuristic fallback: prefer major Canadian cities
+    // Heuristic fallback: prefer major California cities
     const locationLower = location.toLowerCase();
     const cityMap: Array<{ key: string | RegExp; lat: number; lng: number }> = [
-      { key: 'vancouver', lat: 49.2827, lng: -123.1207 },
-      { key: 'victoria', lat: 48.4284, lng: -123.3656 },
-      { key: 'kelowna', lat: 49.8879, lng: -119.4960 },
-      { key: 'surrey', lat: 49.1913, lng: -122.8490 },
-      { key: 'burnaby', lat: 49.2488, lng: -122.9805 },
-      { key: 'richmond', lat: 49.1666, lng: -123.1336 },
-      { key: 'coquitlam', lat: 49.2838, lng: -122.7919 },
-      { key: 'calgary', lat: 51.0447, lng: -114.0719 },
-      { key: 'edmonton', lat: 53.5461, lng: -113.4938 },
-      { key: 'winnipeg', lat: 49.8951, lng: -97.1384 },
-      { key: 'toronto', lat: 43.6532, lng: -79.3832 },
-      { key: 'ottawa', lat: 45.4215, lng: -75.6972 },
-      { key: 'montreal', lat: 45.5017, lng: -73.5673 },
-      { key: 'quebec', lat: 46.8139, lng: -71.2080 },
-      { key: 'halifax', lat: 44.6488, lng: -63.5752 },
+      { key: 'los angeles', lat: 34.0522, lng: -118.2437 },
+      { key: 'san francisco', lat: 37.7749, lng: -122.4194 },
+      { key: 'san diego', lat: 32.7157, lng: -117.1611 },
+      { key: 'sacramento', lat: 38.5816, lng: -121.4944 },
+      { key: 'fresno', lat: 36.7378, lng: -119.7871 },
+      { key: 'oakland', lat: 37.8044, lng: -122.2712 },
+      { key: 'san jose', lat: 37.3382, lng: -121.8863 },
+      { key: 'long beach', lat: 33.7701, lng: -118.1937 },
+      { key: 'bakersfield', lat: 35.3733, lng: -119.0187 },
+      { key: 'anaheim', lat: 33.8366, lng: -117.9143 },
+      { key: 'santa ana', lat: 33.7455, lng: -117.8677 },
+      { key: 'riverside', lat: 33.9533, lng: -117.3962 },
+      { key: 'stockton', lat: 37.9577, lng: -121.2908 },
+      { key: 'irvine', lat: 33.6846, lng: -117.8265 },
+      { key: 'chula vista', lat: 32.6401, lng: -117.0842 },
     ];
     for (const entry of cityMap) {
       if (typeof entry.key === 'string' ? locationLower.includes(entry.key) : entry.key.test(locationLower)) {
@@ -133,9 +133,9 @@ export const usePharmacySearch = () => {
       }
     }
 
-    // As a last resort, return Canada's centroid
-    const fallback = { lat: 56.1304, lng: -106.3468 };
-    console.warn(`Location "${location}" not recognized; using Canada fallback`, fallback);
+    // As a last resort, return California's centroid
+    const fallback = { lat: 36.7783, lng: -119.4179 };
+    console.warn(`Location "${location}" not recognized; using California fallback`, fallback);
     return fallback;
   };
 

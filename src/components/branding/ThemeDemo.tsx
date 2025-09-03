@@ -448,8 +448,8 @@ export function ThemeDemo() {
             <div>
               <p className="font-medium">Subdomain examples:</p>
               <ul className="space-y-1 text-muted-foreground">
-                <li>vancouver.medme.ca → Vancouver theme</li>
-                <li>pharmaplus.medme.ca → PharmaPlus theme</li>
+                 <li>losangeles.medme.com → Los Angeles theme</li>
+                 <li>cvs.medme.com → CVS theme</li>
               </ul>
             </div>
             <div>

@@ -60,7 +60,7 @@ const HeroSection = () => {
             {/* Trust indicators */}
             <div className="pt-8 border-t border-border/50">
               <p className="text-sm text-muted-foreground mb-4">
-                Trusted by healthcare providers across Canada
+                Trusted by healthcare providers across California
               </p>
               
             </div>
