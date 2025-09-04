@@ -18,6 +18,7 @@ import { adaptPharmacyToCard } from "@/hooks/usePharmacyAdapter";
 import { PharmacyProfileDrawer } from "@/components/pharmacy/PharmacyProfileDrawer";
 import { MapSection } from "@/components/maps/MapSection";
 import { PharmacyResultsList } from "@/components/pharmacy/PharmacyResultsList";
+import { TestMapboxToken } from '@/components/debug/TestMapboxToken';
 import { 
   MapPin, 
   Filter, 
@@ -572,6 +573,9 @@ const SearchAndBooking = () => {
         {/* Left Column - Filters and Results - Scrollable */}
         <div className="w-1/2 overflow-y-auto">
           <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            {/* Debug Component - temporary */}
+            <TestMapboxToken />
+
             {/* Location and Date */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-primary mb-4">

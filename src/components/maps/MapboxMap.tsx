@@ -53,6 +53,15 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   
   const { token, loading: tokenLoading, error: tokenError } = useMapboxToken();
 
+  // Debug logging for token status
+  useEffect(() => {
+    console.log('🔑 Mapbox Token Status:', {
+      token: token ? `${token.substring(0, 10)}...` : 'null',
+      loading: tokenLoading,
+      error: tokenError
+    });
+  }, [token, tokenLoading, tokenError]);
+
   // Load Mapbox GL dynamically
   useEffect(() => {
     const loadMapbox = async () => {
@@ -73,12 +82,24 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
 
   // Initialize map
   useEffect(() => {
-    if (!mapboxLoaded || !token || !mapContainer.current || map.current) return;
+    if (!mapboxLoaded || !token || !mapContainer.current || map.current) {
+      console.log('🚫 Map initialization blocked:', {
+        mapboxLoaded,
+        hasToken: !!token,
+        hasContainer: !!mapContainer.current,
+        hasMap: !!map.current
+      });
+      return;
+    }
 
     try {
-        if (mapboxgl) {
-          // Set the access token on the global mapboxgl object
-          (mapboxgl as any).accessToken = token;
+      console.log('🗺️ Initializing Mapbox map with token:', token.substring(0, 10) + '...');
+      
+      if (mapboxgl) {
+        // Set the access token on the global mapboxgl object
+        (mapboxgl as any).accessToken = token;
+        
+        console.log('✅ Access token set, creating map...');
         
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
@@ -99,16 +120,16 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
         }
 
         map.current.on('load', () => {
-          console.log('Mapbox map loaded successfully');
+          console.log('✅ Mapbox map loaded successfully');
           setMapLoaded(true);
         });
 
         map.current.on('error', (e) => {
-          console.error('Mapbox map error:', e.error);
+          console.error('❌ Mapbox map error:', e.error);
         });
       }
     } catch (error) {
-      console.error('Error initializing Mapbox map:', error);
+      console.error('❌ Error initializing Mapbox map:', error);
     }
 
     return () => {
