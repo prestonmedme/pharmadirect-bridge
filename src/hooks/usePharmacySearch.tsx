@@ -22,7 +22,7 @@ export interface Pharmacy {
   latitude: number | null;
   longitude: number | null;
   services: string[] | null;
-  type?: 'regular' | 'medme';
+  type?: 'regular' | 'medme' | 'us';
   googlePlacesData?: GooglePlacesData;
   displayData?: PharmacyDisplayData;
   distance?: number;
@@ -34,6 +34,19 @@ export interface MedMePharmacy {
   "Pharmacy Address__street_address": string | null;
   "Pharmacy Address__latitude": string | null;
   "Pharmacy Address__longitude": string | null;
+}
+
+export interface USPharmacy {
+  id: string;
+  clean_pharmacy_name: string | null;
+  address: string | null;
+  phone: string | null;
+  zip_code: string | null;
+  state_name: string | null;
+  website: string | null;
+  opening_hours: string | null;
+  ratings: string | null;
+  score: string | null;
 }
 
 export interface PharmacySearchFilters {
@@ -67,6 +80,28 @@ export const usePharmacySearch = () => {
       longitude: medmePharmacy["Pharmacy Address__longitude"] ? parseFloat(medmePharmacy["Pharmacy Address__longitude"]) : null,
       services: null,
       type: 'medme'
+    };
+  };
+
+  // Convert US pharmacy to standard pharmacy format
+  const convertUSPharmacy = (usPharmacy: USPharmacy): Pharmacy => {
+    // Extract city from address or use state as fallback
+    const addressParts = (usPharmacy.address || '').split(',').map(p => p.trim());
+    const city = addressParts.length > 1 ? addressParts[addressParts.length - 2] : (usPharmacy.state_name || 'Unknown');
+    
+    return {
+      id: usPharmacy.id,
+      name: usPharmacy.clean_pharmacy_name || 'US Pharmacy',
+      address: usPharmacy.address || '',
+      city: city,
+      state: usPharmacy.state_name || 'Unknown',
+      zip_code: usPharmacy.zip_code || '',
+      phone: usPharmacy.phone || null,
+      website: usPharmacy.website || null,
+      latitude: null, // US pharmacies don't have coordinates yet
+      longitude: null,
+      services: null,
+      type: 'us'
     };
   };
 
@@ -274,6 +309,19 @@ export const usePharmacySearch = () => {
       console.log('Fetched MedMe pharmacies:', medmePharmacies?.length);
       console.log('First few MedMe pharmacies:', medmePharmacies?.slice(0, 3));
 
+      // Get US pharmacies
+      const { data: usPharmacies, error: usError } = await supabase
+        .from('us_pharmacies_raw')
+        .select('id, clean_pharmacy_name, address, phone, zip_code, state_name, website, opening_hours, ratings, score')
+        .order('clean_pharmacy_name');
+
+      if (usError) {
+        console.warn('Error fetching US pharmacies:', usError);
+      }
+
+      console.log('Fetched US pharmacies:', usPharmacies?.length);
+      console.log('First few US pharmacies:', usPharmacies?.slice(0, 3));
+
       // Filter MedMe pharmacies to only include those with valid coordinates
       const validMedmePharmacies = (medmePharmacies || []).filter((mp: any) => {
         const lat = mp["Pharmacy Address__latitude"];
@@ -289,9 +337,15 @@ export const usePharmacySearch = () => {
         ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
       ];
 
+      // Add US pharmacies (they don't have coordinates so only for text searches)
+      const convertedUSPharmacies = (usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy));
+      
       // Filter by MedMe only if requested
       if (filters.medmeOnly) {
         allPharmacies = allPharmacies.filter(p => p.type === 'medme');
+      } else {
+        // Only add US pharmacies if not filtering for MedMe only
+        allPharmacies.push(...convertedUSPharmacies);
       }
 
       let filteredPharmacies = allPharmacies;
@@ -305,7 +359,11 @@ export const usePharmacySearch = () => {
           console.log(`🔍 Filtering pharmacies within ${radiusKm}km radius`);
           
           // Filter pharmacies within specified radius and sort by distance
-          filteredPharmacies = filteredPharmacies
+          // Separate pharmacies with coordinates (for distance filtering) from those without
+          const pharmaciesWithCoords = filteredPharmacies.filter(p => p.latitude !== null && p.longitude !== null);
+          const pharmaciesWithoutCoords = filteredPharmacies.filter(p => p.latitude === null || p.longitude === null);
+          
+          const nearbyPharmaciesWithDistance = pharmaciesWithCoords
             .map(pharmacy => ({
               ...pharmacy,
               distance: calculateDistance(coords.lat, coords.lng, pharmacy.latitude!, pharmacy.longitude!)
@@ -318,6 +376,17 @@ export const usePharmacySearch = () => {
               return isWithinRadius;
             })
             .sort((a, b) => a.distance - b.distance);
+
+          // For pharmacies without coordinates (like US pharmacies), fall back to text matching
+          const textMatchedPharmacies = pharmaciesWithoutCoords.filter(pharmacy => 
+            pharmacy.name.toLowerCase().includes(filters.location!.toLowerCase()) ||
+            pharmacy.address.toLowerCase().includes(filters.location!.toLowerCase()) ||
+            pharmacy.city.toLowerCase().includes(filters.location!.toLowerCase()) ||
+            pharmacy.state.toLowerCase().includes(filters.location!.toLowerCase())
+          );
+
+          // Combine results: nearby pharmacies first (sorted by distance), then text matches
+          filteredPharmacies = [...nearbyPharmaciesWithDistance, ...textMatchedPharmacies];
         } else {
           // Fallback to text search if geocoding fails
           filteredPharmacies = filteredPharmacies.filter(pharmacy => 
@@ -380,21 +449,48 @@ export const usePharmacySearch = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      // Get regular pharmacies
+      const { data: regularPharmacies, error: regularError } = await supabase
         .from('pharmacies')
         .select('*')
         .order('name');
 
-      if (error) {
-        throw error;
+      if (regularError) {
+        throw regularError;
       }
 
+      // Get MedMe pharmacies
+      const { data: medmePharmacies, error: medmeError } = await supabase
+        .from('medme_pharmacies' as any)
+        .select('id, name, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
+        .order('name');
+
+      if (medmeError) {
+        console.warn('Error fetching MedMe pharmacies:', medmeError);
+      }
+
+      // Get US pharmacies
+      const { data: usPharmacies, error: usError } = await supabase
+        .from('us_pharmacies_raw')
+        .select('id, clean_pharmacy_name, address, phone, zip_code, state_name, website, opening_hours, ratings, score')
+        .order('clean_pharmacy_name');
+
+      if (usError) {
+        console.warn('Error fetching US pharmacies:', usError);
+      }
+
+      // Combine all pharmacies
+      const allPharmacies: Pharmacy[] = [
+        ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
+        ...(medmePharmacies || []).map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy)),
+        ...(usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy))
+      ];
+
       // First, quickly load pharmacies with basic display data
-      const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(data || []);
+      const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(allPharmacies);
       setPharmacies(basicEnhancedPharmacies);
       
-      // Skip Google Places enhancement for getAllPharmacies to avoid long load times
-      console.log(`⚡ Loaded ${basicEnhancedPharmacies.length} pharmacies with basic data (no Google enhancement for full list)`);;
+      console.log(`⚡ Loaded ${basicEnhancedPharmacies.length} total pharmacies (${regularPharmacies?.length || 0} regular, ${medmePharmacies?.length || 0} MedMe, ${usPharmacies?.length || 0} US)`);
     } catch (error) {
       console.error('Error fetching pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch pharmacies';
