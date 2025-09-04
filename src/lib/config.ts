@@ -1,10 +1,9 @@
-// Google Maps API Configuration
-// TODO: Move to environment variables for production
-export const GOOGLE_MAPS_CONFIG = {
-  apiKey: "AIzaSyD5uyr4qbCAZqqoNrMvTg-u9ijT1oohU6E",
-  libraries: ["places", "geometry"] as const,
+// Mapbox Configuration
+export const MAPBOX_CONFIG = {
   region: "US", // United States
   language: "en",
+  style: "mapbox://styles/mapbox/streets-v12", // Default style
+  fallbackStyle: "mapbox://styles/mapbox/light-v11", // Fallback style
 } as const;
 
 // Market Configuration

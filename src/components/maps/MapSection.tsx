@@ -1,17 +1,17 @@
 import React from "react";
-import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
+import MapboxMap from '@/components/maps/MapboxMap';
+import { MapMarker, MapPosition } from '@/types/map';
 import { Button } from "@/components/ui/button";
 import { PharmacyCard } from "@/types/pharmacy";
 
 interface MapSectionProps {
   pharmacies: PharmacyCard[];
   onPharmacySelect: (pharmacy: PharmacyCard) => void;
-  center: google.maps.LatLngLiteral;
+  center: MapPosition;
   zoom: number;
-  userLocation?: google.maps.LatLngLiteral;
+  userLocation?: MapPosition;
   showSearchThisArea?: boolean;
   onSearchThisArea?: () => void;
-  
 }
 
 export const MapSection: React.FC<MapSectionProps> = ({
@@ -22,10 +22,9 @@ export const MapSection: React.FC<MapSectionProps> = ({
   userLocation,
   showSearchThisArea,
   onSearchThisArea,
-  
 }) => {
   // Convert PharmacyCard to map markers
-  const createMarkersFromPharmacies = (): Marker[] => {
+  const createMarkersFromPharmacies = (): MapMarker[] => {
     return pharmacies
       .filter(pharmacy => pharmacy.location.lat && pharmacy.location.lng)
       .map(pharmacy => ({
@@ -50,7 +49,7 @@ export const MapSection: React.FC<MapSectionProps> = ({
 
   return (
     <div className="relative h-full">
-      <GoogleMap
+      <MapboxMap
         center={center}
         zoom={zoom}
         markers={createMarkersFromPharmacies()}
