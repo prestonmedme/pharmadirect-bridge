@@ -119,7 +119,8 @@ const SearchAndBooking = () => {
           lng: pharmacy.longitude!
         },
         title: pharmacy.name,
-        content: `${pharmacy.name}\n${pharmacy.address}`
+        content: `${pharmacy.name}\n${pharmacy.address}`,
+        type: 'pharmacy' // Add required type property
       }));
   };
 

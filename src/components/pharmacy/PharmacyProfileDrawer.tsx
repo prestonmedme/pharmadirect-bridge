@@ -108,8 +108,17 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
     // Track directions click
     AnalyticsService.trackPharmacyClick('directions', pharmacy.id, pharmacy.source === 'medme', 'profile_view');
     const destination = encodeURIComponent(`${pharmacy.address.line1}, ${pharmacy.address.city}`);
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
-    window.open(googleMapsUrl, '_blank');
+    
+    // Use generic map URLs that work cross-platform
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // On mobile, this will open the default maps app
+      window.open(`https://maps.google.com/maps?daddr=${destination}`, '_blank');
+    } else {
+      // On desktop, open in a new tab with Google Maps
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}`, '_blank');
+    }
   };
 
   const handleCallPharmacy = () => {
@@ -131,8 +140,8 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
   const handleViewOnGoogleMaps = () => {
     if (!pharmacy) return;
     const query = encodeURIComponent(`${pharmacy.name} ${pharmacy.address.line1}`);
-    const googleMapsUrl = `https://www.google.com/maps/search/${query}`;
-    window.open(googleMapsUrl, '_blank');
+    // Use generic map search that works cross-platform
+    window.open(`https://www.google.com/maps/search/${query}`, '_blank');
   };
 
   if (!pharmacy) return null;

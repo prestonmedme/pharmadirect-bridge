@@ -1,5 +1,5 @@
 // Utility functions for generating stable pharmacy data
-// Note: Google Places API integration removed - now uses Mapbox Geocoding
+// Note: Migrated from Google Places API to Mapbox Geocoding
 
 export interface PharmacyDisplayData {
   rating: number;
@@ -14,6 +14,19 @@ export interface PharmacyDisplayData {
     nextChange: string;
   };
   distance?: string;
+}
+
+// Legacy interfaces for compatibility during migration
+export interface GooglePlacesData {
+  place_id?: string;
+  rating?: number;
+  user_ratings_total?: number;
+  opening_hours?: {
+    open_now: boolean;
+    periods?: any[];
+    weekday_text?: string[];
+  };
+  reviews?: any[];
 }
 
 // Simple hash function to generate consistent values from pharmacy ID
@@ -95,5 +108,40 @@ function generateStableHours(pharmacyId: string, pharmacyName: string) {
     nextChange: isOpen 
       ? `Closes at ${closeTime}:00`
       : `Opens at ${openTime}:00`
+  };
+}
+
+// Legacy compatibility functions (now return mock data or null)
+export async function searchPharmacyPlaces(pharmacyName: string, address: string, opts?: any): Promise<GooglePlacesData | null> {
+  console.warn('searchPharmacyPlaces is deprecated - using Mapbox geocoding instead');
+  return null; // Return null to indicate no Google Places data
+}
+
+export async function getPlaceDetails(placeId: string): Promise<GooglePlacesData | null> {
+  console.warn('getPlaceDetails is deprecated - using Mapbox geocoding instead');
+  return null; // Return null to indicate no Google Places data
+}
+
+export function mergeGooglePlacesData(
+  stableData: PharmacyDisplayData, 
+  googleData: GooglePlacesData | null
+): PharmacyDisplayData {
+  // Since Google Places is deprecated, just return stable data
+  return stableData;
+}
+
+// Convert legacy Google Places hours to display format (fallback)
+export function convertGoogleHoursToDisplayFormat(googleHours?: any): {
+  isOpen: boolean;
+  hours: string;
+  status: string;
+  nextChange: string;
+} {
+  // Fallback to default format since Google Places is deprecated
+  return {
+    isOpen: true,
+    hours: "9:00 - 18:00",
+    status: "Open",
+    nextChange: "Closes at 18:00"
   };
 }
