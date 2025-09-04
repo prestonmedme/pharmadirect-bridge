@@ -115,6 +115,90 @@ export type Database = {
         }
         Relationships: []
       }
+      us_pharmacies_raw: {
+        Row: {
+          address: string | null
+          clean_pharmacy_name: string | null
+          cleaned_up_services: string | null
+          clinical_services_raw_scrape: string | null
+          created_at: string
+          domain_1: string | null
+          first_name: string | null
+          id: string
+          imms_cleaned_up: string | null
+          opening_hours: string | null
+          owner_name: string | null
+          patient_forms: string | null
+          phone: string | null
+          preferred_email: string | null
+          purpose: string | null
+          ratings: string | null
+          score: string | null
+          solution_used: string | null
+          state_name: string | null
+          tier_justification: string | null
+          tier_list: string | null
+          updated_at: string
+          url: string | null
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          clean_pharmacy_name?: string | null
+          cleaned_up_services?: string | null
+          clinical_services_raw_scrape?: string | null
+          created_at?: string
+          domain_1?: string | null
+          first_name?: string | null
+          id?: string
+          imms_cleaned_up?: string | null
+          opening_hours?: string | null
+          owner_name?: string | null
+          patient_forms?: string | null
+          phone?: string | null
+          preferred_email?: string | null
+          purpose?: string | null
+          ratings?: string | null
+          score?: string | null
+          solution_used?: string | null
+          state_name?: string | null
+          tier_justification?: string | null
+          tier_list?: string | null
+          updated_at?: string
+          url?: string | null
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          clean_pharmacy_name?: string | null
+          cleaned_up_services?: string | null
+          clinical_services_raw_scrape?: string | null
+          created_at?: string
+          domain_1?: string | null
+          first_name?: string | null
+          id?: string
+          imms_cleaned_up?: string | null
+          opening_hours?: string | null
+          owner_name?: string | null
+          patient_forms?: string | null
+          phone?: string | null
+          preferred_email?: string | null
+          purpose?: string | null
+          ratings?: string | null
+          score?: string | null
+          solution_used?: string | null
+          state_name?: string | null
+          tier_justification?: string | null
+          tier_list?: string | null
+          updated_at?: string
+          url?: string | null
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       user_analytics_events: {
         Row: {
           created_at: string
