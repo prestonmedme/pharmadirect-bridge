@@ -96,18 +96,31 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
       console.log('🗺️ Initializing Mapbox map with token:', token.substring(0, 10) + '...');
       
       if (mapboxgl) {
-        // Set the access token on the global mapboxgl object
-        (mapboxgl as any).accessToken = token;
+        // Set the access token using the proper method
+        console.log('🔑 Setting Mapbox access token...');
+        
+        // Try multiple ways to ensure the token is set correctly
+        if ('accessToken' in mapboxgl) {
+          (mapboxgl as any).accessToken = token;
+        }
+        
+        // Also try setting it on the prototype if available
+        if (mapboxgl.Map && 'accessToken' in mapboxgl.Map) {
+          (mapboxgl.Map as any).accessToken = token;
+        }
         
         console.log('✅ Access token set, creating map...');
         
-        map.current = new mapboxgl.Map({
+        const mapInstance = new mapboxgl.Map({
           container: mapContainer.current,
           style: MAPBOX_CONFIG.style,
           center: [center.lng, center.lat],
           zoom: zoom,
+          accessToken: token, // Also pass it directly to the constructor
           attributionControl: true
         });
+        
+        map.current = mapInstance;
 
         // Add navigation controls
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
