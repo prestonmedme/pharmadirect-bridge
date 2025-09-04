@@ -11,13 +11,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
 import { generateStableDisplayData, type PharmacyDisplayData } from "@/lib/pharmacyDataUtils";
 import { useToast } from "@/hooks/use-toast";
-import GoogleMap, { type Marker } from "@/components/maps/GoogleMap";
+import { MapSection } from "@/components/maps/MapSection";
 import AddressAutocomplete from "@/components/maps/AddressAutocomplete";
+import { MapPosition, MapMarker } from "@/types/map";
 import { PharmacyCard } from "@/types/pharmacy";
 import { adaptPharmacyToCard } from "@/hooks/usePharmacyAdapter";
 import { PharmacyProfileDrawer } from "@/components/pharmacy/PharmacyProfileDrawer";
-import { MapSection } from "@/components/maps/MapSection";
 import { PharmacyResultsList } from "@/components/pharmacy/PharmacyResultsList";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, 
   Filter, 
@@ -53,17 +54,16 @@ const SearchAndBooking = () => {
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
   const [selectedRadius, setSelectedRadius] = useState<number>(25);
-  const [userLocationCoords, setUserLocationCoords] = useState<google.maps.LatLngLiteral | null>(null);
+  const [userLocationCoords, setUserLocationCoords] = useState<MapPosition | null>(null);
   const [isUsingPreciseCoords, setIsUsingPreciseCoords] = useState<boolean>(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const [selectedPharmacyCard, setSelectedPharmacyCard] = useState<PharmacyCard | null>(null);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
    // Default to showing California center
-   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({ lat: 36.7783, lng: -119.4179 });
+   const [mapCenter, setMapCenter] = useState<MapPosition>({ lat: 36.7783, lng: -119.4179 });
   const [mapZoom, setMapZoom] = useState<number>(4);
   const [showSearchThisArea, setShowSearchThisArea] = useState<boolean>(false);
-  const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null);
   const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies, calculateDistance } = usePharmacySearch();
 
   // Convert pharmacies to PharmacyCard format
@@ -97,7 +97,7 @@ const SearchAndBooking = () => {
   };
 
   // Calculate distance for pharmacy cards
-  const calculatePharmacyDistance = (pharmacyCard: PharmacyCard, userLoc?: google.maps.LatLngLiteral): string => {
+  const calculatePharmacyDistance = (pharmacyCard: PharmacyCard, userLoc?: MapPosition): string => {
     if (!userLoc) return '';
     const distance = calculateDistance(
       userLoc.lat, 
@@ -109,7 +109,7 @@ const SearchAndBooking = () => {
   };
 
   // Convert pharmacies to map markers
-  const createMarkersFromPharmacies = (): Marker[] => {
+  const createMarkersFromPharmacies = (): MapMarker[] => {
     return pharmacies
       .filter(pharmacy => pharmacy.latitude && pharmacy.longitude)
       .map(pharmacy => ({
@@ -164,65 +164,45 @@ const SearchAndBooking = () => {
 
 
 
-  // Handle map bounds change for "Search This Area" functionality
-  const handleMapBoundsChange = (map: google.maps.Map) => {
-    const bounds = map.getBounds();
-    if (bounds) {
-      setMapBounds(bounds);
-      setShowSearchThisArea(true);
-    }
-  };
-
   // Handle "Search This Area" button click
   const handleSearchThisArea = () => {
-    if (!mapBounds) return;
+    if (!mapCenter) return;
     
-    const center = mapBounds.getCenter();
-    if (center) {
-      const lat = center.lat();
-      const lng = center.lng();
-      const coords = { lat, lng };
-      
-      // Calculate radius based on bounds (approximate)
-      const ne = mapBounds.getNorthEast();
-      const sw = mapBounds.getSouthWest();
-      const radius = calculateDistance(
-        ne.lat(), ne.lng(),
-        sw.lat(), sw.lng()
-      ) / 2; // Rough estimate
-      
-      // Update location display and coordinates
-      setLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-      setIsUsingPreciseCoords(true);
-      setUserLocationCoords(coords);
-      
-      // Search in this area using selected radius
-      getNearbyPharmacies(lat, lng, Math.max(selectedRadius, 5)); // Use selected radius with minimum 5km
-      setShowSearchThisArea(false);
-      
-      toast({
-        title: "Searching this area",
-        description: `Finding pharmacies within ${selectedRadius}km of this area`,
-      });
-    }
+    const lat = mapCenter.lat;
+    const lng = mapCenter.lng;
+    const coords = { lat, lng };
+    
+    // Update location display and coordinates
+    setLocation(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    setIsUsingPreciseCoords(true);
+    setUserLocationCoords(coords);
+    
+    // Search in this area using selected radius
+    getNearbyPharmacies(lat, lng, Math.max(selectedRadius, 5)); // Use selected radius with minimum 5km
+    setShowSearchThisArea(false);
+    
+    toast({
+      title: "Searching this area",
+      description: `Finding pharmacies within ${selectedRadius}km of this area`,
+    });
   };
 
   // Handle place selection from autocomplete
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
-    console.log('🎯 Place selected from autocomplete:', place);
+  const handlePlaceSelect = (result: any) => {
+    console.log('🎯 Place selected from autocomplete:', result);
     
-    if (!place.geometry || !place.geometry.location) {
-      console.warn('❌ No geometry data for selected place');
+    if (!result.position) {
+      console.warn('❌ No position data for selected place');
       return;
     }
 
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
+    const lat = result.position.lat;
+    const lng = result.position.lng;
     const coords = { lat, lng };
     
     console.log('📍 Autocomplete: Updating map center to:', coords);
     
-    // Mark that we're using precise coordinates from Google Places
+    // Mark that we're using precise coordinates from Mapbox
     setIsUsingPreciseCoords(true);
     
     // Update location coordinates and map center
@@ -240,7 +220,7 @@ const SearchAndBooking = () => {
     
     toast({
       title: "Location selected!",
-      description: `Searching for pharmacies within ${selectedRadius}km of ${place.formatted_address || place.name}`,
+      description: `Searching for pharmacies within ${selectedRadius}km of ${result.formatted_address}`,
     });
   };
 
@@ -390,7 +370,7 @@ const SearchAndBooking = () => {
     }
   };
 
-  // Handle geocoding typed address using Google's Geocoding API
+  // Handle geocoding typed address using Mapbox Geocoding API
   const handleGeocodeTypedAddress = async () => {
     if (!location.trim()) {
       toast({
@@ -401,124 +381,101 @@ const SearchAndBooking = () => {
       return;
     }
 
-    if (!window.google || !window.google.maps) {
-      toast({
-        variant: "destructive",
-        title: "Google Maps not loaded",
-        description: "Please wait for Google Maps to load and try again.",
-      });
-      return;
-    }
-
     try {
       console.log(`🌍 Geocoding typed address: "${location}"`);
       
-      const geocoder = new window.google.maps.Geocoder();
-      
-      // Bias geocoding to user's precise location if available
-      let bounds: google.maps.LatLngBounds | undefined = undefined;
-      if (userLocationCoords) {
-        const latRadius = selectedRadius / 111;
-        const lngRadius = selectedRadius / (111 * Math.cos((userLocationCoords.lat * Math.PI) / 180));
-        const ne = new window.google.maps.LatLng(userLocationCoords.lat + latRadius, userLocationCoords.lng + lngRadius);
-        const sw = new window.google.maps.LatLng(userLocationCoords.lat - latRadius, userLocationCoords.lng - lngRadius);
-        bounds = new window.google.maps.LatLngBounds(sw, ne);
-      }
+      // Prepare geocoding parameters
+      const geocodeParams = {
+        query: location,
+        country: 'us',
+        center: userLocationCoords ? userLocationCoords : undefined,
+        radiusKm: userLocationCoords ? selectedRadius : undefined
+      };
 
-      const response = await new Promise<google.maps.GeocoderResponse>((resolve, reject) => {
-        geocoder.geocode(
-          { 
-            address: location,
-             componentRestrictions: { country: 'US' }, // Restrict to United States
-             region: 'US', // Prefer US results
-            bounds
-          },
-          (results, status) => {
-            if (status === 'OK' && results) {
-              resolve({ results } as google.maps.GeocoderResponse);
-            } else {
-              reject(new Error(`Geocoding failed: ${status}`));
-            }
-          }
-        );
+      // Call Mapbox geocoding via Supabase edge function
+      const { data, error } = await supabase.functions.invoke('mapbox-geocode', {
+        body: geocodeParams
       });
 
-      if (response.results && response.results.length > 0) {
-        console.log(`📊 Found ${response.results.length} geocoding results`);
-        
-         // Filter and rank results by specificity (avoid broad results like "United States")
-         const filteredResults = response.results.filter(result => {
-           const types = result.types || [];
-           console.log(`🔍 Result: ${result.formatted_address} (Types: ${types.join(', ')})`);
-           
-           // Reject results that are too broad
-           const isTooBroad = types.includes('country') || 
-                            types.includes('administrative_area_level_1') ||
-                            (result.formatted_address.toLowerCase().trim() === 'united states');
-           
-           if (isTooBroad) {
-             console.log(`🚫 Rejecting broad result: ${result.formatted_address}`);
-            return false;
-          }
-          
-          return true;
-        });
+      if (error) {
+        throw new Error(`Geocoding service error: ${error.message}`);
+      }
 
-        // Sort remaining results by specificity preference
-        const sortedResults = filteredResults.sort((a, b) => {
-          const aTypes = a.types || [];
-          const bTypes = b.types || [];
-          
-          // Prefer street addresses, then establishments, then localities
-          const getSpecificityScore = (types: string[]) => {
-            if (types.includes('street_address')) return 100;
-            if (types.includes('premise')) return 90;
-            if (types.includes('establishment')) return 80;
-            if (types.includes('subpremise')) return 70;
-            if (types.includes('route')) return 60;
-            if (types.includes('intersection')) return 50;
-            if (types.includes('locality')) return 40;
-            if (types.includes('sublocality')) return 30;
-            return 0;
-          };
-          
-          return getSpecificityScore(bTypes) - getSpecificityScore(aTypes);
-        });
-
-        if (sortedResults.length === 0) {
-          throw new Error('Only broad location results found. Please enter a more specific address.');
-        }
-
-        const bestResult = sortedResults[0];
-        const location_data = bestResult.geometry.location;
-        const lat = location_data.lat();
-        const lng = location_data.lng();
-        const coords = { lat, lng };
-
-        console.log(`✅ Selected best result: ${bestResult.formatted_address}`);
-        console.log(`📍 Coordinates: ${lat}, ${lng}`);
-        console.log(`🏷️ Types: ${bestResult.types?.join(', ')}`);
-
-        // Update location with the formatted address from Google
-        setLocation(bestResult.formatted_address);
-        setIsUsingPreciseCoords(true);
-        setUserLocationCoords(coords);
-        setMapCenter(coords);
-        setMapZoom(16); // Zoom in more for specific addresses
-
-        // Search for nearby pharmacies
-        getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
-          setMapCenter(coords);
-          setMapZoom(12);
-        });
-
-        toast({
-          title: "Address found!",
-          description: `Searching for pharmacies within ${selectedRadius}km of ${bestResult.formatted_address}`,
-        });
-      } else {
+      if (!data?.results || data.results.length === 0) {
         throw new Error('No results found');
       }
+
+      console.log(`📊 Found ${data.results.length} geocoding results`);
+      
+      // Filter and rank results by specificity (avoid broad results)
+      const filteredResults = data.results.filter((result: any) => {
+        const placeType = result.place_type || 'address';
+        const address = result.formatted_address || '';
+        
+        console.log(`🔍 Result: ${address} (Type: ${placeType})`);
+        
+        // Reject results that are too broad
+        const isTooBroad = placeType === 'country' || 
+                          placeType === 'region' ||
+                          address.toLowerCase().trim() === 'united states';
+        
+        if (isTooBroad) {
+          console.log(`🚫 Rejecting broad result: ${address}`);
+          return false;
+        }
+        
+        return true;
+      });
+
+      // Sort remaining results by specificity preference
+      const sortedResults = filteredResults.sort((a: any, b: any) => {
+        const aType = a.place_type || 'address';
+        const bType = b.place_type || 'address';
+        
+        // Prefer specific addresses, then POIs, then localities
+        const getSpecificityScore = (type: string) => {
+          if (type === 'address') return 100;
+          if (type === 'poi') return 90;
+          if (type === 'place') return 80;
+          if (type === 'locality') return 40;
+          if (type === 'district') return 30;
+          if (type === 'region') return 20;
+          return 0;
+        };
+        
+        return getSpecificityScore(bType) - getSpecificityScore(aType);
+      });
+
+      if (sortedResults.length === 0) {
+        throw new Error('Only broad location results found. Please enter a more specific address.');
+      }
+
+      const bestResult = sortedResults[0];
+      const lat = bestResult.position.lat;
+      const lng = bestResult.position.lng;
+      const coords = { lat, lng };
+
+      console.log(`✅ Selected best result: ${bestResult.formatted_address}`);
+      console.log(`📍 Coordinates: ${lat}, ${lng}`);
+      console.log(`🏷️ Type: ${bestResult.place_type}`);
+
+      // Update location with the formatted address from Mapbox
+      setLocation(bestResult.formatted_address);
+      setIsUsingPreciseCoords(true);
+      setUserLocationCoords(coords);
+      setMapCenter(coords);
+      setMapZoom(16); // Zoom in more for specific addresses
+
+      // Search for nearby pharmacies
+      getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+        setMapCenter(coords);
+        setMapZoom(12);
+      });
+
+      toast({
+        title: "Address found!",
+        description: `Searching for pharmacies within ${selectedRadius}km of ${bestResult.formatted_address}`,
+      });
     } catch (error) {
       console.error('❌ Geocoding error:', error);
       toast({
