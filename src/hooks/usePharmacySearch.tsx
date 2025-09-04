@@ -38,15 +38,16 @@ export interface MedMePharmacy {
 
 export interface USPharmacy {
   id: string;
-  clean_pharmacy_name: string | null;
+  name: string | null;
   address: string | null;
   phone: string | null;
-  zip_code: string | null;
+  zip_code: number | null;
   state_name: string | null;
   website: string | null;
   opening_hours: string | null;
-  ratings: string | null;
-  score: string | null;
+  ratings: number | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface PharmacySearchFilters {
@@ -91,15 +92,15 @@ export const usePharmacySearch = () => {
     
     return {
       id: usPharmacy.id,
-      name: usPharmacy.clean_pharmacy_name || 'US Pharmacy',
+      name: usPharmacy.name || 'US Pharmacy',
       address: usPharmacy.address || '',
       city: city,
       state: usPharmacy.state_name || 'Unknown',
-      zip_code: usPharmacy.zip_code || '',
+      zip_code: usPharmacy.zip_code?.toString() || '',
       phone: usPharmacy.phone || null,
       website: usPharmacy.website || null,
-      latitude: null, // US pharmacies don't have coordinates yet
-      longitude: null,
+      latitude: usPharmacy.lat || null,
+      longitude: usPharmacy.lng || null,
       services: null,
       type: 'us'
     };
@@ -311,9 +312,9 @@ export const usePharmacySearch = () => {
 
       // Get US pharmacies
       const { data: usPharmacies, error: usError } = await supabase
-        .from('us_pharmacies_raw')
-        .select('id, clean_pharmacy_name, address, phone, zip_code, state_name, website, opening_hours, ratings, score')
-        .order('clean_pharmacy_name');
+        .from('us_pharmacy_data')
+        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
+        .order('name');
 
       if (usError) {
         console.warn('Error fetching US pharmacies:', usError);
@@ -337,7 +338,7 @@ export const usePharmacySearch = () => {
         ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
       ];
 
-      // Add US pharmacies (they don't have coordinates so only for text searches)
+      // Add US pharmacies (now with coordinates from us_pharmacy_data table)
       const convertedUSPharmacies = (usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy));
       
       // Filter by MedMe only if requested
@@ -377,7 +378,7 @@ export const usePharmacySearch = () => {
             })
             .sort((a, b) => a.distance - b.distance);
 
-          // For pharmacies without coordinates (like US pharmacies), fall back to text matching
+          // For any remaining pharmacies without coordinates, fall back to text matching
           const textMatchedPharmacies = pharmaciesWithoutCoords.filter(pharmacy => 
             pharmacy.name.toLowerCase().includes(filters.location!.toLowerCase()) ||
             pharmacy.address.toLowerCase().includes(filters.location!.toLowerCase()) ||
@@ -471,9 +472,9 @@ export const usePharmacySearch = () => {
 
       // Get US pharmacies
       const { data: usPharmacies, error: usError } = await supabase
-        .from('us_pharmacies_raw')
-        .select('id, clean_pharmacy_name, address, phone, zip_code, state_name, website, opening_hours, ratings, score')
-        .order('clean_pharmacy_name');
+        .from('us_pharmacy_data')
+        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
+        .order('name');
 
       if (usError) {
         console.warn('Error fetching US pharmacies:', usError);

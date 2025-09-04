@@ -115,87 +115,183 @@ export type Database = {
         }
         Relationships: []
       }
-      us_pharmacies_raw: {
+      us_pharmacy_data: {
         Row: {
           address: string | null
-          clean_pharmacy_name: string | null
-          cleaned_up_services: string | null
-          clinical_services_raw_scrape: string | null
+          booking: string | null
+          booking_link: string | null
+          category: string | null
+          chronic_disease_condition_managem: string | null
+          clinical_services: string | null
+          clinical_services_2: string | null
+          clinical_services_immunizations: string | null
+          clinical_services_lowercase: string | null
+          clinical_services_summary: string | null
+          column_24: string | null
+          competitor: string | null
+          consent_form_type_purpose: string | null
           created_at: string
+          domain: string | null
           domain_1: string | null
-          first_name: string | null
+          email: string | null
+          health_screenings_point_of_care: string | null
+          healthcare_services: string | null
           id: string
           imms_cleaned_up: string | null
+          immunizations: string | null
+          immunizations_vaccinations: string | null
+          intake_forms_services: string | null
+          is_a_pharmacy: string | null
+          lat: number | null
+          letter_count: number | null
+          lng: number | null
+          main_image_url: string | null
+          name: string | null
           opening_hours: string | null
+          owner_manager_info: string | null
           owner_name: string | null
+          owners: string | null
           patient_forms: string | null
+          patient_forms_2: string | null
+          pharmacy_location_profile: string | null
+          pharmacy_research: string | null
           phone: string | null
+          pioneer_rx_info: string | null
+          popular_times: string | null
           preferred_email: string | null
+          primary_data_source: string | null
           purpose: string | null
-          ratings: string | null
-          score: string | null
+          ratings: number | null
+          response: string | null
+          scheduler_used: string | null
+          score: number | null
           solution_used: string | null
+          specialized_health_programs: string | null
           state_name: string | null
           tier_justification: string | null
           tier_list: string | null
           updated_at: string
           url: string | null
           website: string | null
-          zip_code: string | null
+          zip_code: number | null
         }
         Insert: {
           address?: string | null
-          clean_pharmacy_name?: string | null
-          cleaned_up_services?: string | null
-          clinical_services_raw_scrape?: string | null
+          booking?: string | null
+          booking_link?: string | null
+          category?: string | null
+          chronic_disease_condition_managem?: string | null
+          clinical_services?: string | null
+          clinical_services_2?: string | null
+          clinical_services_immunizations?: string | null
+          clinical_services_lowercase?: string | null
+          clinical_services_summary?: string | null
+          column_24?: string | null
+          competitor?: string | null
+          consent_form_type_purpose?: string | null
           created_at?: string
+          domain?: string | null
           domain_1?: string | null
-          first_name?: string | null
+          email?: string | null
+          health_screenings_point_of_care?: string | null
+          healthcare_services?: string | null
           id?: string
           imms_cleaned_up?: string | null
+          immunizations?: string | null
+          immunizations_vaccinations?: string | null
+          intake_forms_services?: string | null
+          is_a_pharmacy?: string | null
+          lat?: number | null
+          letter_count?: number | null
+          lng?: number | null
+          main_image_url?: string | null
+          name?: string | null
           opening_hours?: string | null
+          owner_manager_info?: string | null
           owner_name?: string | null
+          owners?: string | null
           patient_forms?: string | null
+          patient_forms_2?: string | null
+          pharmacy_location_profile?: string | null
+          pharmacy_research?: string | null
           phone?: string | null
+          pioneer_rx_info?: string | null
+          popular_times?: string | null
           preferred_email?: string | null
+          primary_data_source?: string | null
           purpose?: string | null
-          ratings?: string | null
-          score?: string | null
+          ratings?: number | null
+          response?: string | null
+          scheduler_used?: string | null
+          score?: number | null
           solution_used?: string | null
+          specialized_health_programs?: string | null
           state_name?: string | null
           tier_justification?: string | null
           tier_list?: string | null
           updated_at?: string
           url?: string | null
           website?: string | null
-          zip_code?: string | null
+          zip_code?: number | null
         }
         Update: {
           address?: string | null
-          clean_pharmacy_name?: string | null
-          cleaned_up_services?: string | null
-          clinical_services_raw_scrape?: string | null
+          booking?: string | null
+          booking_link?: string | null
+          category?: string | null
+          chronic_disease_condition_managem?: string | null
+          clinical_services?: string | null
+          clinical_services_2?: string | null
+          clinical_services_immunizations?: string | null
+          clinical_services_lowercase?: string | null
+          clinical_services_summary?: string | null
+          column_24?: string | null
+          competitor?: string | null
+          consent_form_type_purpose?: string | null
           created_at?: string
+          domain?: string | null
           domain_1?: string | null
-          first_name?: string | null
+          email?: string | null
+          health_screenings_point_of_care?: string | null
+          healthcare_services?: string | null
           id?: string
           imms_cleaned_up?: string | null
+          immunizations?: string | null
+          immunizations_vaccinations?: string | null
+          intake_forms_services?: string | null
+          is_a_pharmacy?: string | null
+          lat?: number | null
+          letter_count?: number | null
+          lng?: number | null
+          main_image_url?: string | null
+          name?: string | null
           opening_hours?: string | null
+          owner_manager_info?: string | null
           owner_name?: string | null
+          owners?: string | null
           patient_forms?: string | null
+          patient_forms_2?: string | null
+          pharmacy_location_profile?: string | null
+          pharmacy_research?: string | null
           phone?: string | null
+          pioneer_rx_info?: string | null
+          popular_times?: string | null
           preferred_email?: string | null
+          primary_data_source?: string | null
           purpose?: string | null
-          ratings?: string | null
-          score?: string | null
+          ratings?: number | null
+          response?: string | null
+          scheduler_used?: string | null
+          score?: number | null
           solution_used?: string | null
+          specialized_health_programs?: string | null
           state_name?: string | null
           tier_justification?: string | null
           tier_list?: string | null
           updated_at?: string
           url?: string | null
           website?: string | null
-          zip_code?: string | null
+          zip_code?: number | null
         }
         Relationships: []
       }
