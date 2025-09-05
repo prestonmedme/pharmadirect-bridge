@@ -118,12 +118,19 @@ export const usePharmacySearch = () => {
         lng: parseFloat(coordsMatch[2])
       };
       console.log('📍 Location is already coordinates:', coords);
+      
+      // Validate coordinates are within US bounds
+      if (coords.lat < 24.5 || coords.lat > 49.4 || coords.lng < -125.0 || coords.lng > -66.9) {
+        console.warn('⚠️ Coordinates appear to be outside US bounds:', coords);
+      }
+      
       return coords;
     }
 
     // Prefer Google Maps Geocoding if available
     try {
       if ((window as any).google?.maps) {
+        console.log('🗺️ Using Google Maps geocoding...');
         const geocoder = new window.google.maps.Geocoder();
         const response = await new Promise<google.maps.GeocoderResponse>((resolve, reject) => {
           geocoder.geocode(
@@ -145,11 +152,17 @@ export const usePharmacySearch = () => {
         const best = response.results[0];
         const loc = best.geometry.location;
         const coords = { lat: loc.lat(), lng: loc.lng() };
+        
+        // Validate coordinates
+        if (coords.lat < 24.5 || coords.lat > 49.4 || coords.lng < -125.0 || coords.lng > -66.9) {
+          console.warn('⚠️ Google geocode result appears outside US bounds:', coords, best.formatted_address);
+        }
+        
         console.log('✅ Google geocode result:', best.formatted_address, coords);
         return coords;
       }
     } catch (err) {
-      console.warn('Google geocoding failed, falling back to heuristics:', err);
+      console.warn('❌ Google geocoding failed, falling back to heuristics:', err);
     }
 
     // Heuristic fallback: prefer major California cities
@@ -194,6 +207,58 @@ export const usePharmacySearch = () => {
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  };
+
+  // Database verification function for debugging distance calculations
+  const verifyDatabaseDistances = async (centerLat: number, centerLng: number, radiusKm: number, locationName: string) => {
+    console.log(`🔍 DATABASE VERIFICATION: Checking pharmacies within ${radiusKm}km of ${locationName} (${centerLat}, ${centerLng})`);
+    
+    try {
+      // Query US pharmacy data directly
+      const { data: usPharmacies, error: usError } = await supabase
+        .from('us_pharmacy_data')
+        .select('name, address, lat, lng')
+        .not('lat', 'is', null)
+        .not('lng', 'is', null);
+
+      if (usError) {
+        console.error('❌ Database verification failed:', usError);
+        return;
+      }
+
+      const pharmaciesWithDistance = (usPharmacies || [])
+        .map(p => ({
+          name: p.name,
+          address: p.address,
+          lat: p.lat,
+          lng: p.lng,
+          distance: calculateDistance(centerLat, centerLng, p.lat, p.lng)
+        }))
+        .sort((a, b) => a.distance - b.distance);
+
+      const withinRadius = pharmaciesWithDistance.filter(p => p.distance <= radiusKm);
+      const closest10 = pharmaciesWithDistance.slice(0, 10);
+      
+      console.log(`📊 DATABASE VERIFICATION RESULTS:`);
+      console.log(`   Total US pharmacies with coordinates: ${pharmaciesWithDistance.length}`);
+      console.log(`   Within ${radiusKm}km: ${withinRadius.length}`);
+      console.log(`   Closest 10 pharmacies:`, closest10.map(p => ({
+        name: p.name?.substring(0, 30) + '...',
+        distance: `${p.distance.toFixed(2)}km`,
+        coords: `${p.lat}, ${p.lng}`
+      })));
+      
+      if (withinRadius.length > 0) {
+        console.log(`   Sample pharmacies within radius:`, withinRadius.slice(0, 3).map(p => ({
+          name: p.name?.substring(0, 30) + '...',
+          address: p.address?.substring(0, 40) + '...',
+          distance: `${p.distance.toFixed(2)}km`
+        })));
+      }
+      
+    } catch (error) {
+      console.error('❌ Database verification error:', error);
+    }
   };
 
   // Enhance pharmacy with Google Places data and stable display data
@@ -357,26 +422,71 @@ export const usePharmacySearch = () => {
         
         if (coords) {
           const radiusKm = filters.radiusKm || 50; // Default to 50km if no radius specified
-          console.log(`🔍 Filtering pharmacies within ${radiusKm}km radius`);
+          console.log(`🎯 Search CENTER coordinates: ${coords.lat}, ${coords.lng} (${filters.location.trim()})`);
+          console.log(`📏 Search RADIUS: ${radiusKm}km`);
+          console.log(`📊 Total pharmacies before distance filter: ${filteredPharmacies.length}`);
           
-          // Filter pharmacies within specified radius and sort by distance
+          // Run database verification for debugging
+          await verifyDatabaseDistances(coords.lat, coords.lng, radiusKm, filters.location.trim());
+          
           // Separate pharmacies with coordinates (for distance filtering) from those without
           const pharmaciesWithCoords = filteredPharmacies.filter(p => p.latitude !== null && p.longitude !== null);
           const pharmaciesWithoutCoords = filteredPharmacies.filter(p => p.latitude === null || p.longitude === null);
           
+          console.log(`📍 Pharmacies WITH coordinates: ${pharmaciesWithCoords.length}`);
+          console.log(`❓ Pharmacies WITHOUT coordinates: ${pharmaciesWithoutCoords.length}`);
+          
+          // Sample some pharmacies to debug coordinates
+          const samplePharmacies = pharmaciesWithCoords.slice(0, 5);
+          console.log(`🔍 Sample pharmacy coordinates:`, samplePharmacies.map(p => ({
+            name: p.name,
+            lat: p.latitude,
+            lng: p.longitude,
+            address: p.address
+          })));
+          
           const nearbyPharmaciesWithDistance = pharmaciesWithCoords
-            .map(pharmacy => ({
-              ...pharmacy,
-              distance: calculateDistance(coords.lat, coords.lng, pharmacy.latitude!, pharmacy.longitude!)
-            }))
+            .map(pharmacy => {
+              const distance = calculateDistance(coords.lat, coords.lng, pharmacy.latitude!, pharmacy.longitude!);
+              return { ...pharmacy, distance };
+            })
             .filter(pharmacy => {
               const isWithinRadius = pharmacy.distance <= radiusKm;
-              if (!isWithinRadius && pharmacy.distance <= radiusKm + 10) { // Log pharmacies just outside radius for debugging
-                console.log(`🚫 Excluding ${pharmacy.name}: ${pharmacy.distance.toFixed(2)}km > ${radiusKm}km`);
+              
+              // Log detailed distance information
+              if (pharmacy.distance <= radiusKm + 20) { // Log pharmacies within +20km for debugging
+                const status = isWithinRadius ? '✅ INCLUDED' : '🚫 EXCLUDED';
+                console.log(`${status} ${pharmacy.name}: ${pharmacy.distance.toFixed(2)}km (${pharmacy.latitude}, ${pharmacy.longitude})`);
               }
+              
               return isWithinRadius;
             })
             .sort((a, b) => a.distance - b.distance);
+
+          console.log(`📍 Pharmacies within ${radiusKm}km: ${nearbyPharmaciesWithDistance.length}`);
+          
+          // Log closest pharmacies for debugging
+          if (nearbyPharmaciesWithDistance.length > 0) {
+            console.log(`🏆 CLOSEST pharmacies:`, nearbyPharmaciesWithDistance.slice(0, 3).map(p => ({
+              name: p.name,
+              distance: `${p.distance.toFixed(2)}km`,
+              coordinates: `${p.latitude}, ${p.longitude}`
+            })));
+          } else {
+            console.warn(`❌ NO PHARMACIES found within ${radiusKm}km of ${coords.lat}, ${coords.lng}`);
+            
+            // Find closest pharmacies regardless of radius for debugging
+            const allDistances = pharmaciesWithCoords
+              .map(p => ({
+                name: p.name,
+                distance: calculateDistance(coords.lat, coords.lng, p.latitude!, p.longitude!),
+                coordinates: `${p.latitude}, ${p.longitude}`
+              }))
+              .sort((a, b) => a.distance - b.distance)
+              .slice(0, 5);
+            
+            console.log(`🔍 5 CLOSEST pharmacies (regardless of radius):`, allDistances);
+          }
 
           // For any remaining pharmacies without coordinates, fall back to text matching
           const textMatchedPharmacies = pharmaciesWithoutCoords.filter(pharmacy => 
@@ -386,14 +496,18 @@ export const usePharmacySearch = () => {
             pharmacy.state.toLowerCase().includes(filters.location!.toLowerCase())
           );
 
+          console.log(`📝 Text-matched pharmacies (no coordinates): ${textMatchedPharmacies.length}`);
+
           // Combine results: nearby pharmacies first (sorted by distance), then text matches
           filteredPharmacies = [...nearbyPharmaciesWithDistance, ...textMatchedPharmacies];
         } else {
+          console.warn(`❌ GEOCODING FAILED for "${filters.location.trim()}" - falling back to text search`);
           // Fallback to text search if geocoding fails
           filteredPharmacies = filteredPharmacies.filter(pharmacy => 
             pharmacy.name.toLowerCase().includes(filters.location!.toLowerCase()) ||
             pharmacy.address.toLowerCase().includes(filters.location!.toLowerCase())
           );
+          console.log(`📝 Text search fallback found ${filteredPharmacies.length} pharmacies`);
         }
       } else {
         // No location specified - show all pharmacies sorted by name
