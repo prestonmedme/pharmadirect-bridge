@@ -22,7 +22,7 @@ const Header = () => {
             className="flex items-center space-x-3 cursor-pointer" 
             onClick={() => navigate('/')}
           >
-            <DynamicLogo className="h-8 w-auto" alt="MedMe Logo" />
+            <img src="/lovable-uploads/3a8be38a-7422-49cd-b38b-f0831bafd303.png" className="h-8 w-auto" alt="Logo" />
           </div>
 
           {/* Desktop Navigation */}
