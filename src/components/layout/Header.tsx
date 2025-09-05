@@ -14,7 +14,7 @@ const Header = () => {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-[#073e54]/60" style={{ backgroundColor: '#073e54' }}>
       <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -30,8 +30,8 @@ const Header = () => {
             <button 
               onClick={() => navigate('/')}
               className={cn(
-                "text-[#073e54] hover:text-primary transition-colors font-medium",
-                location.pathname === '/' && "text-primary"
+                "text-white hover:text-gray-200 transition-colors font-medium",
+                location.pathname === '/' && "text-gray-200"
               )}
             >
               Home
@@ -39,18 +39,18 @@ const Header = () => {
             <button 
               onClick={() => navigate('/search')}
               className={cn(
-                "text-[#073e54] hover:text-primary transition-colors font-medium flex items-center gap-1",
-                location.pathname === '/search' && "text-primary"
+                "text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-1",
+                location.pathname === '/search' && "text-gray-200"
               )}
             >
               <MapPin className="h-4 w-4" />
               Search
             </button>
-            <button className="text-[#073e54] hover:text-primary transition-colors font-medium flex items-center gap-1">
+            <button className="text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-1">
               <User className="h-4 w-4" />
               Account
             </button>
-            <button className="text-[#073e54] hover:text-primary transition-colors font-medium flex items-center gap-1">
+            <button className="text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-1">
               <Globe className="h-4 w-4" />
               EN
             </button>
@@ -92,7 +92,7 @@ const Header = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => navigate('/login')}
-                  className="text-[#073e54] border-[#073e54] hover:bg-[#073e54] hover:text-white"
+                  className="text-white border-white hover:bg-white hover:text-[#073e54]"
                 >
                   Sign In
                 </Button>
@@ -109,7 +109,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
+            className="md:hidden p-2 text-white hover:text-gray-200 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -121,27 +121,27 @@ const Header = () => {
           "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
           isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         )}>
-          <nav className="py-4 space-y-4 border-t">
-            <a href="#" className="block text-foreground hover:text-primary transition-colors font-medium">
+          <nav className="py-4 space-y-4 border-t border-white/20">
+            <a href="#" className="block text-white hover:text-gray-200 transition-colors font-medium">
               Home
             </a>
-            <a href="#" className="block text-foreground hover:text-primary transition-colors font-medium flex items-center gap-2">
+            <a href="#" className="block text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               Map
             </a>
-            <a href="#" className="block text-foreground hover:text-primary transition-colors font-medium flex items-center gap-2">
+            <a href="#" className="block text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-2">
               <User className="h-4 w-4" />
               Account
             </a>
-            <a href="#" className="block text-foreground hover:text-primary transition-colors font-medium flex items-center gap-2">
+            <a href="#" className="block text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-2">
               <Globe className="h-4 w-4" />
               Language
             </a>
             {/* Mobile Authentication */}
-            <div className="flex flex-col space-y-2 pt-4 border-t">
+            <div className="flex flex-col space-y-2 pt-4 border-t border-white/20">
               {user ? (
                 <>
-                  <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground">
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white">
                     <User className="h-4 w-4" />
                     {user.user_metadata?.full_name || user.email}
                   </div>
