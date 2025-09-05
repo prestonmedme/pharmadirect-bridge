@@ -42,6 +42,7 @@ const SearchAndBooking = () => {
     { value: "minor-ailments", label: "Minor ailments" },
     { value: "flu-shots", label: "Flu shots" },
     { value: "medscheck", label: "MedsCheck" },
+    { value: "medication-review", label: "Medication Review" },
     { value: "naloxone", label: "Naloxone Kits" },
     { value: "birth-control", label: "Birth Control" },
     { value: "travel-vaccines", label: "Travel Vaccines" },
@@ -250,7 +251,7 @@ const SearchAndBooking = () => {
         radiusKm: selectedRadius 
       });
     }
-  }, [selectedServices, medmeOnly, selectedRadius]);
+  }, []); // Remove dependencies to prevent infinite loop
 
   // Handle search when location and filters change with debouncing
   // Only for manual input - not when using precise coordinates from autocomplete
@@ -287,7 +288,7 @@ const SearchAndBooking = () => {
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [location, medmeOnly, selectedRadius, isUsingPreciseCoords, userLocationCoords]);
+  }, [location, isUsingPreciseCoords, userLocationCoords]); // Remove dependencies that cause infinite loops
 
   // Reset precise coords flag when user starts typing manually
   const handleLocationInputChange = (newLocation: string) => {
@@ -614,6 +615,27 @@ const SearchAndBooking = () => {
                     options={serviceOptions}
                     placeholder="All services"
                   />
+                  {/* Show selected services as inline badges below the selector */}
+                  {selectedServices.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedServices.map(service => {
+                        const option = serviceOptions.find(opt => opt.value === service);
+                        return (
+                          <Badge
+                            key={service}
+                            variant="secondary"
+                            className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary border-primary/20 text-xs"
+                          >
+                            {option?.label || service}
+                            <X 
+                              className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                              onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
+                            />
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* MedMe Filter */}
@@ -665,96 +687,6 @@ const SearchAndBooking = () => {
                 </div>
               </div>
             </Card>
-
-            {/* Active Filters Display */}
-            {(selectedServices.length > 0 || medmeOnly || selectedRadius !== 25 || location.trim()) && (
-              <Card className="p-4 border border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">Active filters:</span>
-                  
-                  {/* Service filters */}
-                  {selectedServices.map(service => {
-                    const option = serviceOptions.find(opt => opt.value === service);
-                    return (
-                      <Badge
-                        key={service}
-                        variant="secondary"
-                        className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
-                      >
-                        {option?.label || service}
-                        <X 
-                          className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
-                          onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
-                        />
-                      </Badge>
-                    );
-                  })}
-                  
-                  {/* MedMe filter */}
-                  {medmeOnly && (
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
-                    >
-                      MedMe only
-                      <X 
-                        className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
-                        onClick={() => setMedmeOnly(false)}
-                      />
-                    </Badge>
-                  )}
-                  
-                  {/* Radius filter (if not default) */}
-                  {selectedRadius !== 25 && (
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
-                    >
-                      Within {selectedRadius}km
-                      <X 
-                        className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
-                        onClick={() => setSelectedRadius(25)}
-                      />
-                    </Badge>
-                  )}
-                  
-                  {/* Location filter */}
-                  {location.trim() && (
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
-                    >
-                      Near {location.length > 30 ? `${location.substring(0, 30)}...` : location}
-                      <X 
-                        className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
-                        onClick={() => {
-                          setLocation('');
-                          setIsUsingPreciseCoords(false);
-                          setUserLocationCoords(null);
-                        }}
-                      />
-                    </Badge>
-                  )}
-                  
-                  {/* Clear all button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs h-auto px-2 py-1 text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setSelectedServices([]);
-                      setMedmeOnly(false);
-                      setSelectedRadius(25);
-                      setLocation('');
-                      setIsUsingPreciseCoords(false);
-                      setUserLocationCoords(null);
-                    }}
-                  >
-                    Clear all
-                  </Button>
-                </div>
-              </Card>
-            )}
 
             {/* Pharmacy List */}
             <div className="space-y-4">

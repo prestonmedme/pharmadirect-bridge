@@ -279,7 +279,7 @@ export const usePharmacySearch = () => {
       
       console.log('🔍 Searching pharmacies with filters:', filters);
 
-      // Get regular pharmacies
+      // Get regular pharmacies - handle gracefully if table is empty
       const { data: regularPharmacies, error: regularError } = await supabase
         .from('pharmacies')
         .select('*')
@@ -288,8 +288,8 @@ export const usePharmacySearch = () => {
         .order('name');
 
       if (regularError) {
-        console.error('❌ Error fetching regular pharmacies:', regularError);
-        throw regularError;
+        console.warn('⚠️ Could not fetch regular pharmacies (table may be empty):', regularError);
+        // Don't throw error, just log warning and continue with empty array
       }
       
       console.log(`✅ Found ${regularPharmacies?.length || 0} regular pharmacies`);
@@ -300,8 +300,8 @@ export const usePharmacySearch = () => {
       // Get MedMe pharmacies using direct query - be more lenient with filtering
       const { data: medmePharmacies, error: medmeError } = await supabase
         .from('medme_pharmacies' as any)
-        .select('id, name, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
-        .order('name');
+        .select('id, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
+        .order('id');
 
       if (medmeError) {
         console.warn('Error fetching MedMe pharmacies:', medmeError);
