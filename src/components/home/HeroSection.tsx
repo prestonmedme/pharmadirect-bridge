@@ -15,7 +15,7 @@ const HeroSection = () => {
 
         {/* Map section */}
         <div className="relative max-w-2xl mx-auto">
-          <div className="aspect-[16/9] bg-white rounded-2xl border border-border/20 overflow-hidden shadow-card">
+          <div className="aspect-[16/9] rounded-2xl border border-border/20 overflow-hidden shadow-card" style={{ backgroundColor: 'hsl(var(--map-background))' }}>
             <HomeMap className="h-full w-full" />
           </div>
         </div>

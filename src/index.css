@@ -10,7 +10,10 @@ All colors MUST be HSL.
   :root {
     /* MedMe Brand Colors Design System */
     --background: 0 0% 100%;
-    --foreground: 200 85% 18%;
+    --foreground: 64 55% 48%;
+    
+    /* Custom colors */
+    --map-background: 195 82% 18%;
 
     --card: 0 0% 100%;
     --card-foreground: 200 85% 18%;
