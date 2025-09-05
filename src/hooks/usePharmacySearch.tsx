@@ -3,11 +3,8 @@ import { supabaseTemp as supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { AnalyticsService } from '@/lib/analytics';
 import { 
-  GooglePlacesData, 
   PharmacyDisplayData, 
-  generateStableDisplayData, 
-  searchPharmacyPlaces, 
-  mergeGooglePlacesData 
+  generateStableDisplayData
 } from '@/lib/pharmacyDataUtils';
 
 export interface Pharmacy {
@@ -23,7 +20,6 @@ export interface Pharmacy {
   longitude: number | null;
   services: string[] | null;
   type?: 'regular' | 'medme' | 'us';
-  googlePlacesData?: GooglePlacesData;
   displayData?: PharmacyDisplayData;
   distance?: number;
 }
@@ -263,26 +259,14 @@ export const usePharmacySearch = () => {
     }
   };
 
-  // Enhance pharmacy with Google Places data and stable display data
+  // Enhance pharmacy with stable display data only (Mapbox-based implementation)
   const enhancePharmacyWithData = async (pharmacy: Pharmacy, index: number): Promise<Pharmacy> => {
     // Generate stable display data
     const stableData = generateStableDisplayData(pharmacy.id, pharmacy.name, index);
-    
-    // Try to get Google Places data
-    let googleData: GooglePlacesData | null = null;
-    try {
-      googleData = await searchPharmacyPlaces(pharmacy.name, pharmacy.address);
-    } catch (error) {
-      console.warn(`Failed to get Google Places data for ${pharmacy.name}:`, error);
-    }
-
-    // Merge the data
-    const displayData = mergeGooglePlacesData(stableData, googleData);
 
     return {
       ...pharmacy,
-      googlePlacesData: googleData || undefined,
-      displayData
+      displayData: stableData
     };
   };
 
@@ -297,46 +281,7 @@ export const usePharmacySearch = () => {
     });
   };
 
-  // Enhance multiple pharmacies with Google Places data (slow - only when needed)
-  const enhancePharmaciesWithGoogleData = async (pharmacies: Pharmacy[]): Promise<Pharmacy[]> => {
-    console.log(`🔍 Starting Google Places enhancement for ${pharmacies.length} pharmacies`);
-    
-    // Process in smaller batches to avoid rate limiting
-    const batchSize = 3; // Reduced batch size for faster response
-    const enhanced: Pharmacy[] = [];
-    
-    for (let i = 0; i < pharmacies.length; i += batchSize) {
-      const batch = pharmacies.slice(i, i + batchSize);
-      const enhancedBatch = await Promise.all(
-        batch.map(async (pharmacy, batchIndex) => {
-          try {
-            const googleData = await searchPharmacyPlaces(pharmacy.name, pharmacy.address);
-            if (googleData && pharmacy.displayData) {
-              const enhancedDisplayData = mergeGooglePlacesData(pharmacy.displayData, googleData);
-              return {
-                ...pharmacy,
-                googlePlacesData: googleData,
-                displayData: enhancedDisplayData
-              };
-            }
-          } catch (error) {
-            console.warn(`Failed to get Google Places data for ${pharmacy.name}:`, error);
-          }
-          return pharmacy; // Return unchanged if Google data fails
-        })
-      );
-      enhanced.push(...enhancedBatch);
-      
-      // Smaller delay between batches
-      if (i + batchSize < pharmacies.length) {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Reduced from 200ms
-      }
-      
-      console.log(`🔍 Enhanced ${enhanced.length}/${pharmacies.length} pharmacies with Google data`);
-    }
-    
-    return enhanced;
-  };
+  // Note: Google Places enhancement removed for Mapbox-based implementation
 
   // Search pharmacies with location-based filtering
   const searchPharmacies = async (filters: PharmacySearchFilters = {}) => {
@@ -568,24 +513,10 @@ export const usePharmacySearch = () => {
       await AnalyticsService.trackSearch(serviceForTracking, filters.location || 'unknown', filteredPharmacies.length);
       await AnalyticsService.trackResultsShown(serviceForTracking, filteredPharmacies.length, medmeCount);
 
-      // First, quickly load pharmacies with basic display data
-      const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(filteredPharmacies);
-      setPharmacies(basicEnhancedPharmacies);
-      
-      // Then, optionally enhance with Google Places data if we have a reasonable number of pharmacies
-      // This prevents slow loading when there are too many pharmacies
-      if (filteredPharmacies.length <= 20) { // Only enhance if 20 or fewer pharmacies
-        console.log(`🔍 Enhancing ${filteredPharmacies.length} pharmacies with Google Places data...`);
-        try {
-          const fullyEnhancedPharmacies = await enhancePharmaciesWithGoogleData(basicEnhancedPharmacies);
-          setPharmacies(fullyEnhancedPharmacies);
-          console.log(`✅ Google Places enhancement complete`);
-        } catch (error) {
-          console.warn('⚠️ Google Places enhancement failed, using basic data:', error);
-        }
-      } else {
-        console.log(`⚡ Skipping Google Places enhancement for ${filteredPharmacies.length} pharmacies (too many for fast loading)`);
-      }
+      // Load pharmacies with basic display data (Mapbox-based implementation)
+      const enhancedPharmacies = enhancePharmaciesWithBasicData(filteredPharmacies);
+      setPharmacies(enhancedPharmacies);
+      console.log(`✅ Loaded ${enhancedPharmacies.length} pharmacies with basic display data`);
     } catch (error) {
       console.error('❌ Error searching pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to search pharmacies';
@@ -752,23 +683,10 @@ export const usePharmacySearch = () => {
       const medmeCount = nearbyPharmacies.filter(p => p.type === 'medme').length;
       await AnalyticsService.trackResultsShown('nearby_search', nearbyPharmacies.length, medmeCount);
 
-      // First, quickly load pharmacies with basic display data
-      const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(nearbyPharmacies);
-      setPharmacies(basicEnhancedPharmacies);
-      
-      // Then, enhance with Google Places data if we have a reasonable number of pharmacies
-      if (nearbyPharmacies.length <= 15) { // Slightly lower threshold for nearby searches
-        console.log(`🔍 Enhancing ${nearbyPharmacies.length} nearby pharmacies with Google Places data...`);
-        try {
-          const fullyEnhancedPharmacies = await enhancePharmaciesWithGoogleData(basicEnhancedPharmacies);
-          setPharmacies(fullyEnhancedPharmacies);
-          console.log(`✅ Google Places enhancement complete for nearby pharmacies`);
-        } catch (error) {
-          console.warn('⚠️ Google Places enhancement failed for nearby pharmacies, using basic data:', error);
-        }
-      } else {
-        console.log(`⚡ Skipping Google Places enhancement for ${nearbyPharmacies.length} nearby pharmacies (too many for fast loading)`);
-      }
+      // Load nearby pharmacies with basic display data (Mapbox-based implementation)
+      const enhancedPharmacies = enhancePharmaciesWithBasicData(nearbyPharmacies);
+      setPharmacies(enhancedPharmacies);
+      console.log(`✅ Loaded ${enhancedPharmacies.length} nearby pharmacies with basic display data`);
     } catch (error) {
       console.error('❌ Error fetching nearby pharmacies:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch nearby pharmacies';

@@ -35,7 +35,7 @@ export const adaptPharmacyToCard = (pharmacy: Pharmacy): PharmacyCard => {
     rating: pharmacy.displayData ? {
       value: pharmacy.displayData.rating,
       count: pharmacy.displayData.reviews,
-      source: pharmacy.googlePlacesData ? 'google' : 'internal'
+      source: 'internal'
     } : undefined,
     openNow: pharmacy.displayData?.hours.isOpen,
     attributes: pharmacy.displayData?.services || [],
@@ -44,7 +44,7 @@ export const adaptPharmacyToCard = (pharmacy: Pharmacy): PharmacyCard => {
       new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
       new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Day after
     ] : undefined,
-    placeId: pharmacy.googlePlacesData?.place_id,
+    placeId: undefined, // Mapbox-based implementation doesn't use Google Place IDs
     medmeId: pharmacy.type === 'medme' ? pharmacy.id : undefined
   };
 };
