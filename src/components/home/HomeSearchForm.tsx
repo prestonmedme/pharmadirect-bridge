@@ -95,7 +95,8 @@ const HomeSearchForm = () => {
             <Button 
               onClick={handleSearch}
               size="lg" 
-              className="h-12 px-8 bg-primary hover:bg-primary-light text-white font-semibold"
+              className="h-12 px-8 text-white font-semibold transition-colors hover:opacity-90"
+              style={{ backgroundColor: '#073e54' }}
             >
               Search
             </Button>
