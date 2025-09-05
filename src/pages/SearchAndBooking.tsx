@@ -240,16 +240,14 @@ const SearchAndBooking = () => {
     if (addressParam) {
       const decodedAddress = decodeURIComponent(addressParam);
       setLocation(decodedAddress);
-      setIsUsingPreciseCoords(true);
       
-      // Trigger search with the provided address and service
-      console.log('🔍 URL parameter search:', { address: decodedAddress, service: serviceParam });
-      searchPharmacies({ 
-        location: decodedAddress, 
-        service: serviceParam || undefined,
-        medmeOnly, 
-        radiusKm: selectedRadius 
-      });
+      // Don't set precise coords yet - we need to geocode first
+      console.log('🔍 URL parameter search with address:', { address: decodedAddress, service: serviceParam });
+      
+      // Geocode the address from URL params and then search
+      setTimeout(() => {
+        handleGeocodeTypedAddress();
+      }, 100); // Small delay to ensure state is set
     }
   }, []); // Remove dependencies to prevent infinite loop
 
@@ -429,8 +427,10 @@ const SearchAndBooking = () => {
         throw new Error(`Geocoding service error: ${error.message}`);
       }
 
+      console.log('🔍 Geocoding response:', data);
+
       if (!data?.results || data.results.length === 0) {
-        throw new Error('No results found');
+        throw new Error('No geocoding results returned from service');
       }
 
       console.log(`📊 Found ${data.results.length} geocoding results`);
@@ -442,9 +442,9 @@ const SearchAndBooking = () => {
         
         console.log(`🔍 Result: ${address} (Type: ${placeType})`);
         
-        // Reject results that are too broad
+        // Reject results that are too broad - be more lenient
         const isTooBroad = placeType === 'country' || 
-                          placeType === 'region' ||
+                          (placeType === 'region' && !address.includes(',')) || // Only reject regions without specific addresses
                           address.toLowerCase().trim() === 'united states';
         
         if (isTooBroad) {
@@ -454,6 +454,8 @@ const SearchAndBooking = () => {
         
         return true;
       });
+
+      console.log(`📋 Filtered to ${filteredResults.length} specific results`);
 
       // Sort remaining results by specificity preference
       const sortedResults = filteredResults.sort((a: any, b: any) => {
@@ -475,7 +477,31 @@ const SearchAndBooking = () => {
       });
 
       if (sortedResults.length === 0) {
-        throw new Error('Only broad location results found. Please enter a more specific address.');
+        console.log('❌ All results were filtered out as too broad');
+        // Fallback to using the first original result if all were filtered
+        const fallbackResult = data.results[0];
+        console.log('🔄 Using fallback result:', fallbackResult.formatted_address);
+        
+        const lat = fallbackResult.position.lat;
+        const lng = fallbackResult.position.lng;
+        const coords = { lat, lng };
+
+        setLocation(fallbackResult.formatted_address);
+        setIsUsingPreciseCoords(true);
+        setUserLocationCoords(coords);
+        setMapCenter(coords);
+        setMapZoom(14);
+
+        getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+          setMapCenter(coords);
+          setMapZoom(12);
+        });
+
+        toast({
+          title: "Address found!",
+          description: `Using: ${fallbackResult.formatted_address}`,
+        });
+        return;
       }
 
       const bestResult = sortedResults[0];
