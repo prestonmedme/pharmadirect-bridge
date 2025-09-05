@@ -92,7 +92,7 @@ const Header = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => navigate('/login')}
-                  className="text-white border-white hover:bg-white hover:text-[#073e54]"
+                  className="text-white border-white bg-transparent hover:bg-white hover:text-[#073e54] transition-colors"
                 >
                   Sign In
                 </Button>
