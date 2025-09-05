@@ -95,7 +95,7 @@ const HomeSearchForm = () => {
             <Button 
               onClick={handleSearch}
               size="lg" 
-              className="h-12 px-8 text-white font-semibold transition-colors hover:opacity-90"
+              className="h-12 px-8 text-white font-semibold hover:opacity-90"
               style={{ backgroundColor: '#073e54' }}
             >
               Search
@@ -112,9 +112,10 @@ const HomeSearchForm = () => {
                 onClick={() => setSelectedService(service.id === selectedService ? "" : service.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
                   selectedService === service.id
-                    ? "bg-primary text-white shadow-md"
-                    : service.color
+                    ? "text-white shadow-md"
+                    : "text-white"
                 }`}
+                style={{ backgroundColor: '#c3c430' }}
               >
                 {service.label}
               </button>
