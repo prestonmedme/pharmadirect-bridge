@@ -11,11 +11,12 @@ interface ServiceOption {
 }
 
 interface BubbleFilterSelectProps {
-  value: string;
-  onValueChange: (value: string) => void;
+  value: string[];
+  onValueChange: (value: string[]) => void;
   options: ServiceOption[];
   placeholder?: string;
   className?: string;
+  multiple?: boolean;
 }
 
 export function BubbleFilterSelect({
@@ -23,21 +24,37 @@ export function BubbleFilterSelect({
   onValueChange,
   options,
   placeholder = "All services",
-  className
+  className,
+  multiple = true
 }: BubbleFilterSelectProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const selectedOption = options.find(option => option.value === value);
-  const displayLabel = selectedOption?.label || placeholder;
-
-  const handleSelect = (optionValue: string) => {
-    onValueChange(optionValue);
-    setIsExpanded(false);
+  const getDisplayLabel = () => {
+    if (!value || value.length === 0) return placeholder;
+    if (value.length === 1) {
+      const selectedOption = options.find(option => option.value === value[0]);
+      return selectedOption?.label || placeholder;
+    }
+    return `${value.length} services selected`;
   };
 
-  const handleClear = (e: React.MouseEvent) => {
+  const handleSelect = (optionValue: string) => {
+    if (!multiple) {
+      onValueChange([optionValue]);
+      setIsExpanded(false);
+      return;
+    }
+
+    const newValue = value.includes(optionValue)
+      ? value.filter(v => v !== optionValue)
+      : [...value, optionValue];
+    
+    onValueChange(newValue);
+  };
+
+  const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onValueChange('');
+    onValueChange([]);
     setIsExpanded(false);
   };
 
@@ -51,16 +68,15 @@ export function BubbleFilterSelect({
           "h-auto min-h-10 px-4 py-2 rounded-full border-2 transition-all duration-200",
           "hover:border-primary/50 focus:border-primary",
           isExpanded && "border-primary shadow-lg",
-          value && "bg-primary/5 border-primary text-primary"
+          value && value.length > 0 && "bg-primary/5 border-primary text-primary"
         )}
       >
         <span className="flex items-center gap-2">
-          {selectedOption?.icon}
-          <span className="font-medium">{displayLabel}</span>
-          {value && (
+          <span className="font-medium">{getDisplayLabel()}</span>
+          {value && value.length > 0 && (
             <X 
               className="h-4 w-4 ml-1 hover:bg-destructive/10 rounded-full p-0.5" 
-              onClick={handleClear}
+              onClick={handleClearAll}
             />
           )}
           <ChevronDown 
@@ -82,43 +98,47 @@ export function BubbleFilterSelect({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {/* All services option */}
               <Badge
-                variant={!value ? "default" : "outline"}
+                variant={!value || value.length === 0 ? "default" : "outline"}
                 className={cn(
                   "cursor-pointer px-3 py-2 rounded-full transition-all duration-200",
                   "hover:scale-105 hover:shadow-md text-center justify-center",
                   "border-2 font-medium",
-                  !value 
+                  !value || value.length === 0
                     ? "bg-primary text-primary-foreground border-primary" 
                     : "hover:border-primary/50"
                 )}
-                onClick={() => handleSelect('')}
+                onClick={() => onValueChange([])}
               >
                 All Services
               </Badge>
               
               {/* Service options */}
-              {options.map((option, index) => (
-                <Badge
-                  key={option.value}
-                  variant={value === option.value ? "default" : "outline"}
-                  className={cn(
-                    "cursor-pointer px-3 py-2 rounded-full transition-all duration-200",
-                    "hover:scale-105 hover:shadow-md text-center justify-center",
-                    "border-2 font-medium",
-                    "animate-fade-in",
-                    value === option.value 
-                      ? "bg-primary text-primary-foreground border-primary" 
-                      : "hover:border-primary/50"
-                  )}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  onClick={() => handleSelect(option.value)}
-                >
-                  <span className="flex items-center gap-1">
-                    {option.icon}
-                    {option.label}
-                  </span>
-                </Badge>
-              ))}
+              {options.map((option, index) => {
+                const isSelected = value.includes(option.value);
+                return (
+                  <Badge
+                    key={option.value}
+                    variant={isSelected ? "default" : "outline"}
+                    className={cn(
+                      "cursor-pointer px-3 py-2 rounded-full transition-all duration-200",
+                      "hover:scale-105 hover:shadow-md text-center justify-center",
+                      "border-2 font-medium",
+                      "animate-fade-in",
+                      isSelected 
+                        ? "bg-primary text-primary-foreground border-primary" 
+                        : "hover:border-primary/50"
+                    )}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    onClick={() => handleSelect(option.value)}
+                  >
+                    <span className="flex items-center gap-1">
+                      {option.icon}
+                      {option.label}
+                      {isSelected && <span className="text-xs ml-1">✓</span>}
+                    </span>
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -52,7 +52,7 @@ export interface USPharmacy {
 
 export interface PharmacySearchFilters {
   location?: string;
-  service?: string;
+  service?: string | string[]; // Support both single and multiple services
   date?: Date;
   medmeOnly?: boolean;
   radiusKm?: number;
@@ -402,29 +402,37 @@ export const usePharmacySearch = () => {
 
       // Filter by service if specified
       if (filters.service) {
-        console.log(`🔍 Filtering by service: ${filters.service}`);
+        const services = Array.isArray(filters.service) ? filters.service : [filters.service];
+        console.log(`🔍 Filtering by services: ${services.join(', ')}`);
+        
         filteredPharmacies = filteredPharmacies.filter(pharmacy => {
           if (!pharmacy.services || pharmacy.services.length === 0) {
             // If no services data, include all pharmacies for now
             // This could be enhanced to exclude them or mark them differently
             return true;
           }
-          // Check if any of the pharmacy's services match the requested service
-          const hasService = pharmacy.services.some(service => 
-            service.toLowerCase().includes(filters.service!.toLowerCase()) ||
-            filters.service!.toLowerCase().includes(service.toLowerCase())
+          
+          // Check if any of the pharmacy's services match any of the requested services
+          return services.some(requestedService => 
+            pharmacy.services!.some(pharmacyService => 
+              pharmacyService.toLowerCase().includes(requestedService.toLowerCase()) ||
+              requestedService.toLowerCase().includes(pharmacyService.toLowerCase())
+            )
           );
-          return hasService;
         });
-        console.log(`📋 Found ${filteredPharmacies.length} pharmacies offering ${filters.service}`);
+        
+        console.log(`📋 Found ${filteredPharmacies.length} pharmacies offering services: ${services.join(', ')}`);
       }
 
       console.log(`📍 Final result: ${filteredPharmacies.length} pharmacies to display`);
       
       // Track search event
       const medmeCount = filteredPharmacies.filter(p => p.type === 'medme').length;
-      await AnalyticsService.trackSearch(filters.service || 'general', filters.location || 'unknown', filteredPharmacies.length);
-      await AnalyticsService.trackResultsShown(filters.service || 'general', filteredPharmacies.length, medmeCount);
+      const serviceForTracking = Array.isArray(filters.service) 
+        ? filters.service.join(',') 
+        : (filters.service || 'general');
+      await AnalyticsService.trackSearch(serviceForTracking, filters.location || 'unknown', filteredPharmacies.length);
+      await AnalyticsService.trackResultsShown(serviceForTracking, filteredPharmacies.length, medmeCount);
 
       // First, quickly load pharmacies with basic display data
       const basicEnhancedPharmacies = enhancePharmaciesWithBasicData(filteredPharmacies);

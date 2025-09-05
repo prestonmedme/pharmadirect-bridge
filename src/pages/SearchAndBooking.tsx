@@ -28,7 +28,8 @@ import {
   Star,
   Navigation,
   Loader2,
-  Search
+  Search,
+  X
 } from "lucide-react";
 import medmeLogo from '@/assets/medme-logo.svg';
 
@@ -45,12 +46,13 @@ const SearchAndBooking = () => {
     { value: "birth-control", label: "Birth Control" },
     { value: "travel-vaccines", label: "Travel Vaccines" },
     { value: "diabetes", label: "Diabetes" },
+    { value: "diabetes-care", label: "Diabetes Care" },
     { value: "mental-health", label: "Mental Health" },
     { value: "delivery", label: "Delivery" },
     { value: "pediatric-vax", label: "Pediatric Vax" },
     { value: "open-now", label: "Open Now" },
   ];
-  const [selectedService, setSelectedService] = useState<string>("");
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [location, setLocation] = useState<string>("");
   const [medmeOnly, setMedmeOnly] = useState<boolean>(false);
   const [selectedRadius, setSelectedRadius] = useState<number>(25);
@@ -231,7 +233,7 @@ const SearchAndBooking = () => {
     const addressParam = urlParams.get('address');
     
     if (serviceParam) {
-      setSelectedService(serviceParam);
+      setSelectedServices([serviceParam]);
     }
     
     if (addressParam) {
@@ -248,7 +250,7 @@ const SearchAndBooking = () => {
         radiusKm: selectedRadius 
       });
     }
-  }, [selectedService, medmeOnly, selectedRadius]);
+  }, [selectedServices, medmeOnly, selectedRadius]);
 
   // Handle search when location and filters change with debouncing
   // Only for manual input - not when using precise coordinates from autocomplete
@@ -269,10 +271,18 @@ const SearchAndBooking = () => {
       console.log('⏱️ Debounced search triggered for manual input');
       if (location.trim()) {
         console.log(`🔍 Manual search: Searching for "${location}"`);
-        searchPharmacies({ location, service: selectedService || undefined, medmeOnly, radiusKm: selectedRadius });
+        searchPharmacies({ 
+          location, 
+          service: selectedServices.length > 0 ? selectedServices : undefined, 
+          medmeOnly, 
+          radiusKm: selectedRadius 
+        });
       } else {
         // Show all pharmacies when no location is specified
-        searchPharmacies({ service: selectedService || undefined, medmeOnly });
+        searchPharmacies({ 
+          service: selectedServices.length > 0 ? selectedServices : undefined, 
+          medmeOnly 
+        });
       }
     }, 500); // 500ms debounce
 
@@ -599,8 +609,8 @@ const SearchAndBooking = () => {
                     Service Type
                   </label>
                   <BubbleFilterSelect
-                    value={selectedService}
-                    onValueChange={setSelectedService}
+                    value={selectedServices}
+                    onValueChange={setSelectedServices}
                     options={serviceOptions}
                     placeholder="All services"
                   />
@@ -656,6 +666,96 @@ const SearchAndBooking = () => {
               </div>
             </Card>
 
+            {/* Active Filters Display */}
+            {(selectedServices.length > 0 || medmeOnly || selectedRadius !== 25 || location.trim()) && (
+              <Card className="p-4 border border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">Active filters:</span>
+                  
+                  {/* Service filters */}
+                  {selectedServices.map(service => {
+                    const option = serviceOptions.find(opt => opt.value === service);
+                    return (
+                      <Badge
+                        key={service}
+                        variant="secondary"
+                        className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
+                      >
+                        {option?.label || service}
+                        <X 
+                          className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                          onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
+                        />
+                      </Badge>
+                    );
+                  })}
+                  
+                  {/* MedMe filter */}
+                  {medmeOnly && (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
+                    >
+                      MedMe only
+                      <X 
+                        className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                        onClick={() => setMedmeOnly(false)}
+                      />
+                    </Badge>
+                  )}
+                  
+                  {/* Radius filter (if not default) */}
+                  {selectedRadius !== 25 && (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
+                    >
+                      Within {selectedRadius}km
+                      <X 
+                        className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                        onClick={() => setSelectedRadius(25)}
+                      />
+                    </Badge>
+                  )}
+                  
+                  {/* Location filter */}
+                  {location.trim() && (
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
+                    >
+                      Near {location.length > 30 ? `${location.substring(0, 30)}...` : location}
+                      <X 
+                        className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                        onClick={() => {
+                          setLocation('');
+                          setIsUsingPreciseCoords(false);
+                          setUserLocationCoords(null);
+                        }}
+                      />
+                    </Badge>
+                  )}
+                  
+                  {/* Clear all button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-auto px-2 py-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setSelectedServices([]);
+                      setMedmeOnly(false);
+                      setSelectedRadius(25);
+                      setLocation('');
+                      setIsUsingPreciseCoords(false);
+                      setUserLocationCoords(null);
+                    }}
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              </Card>
+            )}
+
             {/* Pharmacy List */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -705,7 +805,7 @@ const SearchAndBooking = () => {
         open={bookingDialogOpen}
         onOpenChange={setBookingDialogOpen}
         pharmacy={selectedPharmacy}
-        preselectedService={selectedService}
+        preselectedService={selectedServices.length > 0 ? selectedServices[0] : undefined}
       />
 
       <PharmacyProfileDrawer
