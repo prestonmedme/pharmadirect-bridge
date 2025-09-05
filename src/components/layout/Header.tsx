@@ -14,7 +14,7 @@ const Header = () => {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-[#073e54]/60" style={{ backgroundColor: '#073e54' }}>
+    <header className="sticky top-0 z-50 w-full backdrop-blur supports-[backdrop-filter]:bg-[#073e54]/60" style={{ backgroundColor: '#073e54' }}>
       <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
