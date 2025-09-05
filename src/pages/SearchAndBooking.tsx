@@ -410,13 +410,23 @@ const SearchAndBooking = () => {
     try {
       console.log(`🌍 Geocoding typed address: "${location}"`);
       
-      // Prepare geocoding parameters
-      const geocodeParams = {
+      // Prepare geocoding parameters - don't use proximity unless we have valid coordinates
+      const geocodeParams: any = {
         query: location,
-        country: 'us',
-        center: userLocationCoords ? userLocationCoords : undefined,
-        radiusKm: userLocationCoords ? selectedRadius : undefined
+        country: 'us'
       };
+
+      // Only add proximity if we have valid user coordinates that make sense
+      // (i.e., not default/fallback coordinates from a different location)
+      if (userLocationCoords && 
+          userLocationCoords.lat >= 24 && userLocationCoords.lat <= 49 && // US latitude range
+          userLocationCoords.lng >= -125 && userLocationCoords.lng <= -66) { // US longitude range
+        geocodeParams.center = userLocationCoords;
+        geocodeParams.radiusKm = selectedRadius;
+        console.log('🎯 Using proximity bias:', userLocationCoords);
+      } else {
+        console.log('🌍 No proximity bias - searching globally');
+      }
 
       // Call Mapbox geocoding via Supabase edge function
       const { data, error } = await supabase.functions.invoke('mapbox-geocode', {
