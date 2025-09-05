@@ -14,7 +14,6 @@ import {
 
 // Available pharmacy services
 const PHARMACY_SERVICES = [
-  { id: "", label: "Select a service or symptom", color: "" },
   { id: "vaccination", label: "Vaccination", color: "bg-purple-100 text-purple-700" },
   { id: "prescription", label: "Prescription", color: "bg-blue-100 text-blue-700" },
   { id: "consultation", label: "Consultation", color: "bg-green-100 text-green-700" },
@@ -106,7 +105,7 @@ const HomeSearchForm = () => {
         {/* Service category pills */}
         <div className="text-center">
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            {PHARMACY_SERVICES.slice(1).map((service) => (
+            {PHARMACY_SERVICES.map((service) => (
               <button
                 key={service.id}
                 onClick={() => setSelectedService(service.id === selectedService ? "" : service.id)}
