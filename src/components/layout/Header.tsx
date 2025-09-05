@@ -30,7 +30,7 @@ const Header = () => {
             <button 
               onClick={() => navigate('/')}
               className={cn(
-                "text-foreground hover:text-primary transition-colors font-medium",
+                "text-[#073e54] hover:text-primary transition-colors font-medium",
                 location.pathname === '/' && "text-primary"
               )}
             >
@@ -39,18 +39,18 @@ const Header = () => {
             <button 
               onClick={() => navigate('/search')}
               className={cn(
-                "text-foreground hover:text-primary transition-colors font-medium flex items-center gap-1",
+                "text-[#073e54] hover:text-primary transition-colors font-medium flex items-center gap-1",
                 location.pathname === '/search' && "text-primary"
               )}
             >
               <MapPin className="h-4 w-4" />
               Search
             </button>
-            <button className="text-foreground hover:text-primary transition-colors font-medium flex items-center gap-1">
+            <button className="text-[#073e54] hover:text-primary transition-colors font-medium flex items-center gap-1">
               <User className="h-4 w-4" />
               Account
             </button>
-            <button className="text-foreground hover:text-primary transition-colors font-medium flex items-center gap-1">
+            <button className="text-[#073e54] hover:text-primary transition-colors font-medium flex items-center gap-1">
               <Globe className="h-4 w-4" />
               EN
             </button>
@@ -92,13 +92,14 @@ const Header = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => navigate('/login')}
+                  className="text-[#073e54] border-[#073e54] hover:bg-[#073e54] hover:text-white"
                 >
                   Sign In
                 </Button>
                 <Button 
-                  className="bg-gradient-primary"
                   size="sm"
                   onClick={() => navigate('/register')}
+                  className="bg-[#c3c430] hover:bg-[#a8a82a] text-black"
                 >
                   Register
                 </Button>
