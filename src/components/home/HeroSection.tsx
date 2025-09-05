@@ -2,18 +2,10 @@ import HomeMap from "./HomeMap";
 
 const HeroSection = () => {
   return (
-    <section className="relative py-8 bg-gradient-subtle">
-      {/* Trust indicator */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-lighter/20 rounded-full">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-sm text-muted-foreground">Trusted by over 12M Canadians</span>
-        </div>
-      </div>
-
+    <section className="relative py-4 bg-gradient-subtle">
       <div className="container max-w-4xl mx-auto px-4">
         {/* Main headline */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
             Find the best{" "}
             <span className="text-primary">pharmacy services</span>{" "}

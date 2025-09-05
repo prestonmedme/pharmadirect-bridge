@@ -51,7 +51,7 @@ const HomeSearchForm = () => {
   };
 
   return (
-    <section className="py-16 bg-background">
+    <section className="py-8 bg-background">
       <div className="container max-w-4xl mx-auto px-4">
         {/* Search inputs */}
         <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-8">
