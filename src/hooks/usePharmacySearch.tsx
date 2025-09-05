@@ -552,15 +552,17 @@ export const usePharmacySearch = () => {
         throw regularError;
       }
 
-      // Get MedMe pharmacies
+      // Get MedMe pharmacies (using only available columns)
       const { data: medmePharmacies, error: medmeError } = await supabase
-        .from('medme_pharmacies' as any)
-        .select('id, name, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
-        .order('name');
+        .from('medme_pharmacies')
+        .select('id, pharmacy_id, is_active')
+        .eq('is_active', true);
 
       if (medmeError) {
         console.warn('Error fetching MedMe pharmacies:', medmeError);
       }
+
+      console.log(`✅ Found ${medmePharmacies?.length || 0} active MedMe pharmacies (location data not available in current schema)`);
 
       // Get US pharmacies
       const { data: usPharmacies, error: usError } = await supabase
@@ -625,26 +627,23 @@ export const usePharmacySearch = () => {
 
       console.log(`✅ Found ${regularPharmacies?.length || 0} regular pharmacies`);
 
-      // Get MedMe pharmacies
+      // Get MedMe pharmacies (using only available columns)
       const { data: medmePharmacies, error: medmeError } = await supabase
-        .from('medme_pharmacies' as any)
-        .select('id, name, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
-        .order('name');
+        .from('medme_pharmacies')
+        .select('id, pharmacy_id, is_active')
+        .eq('is_active', true);
 
       if (medmeError) {
         console.warn('⚠️ Error fetching MedMe pharmacies:', medmeError);
       }
 
-      console.log(`✅ Found ${medmePharmacies?.length || 0} MedMe pharmacies`);
+      console.log(`✅ Found ${medmePharmacies?.length || 0} active MedMe pharmacies`);
 
-      // Filter MedMe pharmacies to only include those with valid coordinates
-      const validMedmePharmacies = (medmePharmacies || []).filter((mp: any) => {
-        const lat = mp["Pharmacy Address__latitude"];
-        const lng = mp["Pharmacy Address__longitude"];
-        return lat && lng && lat !== "0" && lng !== "0" && lat !== 0 && lng !== 0;
-      });
+      // For now, skip MedMe pharmacies since they don't have location data in the current schema
+      // TODO: Enhance MedMe pharmacies with location data from another source if needed
+      const validMedmePharmacies: any[] = [];
 
-      console.log(`✅ ${validMedmePharmacies.length} MedMe pharmacies with valid coordinates`);
+      console.log(`✅ ${validMedmePharmacies.length} MedMe pharmacies with valid coordinates (currently skipped due to missing location data)`);
 
       // Combine and convert all pharmacies
       let allPharmacies: Pharmacy[] = [
