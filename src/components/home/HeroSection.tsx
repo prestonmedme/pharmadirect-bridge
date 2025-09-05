@@ -2,7 +2,7 @@ import HomeMap from "./HomeMap";
 
 const HeroSection = () => {
   return (
-    <section className="relative py-4" style={{ backgroundColor: '#073e54' }}>
+    <section className="relative py-4 bg-gradient-subtle">
       <div className="container max-w-4xl mx-auto px-4">
         {/* Main headline */}
         <div className="text-center mb-6">
