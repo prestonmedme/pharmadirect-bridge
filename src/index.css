@@ -15,6 +15,7 @@ All colors MUST be HSL.
     /* Custom colors */
     --nav-button: 64 55% 48%;
     --hero-bg: 197 85% 18%;
+    --hero-text: 64 55% 48%;
 
     --card: 0 0% 100%;
     --card-foreground: 200 85% 18%;

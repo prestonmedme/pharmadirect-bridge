@@ -7,9 +7,9 @@ const HeroSection = () => {
         {/* Main headline */}
         <div className="text-center mb-6">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
-            Find the best{" "}
-            <span className="text-primary">pharmacy services</span>{" "}
-            near you
+            <span style={{ color: "hsl(var(--hero-text))" }}>Find the best</span>{" "}
+            <span className="text-white">pharmacy services</span>{" "}
+            <span style={{ color: "hsl(var(--hero-text))" }}>near you</span>
           </h1>
         </div>
 
