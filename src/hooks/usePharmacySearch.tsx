@@ -400,6 +400,25 @@ export const usePharmacySearch = () => {
         filteredPharmacies = filteredPharmacies.sort((a, b) => a.name.localeCompare(b.name));
       }
 
+      // Filter by service if specified
+      if (filters.service) {
+        console.log(`🔍 Filtering by service: ${filters.service}`);
+        filteredPharmacies = filteredPharmacies.filter(pharmacy => {
+          if (!pharmacy.services || pharmacy.services.length === 0) {
+            // If no services data, include all pharmacies for now
+            // This could be enhanced to exclude them or mark them differently
+            return true;
+          }
+          // Check if any of the pharmacy's services match the requested service
+          const hasService = pharmacy.services.some(service => 
+            service.toLowerCase().includes(filters.service!.toLowerCase()) ||
+            filters.service!.toLowerCase().includes(service.toLowerCase())
+          );
+          return hasService;
+        });
+        console.log(`📋 Found ${filteredPharmacies.length} pharmacies offering ${filters.service}`);
+      }
+
       console.log(`📍 Final result: ${filteredPharmacies.length} pharmacies to display`);
       
       // Track search event

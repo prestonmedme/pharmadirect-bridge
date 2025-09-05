@@ -243,11 +243,12 @@ const SearchAndBooking = () => {
       console.log('🔍 URL parameter search:', { address: decodedAddress, service: serviceParam });
       searchPharmacies({ 
         location: decodedAddress, 
+        service: serviceParam || undefined,
         medmeOnly, 
         radiusKm: selectedRadius 
       });
     }
-  }, []);
+  }, [selectedService, medmeOnly, selectedRadius]);
 
   // Handle search when location and filters change with debouncing
   // Only for manual input - not when using precise coordinates from autocomplete
@@ -268,10 +269,10 @@ const SearchAndBooking = () => {
       console.log('⏱️ Debounced search triggered for manual input');
       if (location.trim()) {
         console.log(`🔍 Manual search: Searching for "${location}"`);
-        searchPharmacies({ location, medmeOnly, radiusKm: selectedRadius });
+        searchPharmacies({ location, service: selectedService || undefined, medmeOnly, radiusKm: selectedRadius });
       } else {
         // Show all pharmacies when no location is specified
-        searchPharmacies({ medmeOnly });
+        searchPharmacies({ service: selectedService || undefined, medmeOnly });
       }
     }, 500); // 500ms debounce
 
