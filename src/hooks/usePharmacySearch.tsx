@@ -30,10 +30,10 @@ export interface Pharmacy {
 
 export interface MedMePharmacy {
   id: string;
-  name: string | null;
-  "Pharmacy Address__street_address": string | null;
-  "Pharmacy Address__latitude": string | null;
-  "Pharmacy Address__longitude": string | null;
+  pharmacy_id: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface USPharmacy {
@@ -66,20 +66,22 @@ export const usePharmacySearch = () => {
   const lastErrorRef = useRef<string | null>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Convert MedMe pharmacy to standard pharmacy format
+  // Convert MedMe pharmacy to standard format (updated for correct table structure)
   const convertMedMePharmacy = (medmePharmacy: MedMePharmacy): Pharmacy => {
+    // MedMe pharmacies now only have id, pharmacy_id, is_active
+    // We'll need to get actual pharmacy data from another source or mark as incomplete
     return {
       id: medmePharmacy.id,
-      name: medmePharmacy.name || 'MedMe Pharmacy',
-      address: medmePharmacy["Pharmacy Address__street_address"] || '',
-      city: 'California', // Default since we don't have city data
-      state: 'CA',
-      zip_code: '90210', // Default zip
+      name: `MedMe Partner Pharmacy ${medmePharmacy.pharmacy_id?.substring(0, 8) || 'Unknown'}`,
+      address: 'Address pending verification',
+      city: 'Unknown',
+      state: 'Unknown',
+      zip_code: 'Unknown',
       phone: null,
       website: null,
-      latitude: medmePharmacy["Pharmacy Address__latitude"] ? parseFloat(medmePharmacy["Pharmacy Address__latitude"]) : null,
-      longitude: medmePharmacy["Pharmacy Address__longitude"] ? parseFloat(medmePharmacy["Pharmacy Address__longitude"]) : null,
-      services: null,
+      latitude: null, // No coordinate data in current table structure
+      longitude: null,
+      services: ['MedMe Connected'],
       type: 'medme'
     };
   };
@@ -362,24 +364,47 @@ export const usePharmacySearch = () => {
         console.log('First regular pharmacy:', regularPharmacies[0]);
       }
 
-      // Get MedMe pharmacies using direct query - be more lenient with filtering
+      // Get MedMe pharmacies - fix column reference issue
       const { data: medmePharmacies, error: medmeError } = await supabase
-        .from('medme_pharmacies' as any)
-        .select('id, "Pharmacy Address__street_address", "Pharmacy Address__latitude", "Pharmacy Address__longitude"')
+        .from('medme_pharmacies')
+        .select('id, pharmacy_id, is_active')
+        .eq('is_active', true)
         .order('id');
 
       if (medmeError) {
         console.warn('Error fetching MedMe pharmacies:', medmeError);
+      } else {
+        console.log(`✅ Fetched ${medmePharmacies?.length || 0} active MedMe pharmacies`);
       }
 
-      console.log('Fetched MedMe pharmacies:', medmePharmacies?.length);
-      console.log('First few MedMe pharmacies:', medmePharmacies?.slice(0, 3));
-
-      // Get US pharmacies
-      const { data: usPharmacies, error: usError } = await supabase
+      // Get US pharmacies with database-level distance filtering for efficiency
+      let usPharmaciesQuery = supabase
         .from('us_pharmacy_data')
         .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
-        .order('name');
+        .not('lat', 'is', null)
+        .not('lng', 'is', null);
+
+      // If location filtering is requested, add database-level distance filtering
+      if (filters.location?.trim()) {
+        const coords = await geocodeLocation(filters.location.trim());
+        if (coords) {
+          const radiusKm = filters.radiusKm || 50;
+          console.log(`🎯 Using database-level distance filtering: center(${coords.lat}, ${coords.lng}) radius=${radiusKm}km`);
+          
+          // Use database-level distance calculation (more efficient than JavaScript)
+          // This calculates approximate distance using lat/lng differences
+          const latDiff = radiusKm / 111.0; // 1 degree latitude ≈ 111km
+          const lngDiff = radiusKm / (111.0 * Math.cos(coords.lat * Math.PI / 180)); // longitude varies by latitude
+          
+          usPharmaciesQuery = usPharmaciesQuery
+            .gte('lat', coords.lat - latDiff)
+            .lte('lat', coords.lat + latDiff)
+            .gte('lng', coords.lng - lngDiff)
+            .lte('lng', coords.lng + lngDiff);
+        }
+      }
+
+      const { data: usPharmacies, error: usError } = await usPharmaciesQuery.order('name');
 
       if (usError) {
         console.warn('Error fetching US pharmacies:', usError);
@@ -388,14 +413,9 @@ export const usePharmacySearch = () => {
       console.log('Fetched US pharmacies:', usPharmacies?.length);
       console.log('First few US pharmacies:', usPharmacies?.slice(0, 3));
 
-      // Filter MedMe pharmacies to only include those with valid coordinates
-      const validMedmePharmacies = (medmePharmacies || []).filter((mp: any) => {
-        const lat = mp["Pharmacy Address__latitude"];
-        const lng = mp["Pharmacy Address__longitude"];
-        return lat && lng && lat !== "0" && lng !== "0" && lat !== 0 && lng !== 0;
-      });
-
-      console.log('Valid MedMe pharmacies with coordinates:', validMedmePharmacies.length);
+      // Filter MedMe pharmacies (now only basic info available)
+      const validMedmePharmacies = (medmePharmacies || []).filter((mp: any) => mp.is_active);
+      console.log(`✅ Active MedMe pharmacies: ${validMedmePharmacies.length}`);
 
       // Combine and convert pharmacies
       let allPharmacies: Pharmacy[] = [
@@ -403,49 +423,53 @@ export const usePharmacySearch = () => {
         ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
       ];
 
-      // Add US pharmacies (now with coordinates from us_pharmacy_data table)
+      // Add US pharmacies (with database-level filtering already applied)
       const convertedUSPharmacies = (usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy));
+      console.log(`🇺🇸 US pharmacies after database filtering: ${convertedUSPharmacies.length}`);
       
       // Filter by MedMe only if requested
       if (filters.medmeOnly) {
         allPharmacies = allPharmacies.filter(p => p.type === 'medme');
+        console.log(`🔹 MedMe-only filter applied: ${allPharmacies.length} pharmacies`);
       } else {
-        // Only add US pharmacies if not filtering for MedMe only
+        // Add US pharmacies if not filtering for MedMe only
         allPharmacies.push(...convertedUSPharmacies);
+        console.log(`📍 Total pharmacies (including US): ${allPharmacies.length}`);
       }
 
       let filteredPharmacies = allPharmacies;
 
-      // If location is provided, filter by proximity
+      // If location is provided, apply additional precise distance filtering
       if (filters.location && filters.location.trim()) {
         const coords = await geocodeLocation(filters.location.trim());
         
         if (coords) {
           const radiusKm = filters.radiusKm || 50; // Default to 50km if no radius specified
-          console.log(`🎯 Search CENTER coordinates: ${coords.lat}, ${coords.lng} (${filters.location.trim()})`);
-          console.log(`📏 Search RADIUS: ${radiusKm}km`);
-          console.log(`📊 Total pharmacies before distance filter: ${filteredPharmacies.length}`);
+          console.log(`🎯 Final precision filtering: center(${coords.lat}, ${coords.lng}) radius=${radiusKm}km`);
+          console.log(`📊 Pharmacies after database filter: ${filteredPharmacies.length}`);
           
           // Run database verification for debugging
           await verifyDatabaseDistances(coords.lat, coords.lng, radiusKm, filters.location.trim());
           
-          // Separate pharmacies with coordinates (for distance filtering) from those without
-          const pharmaciesWithCoords = filteredPharmacies.filter(p => p.latitude !== null && p.longitude !== null);
-          const pharmaciesWithoutCoords = filteredPharmacies.filter(p => p.latitude === null || p.longitude === null);
+          // Separate pharmacies by type for different filtering approaches
+          const regularAndMedmePharmacies = filteredPharmacies.filter(p => p.type !== 'us');
+          const usPharmacies = filteredPharmacies.filter(p => p.type === 'us');
           
-          console.log(`📍 Pharmacies WITH coordinates: ${pharmaciesWithCoords.length}`);
-          console.log(`❓ Pharmacies WITHOUT coordinates: ${pharmaciesWithoutCoords.length}`);
+          console.log(`🏥 Regular/MedMe pharmacies: ${regularAndMedmePharmacies.length}`);
+          console.log(`🇺🇸 US pharmacies (pre-filtered): ${usPharmacies.length}`);
           
-          // Sample some pharmacies to debug coordinates
-          const samplePharmacies = pharmaciesWithCoords.slice(0, 5);
-          console.log(`🔍 Sample pharmacy coordinates:`, samplePharmacies.map(p => ({
-            name: p.name,
-            lat: p.latitude,
-            lng: p.longitude,
-            address: p.address
-          })));
+          // For regular/MedMe pharmacies, apply JavaScript distance filtering
+          const regularPharmaciesWithCoords = regularAndMedmePharmacies.filter(p => p.latitude !== null && p.longitude !== null);
+          const regularPharmaciesFiltered = regularPharmaciesWithCoords
+            .map(pharmacy => {
+              const distance = calculateDistance(coords.lat, coords.lng, pharmacy.latitude!, pharmacy.longitude!);
+              return { ...pharmacy, distance };
+            })
+            .filter(pharmacy => pharmacy.distance <= radiusKm)
+            .sort((a, b) => a.distance - b.distance);
           
-          const nearbyPharmaciesWithDistance = pharmaciesWithCoords
+          // For US pharmacies, apply precise distance filter (they're already roughly filtered by database)
+          const usPharmaciesFiltered = usPharmacies
             .map(pharmacy => {
               const distance = calculateDistance(coords.lat, coords.lng, pharmacy.latitude!, pharmacy.longitude!);
               return { ...pharmacy, distance };
@@ -453,53 +477,49 @@ export const usePharmacySearch = () => {
             .filter(pharmacy => {
               const isWithinRadius = pharmacy.distance <= radiusKm;
               
-              // Log detailed distance information
-              if (pharmacy.distance <= radiusKm + 20) { // Log pharmacies within +20km for debugging
+              // Log some results for debugging
+              if (pharmacy.distance <= radiusKm + 10) { // Log pharmacies within +10km for debugging
                 const status = isWithinRadius ? '✅ INCLUDED' : '🚫 EXCLUDED';
-                console.log(`${status} ${pharmacy.name}: ${pharmacy.distance.toFixed(2)}km (${pharmacy.latitude}, ${pharmacy.longitude})`);
+                console.log(`${status} ${pharmacy.name}: ${pharmacy.distance.toFixed(2)}km`);
               }
               
               return isWithinRadius;
             })
             .sort((a, b) => a.distance - b.distance);
 
-          console.log(`📍 Pharmacies within ${radiusKm}km: ${nearbyPharmaciesWithDistance.length}`);
+          console.log(`📍 Regular pharmacies within ${radiusKm}km: ${regularPharmaciesFiltered.length}`);
+          console.log(`📍 US pharmacies within ${radiusKm}km: ${usPharmaciesFiltered.length}`);
           
-          // Log closest pharmacies for debugging
-          if (nearbyPharmaciesWithDistance.length > 0) {
-            console.log(`🏆 CLOSEST pharmacies:`, nearbyPharmaciesWithDistance.slice(0, 3).map(p => ({
+          // Combine results: nearby pharmacies sorted by distance
+          const allNearbyPharmacies = [...regularPharmaciesFiltered, ...usPharmaciesFiltered]
+            .sort((a, b) => a.distance - b.distance);
+          
+          if (allNearbyPharmacies.length > 0) {
+            console.log(`🏆 CLOSEST pharmacies:`, allNearbyPharmacies.slice(0, 3).map(p => ({
               name: p.name,
               distance: `${p.distance.toFixed(2)}km`,
+              type: p.type,
               coordinates: `${p.latitude}, ${p.longitude}`
             })));
           } else {
             console.warn(`❌ NO PHARMACIES found within ${radiusKm}km of ${coords.lat}, ${coords.lng}`);
             
             // Find closest pharmacies regardless of radius for debugging
-            const allDistances = pharmaciesWithCoords
+            const allWithDistances = filteredPharmacies
+              .filter(p => p.latitude !== null && p.longitude !== null)
               .map(p => ({
                 name: p.name,
                 distance: calculateDistance(coords.lat, coords.lng, p.latitude!, p.longitude!),
+                type: p.type,
                 coordinates: `${p.latitude}, ${p.longitude}`
               }))
               .sort((a, b) => a.distance - b.distance)
               .slice(0, 5);
             
-            console.log(`🔍 5 CLOSEST pharmacies (regardless of radius):`, allDistances);
+            console.log(`🔍 5 CLOSEST pharmacies (regardless of radius):`, allWithDistances);
           }
 
-          // For any remaining pharmacies without coordinates, fall back to text matching
-          const textMatchedPharmacies = pharmaciesWithoutCoords.filter(pharmacy => 
-            pharmacy.name.toLowerCase().includes(filters.location!.toLowerCase()) ||
-            pharmacy.address.toLowerCase().includes(filters.location!.toLowerCase()) ||
-            pharmacy.city.toLowerCase().includes(filters.location!.toLowerCase()) ||
-            pharmacy.state.toLowerCase().includes(filters.location!.toLowerCase())
-          );
-
-          console.log(`📝 Text-matched pharmacies (no coordinates): ${textMatchedPharmacies.length}`);
-
-          // Combine results: nearby pharmacies first (sorted by distance), then text matches
-          filteredPharmacies = [...nearbyPharmaciesWithDistance, ...textMatchedPharmacies];
+          filteredPharmacies = allNearbyPharmacies;
         } else {
           console.warn(`❌ GEOCODING FAILED for "${filters.location.trim()}" - falling back to text search`);
           // Fallback to text search if geocoding fails
