@@ -1,12 +1,20 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MapboxAddressAutocomplete from "@/components/maps/MapboxAddressAutocomplete";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Available pharmacy services
 const PHARMACY_SERVICES = [
+  { id: "", label: "Select a service or symptom", color: "" },
   { id: "vaccination", label: "Vaccination", color: "bg-purple-100 text-purple-700" },
   { id: "prescription", label: "Prescription", color: "bg-blue-100 text-blue-700" },
   { id: "consultation", label: "Consultation", color: "bg-green-100 text-green-700" },
@@ -20,7 +28,6 @@ const PHARMACY_SERVICES = [
 
 const HomeSearchForm = () => {
   const [selectedService, setSelectedService] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [address, setAddress] = useState("");
   const navigate = useNavigate();
 
@@ -33,10 +40,6 @@ const HomeSearchForm = () => {
     
     if (selectedService) {
       searchParams.set("service", selectedService);
-    }
-    
-    if (searchQuery) {
-      searchParams.set("q", searchQuery);
     }
 
     navigate(`/search?${searchParams.toString()}`);
@@ -57,14 +60,19 @@ const HomeSearchForm = () => {
             {/* Service/Symptom Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search by symptom, specialty or clinic name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="pl-10 h-12 text-base border-border/50"
-                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                <Select value={selectedService} onValueChange={setSelectedService}>
+                  <SelectTrigger className="pl-10 h-12 text-base border-border/50">
+                    <SelectValue placeholder="Search by symptom, specialty or clinic name" />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-white border border-border shadow-lg">
+                    {PHARMACY_SERVICES.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -98,7 +106,7 @@ const HomeSearchForm = () => {
         {/* Service category pills */}
         <div className="text-center">
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            {PHARMACY_SERVICES.map((service) => (
+            {PHARMACY_SERVICES.slice(1).map((service) => (
               <button
                 key={service.id}
                 onClick={() => setSelectedService(service.id === selectedService ? "" : service.id)}
