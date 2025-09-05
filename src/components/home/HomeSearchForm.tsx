@@ -14,15 +14,15 @@ import {
 
 // Available pharmacy services
 const PHARMACY_SERVICES = [
-  { id: "vaccination", label: "Vaccination", color: "bg-purple-100 text-purple-700" },
-  { id: "prescription", label: "Prescription", color: "bg-blue-100 text-blue-700" },
-  { id: "consultation", label: "Consultation", color: "bg-green-100 text-green-700" },
-  { id: "health-screening", label: "Health Screening", color: "bg-orange-100 text-orange-700" },
-  { id: "medication-review", label: "Medication Review", color: "bg-red-100 text-red-700" },
-  { id: "diabetes-care", label: "Diabetes Care", color: "bg-indigo-100 text-indigo-700" },
-  { id: "blood-pressure", label: "Blood Pressure", color: "bg-pink-100 text-pink-700" },
-  { id: "travel-health", label: "Travel Health", color: "bg-teal-100 text-teal-700" },
-  { id: "other", label: "Other", color: "bg-gray-100 text-gray-700" }
+  { id: "vaccination", label: "Vaccination", color: "bg-primary-lighter text-primary" },
+  { id: "prescription", label: "Prescription", color: "bg-primary-lighter text-primary" },
+  { id: "consultation", label: "Consultation", color: "bg-primary-lighter text-primary" },
+  { id: "health-screening", label: "Health Screening", color: "bg-primary-lighter text-primary" },
+  { id: "medication-review", label: "Medication Review", color: "bg-primary-lighter text-primary" },
+  { id: "diabetes-care", label: "Diabetes Care", color: "bg-primary-lighter text-primary" },
+  { id: "blood-pressure", label: "Blood Pressure", color: "bg-primary-lighter text-primary" },
+  { id: "travel-health", label: "Travel Health", color: "bg-primary-lighter text-primary" },
+  { id: "other", label: "Other", color: "bg-muted text-muted-foreground" }
 ];
 
 const HomeSearchForm = () => {

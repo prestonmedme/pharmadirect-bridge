@@ -7,7 +7,7 @@ const services = [{
   title: "Minor ailments",
   description: "Get treatment for common health conditions like cold, flu, and minor infections.",
   icon: Stethoscope,
-  color: "bg-blue-50 text-blue-600"
+  color: "bg-primary-lighter text-primary"
 }, {
   id: "flu-shots",
   title: "Flu shots",
@@ -61,7 +61,7 @@ const services = [{
   title: "Pediatric Vax",
   description: "Childhood immunizations and vaccinations for infants and children.",
   icon: Baby,
-  color: "bg-teal-50 text-teal-600"
+  color: "bg-primary-lighter text-primary"
 }, {
   id: "open-now",
   title: "Open Now",
