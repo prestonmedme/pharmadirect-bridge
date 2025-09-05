@@ -239,14 +239,14 @@ const SearchAndBooking = () => {
     
     if (addressParam) {
       const decodedAddress = decodeURIComponent(addressParam);
-      setLocation(decodedAddress);
-      
-      // Don't set precise coords yet - we need to geocode first
       console.log('🔍 URL parameter search with address:', { address: decodedAddress, service: serviceParam });
       
-      // Geocode the address from URL params and then search
+      // Set the location first
+      setLocation(decodedAddress);
+      
+      // Then immediately geocode the address from URL params
       setTimeout(() => {
-        handleGeocodeTypedAddress();
+        handleGeocodeTypedAddress(decodedAddress);
       }, 100); // Small delay to ensure state is set
     }
   }, []); // Remove dependencies to prevent infinite loop
@@ -397,8 +397,10 @@ const SearchAndBooking = () => {
   };
 
   // Handle geocoding typed address using Mapbox Geocoding API
-  const handleGeocodeTypedAddress = async () => {
-    if (!location.trim()) {
+  const handleGeocodeTypedAddress = async (addressOverride?: string) => {
+    const searchAddress = addressOverride || location;
+    
+    if (!searchAddress.trim()) {
       toast({
         variant: "destructive",
         title: "No address entered",
@@ -408,11 +410,11 @@ const SearchAndBooking = () => {
     }
 
     try {
-      console.log(`🌍 Geocoding typed address: "${location}"`);
+      console.log(`🌍 Geocoding address: "${searchAddress}"`);
       
       // Prepare geocoding parameters - don't use proximity unless we have valid coordinates
       const geocodeParams: any = {
-        query: location,
+        query: searchAddress,
         country: 'us'
       };
 
@@ -630,7 +632,7 @@ const SearchAndBooking = () => {
                       variant="medical" 
                       size="sm" 
                       className="flex-1"
-                      onClick={handleGeocodeTypedAddress}
+                      onClick={() => handleGeocodeTypedAddress()}
                       disabled={!location.trim()}
                     >
                       <Search className="h-4 w-4 mr-2" />
