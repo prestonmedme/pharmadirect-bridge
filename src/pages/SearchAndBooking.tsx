@@ -224,12 +224,28 @@ const SearchAndBooking = () => {
     });
   };
 
-  // Handle URL parameters for service filter
+  // Handle URL parameters for service filter and address
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const serviceParam = urlParams.get('service');
+    const addressParam = urlParams.get('address');
+    
     if (serviceParam) {
       setSelectedService(serviceParam);
+    }
+    
+    if (addressParam) {
+      const decodedAddress = decodeURIComponent(addressParam);
+      setLocation(decodedAddress);
+      setIsUsingPreciseCoords(true);
+      
+      // Trigger search with the provided address and service
+      console.log('🔍 URL parameter search:', { address: decodedAddress, service: serviceParam });
+      searchPharmacies({ 
+        location: decodedAddress, 
+        medmeOnly, 
+        radiusKm: selectedRadius 
+      });
     }
   }, []);
 
