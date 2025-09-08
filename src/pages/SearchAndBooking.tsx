@@ -540,7 +540,7 @@ const SearchAndBooking = () => {
           <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {/* Main Search Form - Styled like Home Page */}
             <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-6">
-              <h2 className="text-xl font-semibold text-primary mb-4">
+              <h2 className="text-xl font-semibold text-[#063f55] mb-4">
                 Choose a location near you
               </h2>
               
