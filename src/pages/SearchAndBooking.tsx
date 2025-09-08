@@ -527,7 +527,7 @@ const SearchAndBooking = () => {
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-white">Pharmacy Services</h1>
+              <h1 className="text-xl font-semibold text-[#c3c430]">Pharmacy Services</h1>
               <p className="text-sm text-gray-200">Find appointments and services</p>
             </div>
           </div>
