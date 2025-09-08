@@ -595,87 +595,71 @@ const SearchAndBooking = () => {
         {/* Left Column - Filters and Results - Scrollable */}
         <div className="w-1/2 overflow-y-auto">
           <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-            {/* Location and Date */}
-            <Card className="p-6">
+            {/* Main Search Form - Styled like Home Page */}
+            <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-6">
               <h2 className="text-xl font-semibold text-primary mb-4">
                 Choose a location near you
               </h2>
               
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    Location
-                  </label>
+              {/* Primary Search Row */}
+              <div className="flex flex-col lg:flex-row gap-4 mb-4">
+                {/* Service Type */}
+                <div className="flex-1">
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                    <BubbleFilterSelect
+                      value={selectedServices}
+                      onValueChange={setSelectedServices}
+                      options={serviceOptions}
+                      placeholder="Search by symptom or service"
+                      className="pl-10 h-12 text-base border-border/50"
+                    />
+                  </div>
+                </div>
+
+                {/* Address Input */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
                     <AddressAutocomplete
                       value={location}
                       onChange={handleLocationInputChange}
                       onPlaceSelect={handlePlaceSelect}
-                      placeholder="Address, city, or ZIP code"
-                      className="pl-10"
+                      placeholder="Enter your address"
+                      className="pl-10 h-12 text-base border-border/50"
                       center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
                       radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
                     />
                   </div>
-                  <div className="mt-2 flex gap-2">
-                    <Button 
-                      variant="medical-outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={handleUseCurrentLocation}
-                    >
-                      <Navigation className="h-4 w-4 mr-2" />
-                      Use current location
-                    </Button>
-                    <Button 
-                      variant="medical" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleGeocodeTypedAddress()}
-                      disabled={!location.trim()}
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      Search address
-                    </Button>
-                  </div>
                 </div>
 
-                {/* Date selection removed */}
+                {/* Search Button */}
+                <Button 
+                  onClick={() => handleGeocodeTypedAddress()}
+                  disabled={!location.trim()}
+                  size="lg" 
+                  className="h-12 px-8 font-semibold"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
+              </div>
 
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    Service Type
-                  </label>
-                  <BubbleFilterSelect
-                    value={selectedServices}
-                    onValueChange={setSelectedServices}
-                    options={serviceOptions}
-                    placeholder="All services"
-                  />
-                  {/* Show selected services as inline badges below the selector */}
-                  {selectedServices.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selectedServices.map(service => {
-                        const option = serviceOptions.find(opt => opt.value === service);
-                        return (
-                          <Badge
-                            key={service}
-                            variant="secondary"
-                            className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary border-primary/20 text-xs"
-                          >
-                            {option?.label || service}
-                            <X 
-                              className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
-                              onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
-                            />
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+              {/* Action Buttons Row */}
+              <div className="flex gap-2 mb-4">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={handleUseCurrentLocation}
+                >
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Use current location
+                </Button>
+              </div>
 
+              {/* Advanced Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* MedMe Filter */}
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -693,7 +677,7 @@ const SearchAndBooking = () => {
 
                 {/* Radius Filter */}
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
+                  <label className="text-sm font-medium text-foreground mb-1 block">
                     Search Radius
                   </label>
                   <Select 
@@ -702,7 +686,6 @@ const SearchAndBooking = () => {
                       const radius = parseInt(value);
                       setSelectedRadius(radius);
                       
-                      // Show feedback to user - the useEffect will handle the actual search
                       if (userLocationCoords) {
                         toast({
                           title: "Radius updated",
@@ -711,7 +694,7 @@ const SearchAndBooking = () => {
                       }
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select radius" />
                     </SelectTrigger>
                     <SelectContent>
@@ -724,7 +707,31 @@ const SearchAndBooking = () => {
                   </Select>
                 </div>
               </div>
-            </Card>
+
+              {/* Selected Services Display */}
+              {selectedServices.length > 0 && (
+                <div className="mt-4">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedServices.map(service => {
+                      const option = serviceOptions.find(opt => opt.value === service);
+                      return (
+                        <Badge
+                          key={service}
+                          variant="secondary"
+                          className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
+                        >
+                          {option?.label || service}
+                          <X 
+                            className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                            onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
+                          />
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Pharmacy List */}
             <div className="space-y-4">
