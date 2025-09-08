@@ -621,8 +621,7 @@ export const usePharmacySearch = () => {
         .not('longitude', 'is', null);
 
       if (regularError) {
-        console.error('❌ Error fetching regular pharmacies:', regularError);
-        throw regularError;
+        console.warn('⚠️ Could not fetch regular pharmacies (table may be empty):', regularError);
       }
 
       console.log(`✅ Found ${regularPharmacies?.length || 0} regular pharmacies`);
@@ -639,6 +638,26 @@ export const usePharmacySearch = () => {
 
       console.log(`✅ Found ${medmePharmacies?.length || 0} active MedMe pharmacies`);
 
+      // Get US pharmacies with database-level distance filtering for efficiency
+      const latDiff = radiusKm / 111.0; // 1 degree latitude ≈ 111km
+      const lngDiff = radiusKm / (111.0 * Math.cos(latitude * Math.PI / 180)); // longitude varies by latitude
+      
+      const { data: usPharmacies, error: usError } = await supabase
+        .from('us_pharmacy_data')
+        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
+        .not('lat', 'is', null)
+        .not('lng', 'is', null)
+        .gte('lat', latitude - latDiff)
+        .lte('lat', latitude + latDiff)
+        .gte('lng', longitude - lngDiff)
+        .lte('lng', longitude + lngDiff);
+
+      if (usError) {
+        console.warn('⚠️ Error fetching US pharmacies:', usError);
+      }
+
+      console.log(`✅ Found ${usPharmacies?.length || 0} US pharmacies in database search area`);
+
       // For now, skip MedMe pharmacies since they don't have location data in the current schema
       // TODO: Enhance MedMe pharmacies with location data from another source if needed
       const validMedmePharmacies: any[] = [];
@@ -648,6 +667,7 @@ export const usePharmacySearch = () => {
       // Combine and convert all pharmacies
       let allPharmacies: Pharmacy[] = [
         ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
+        ...(usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy)),
         ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
       ];
 
