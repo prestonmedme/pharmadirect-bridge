@@ -577,15 +577,15 @@ const SearchAndBooking = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b shadow-sm flex-shrink-0">
+      <div className="border-b shadow-sm flex-shrink-0" style={{ backgroundColor: '#063f55' }}>
         <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-primary">Pharmacy Services</h1>
-              <p className="text-sm text-muted-foreground">Find appointments and services</p>
+              <h1 className="text-xl font-semibold text-white">Pharmacy Services</h1>
+              <p className="text-sm text-gray-200">Find appointments and services</p>
             </div>
           </div>
         </div>
@@ -593,7 +593,7 @@ const SearchAndBooking = () => {
 
       <div className="flex-1 flex">
         {/* Left Column - Filters and Results - Scrollable */}
-        <div className="w-1/2 overflow-y-auto">
+        <div className="w-1/2 overflow-y-auto" style={{ backgroundColor: '#063f55' }}>
           <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {/* Main Search Form - Styled like Home Page */}
             <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-6">
