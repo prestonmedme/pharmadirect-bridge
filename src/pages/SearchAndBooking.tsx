@@ -581,7 +581,7 @@ const SearchAndBooking = () => {
                   onClick={() => handleGeocodeTypedAddress()}
                   disabled={!location.trim()}
                   size="lg" 
-                  className="h-12 px-8 font-semibold border-2 border-[#c3c430] bg-[#c3c430] text-white hover:bg-transparent hover:text-[#c3c430] transition-all duration-200 w-full"
+                  className="h-12 px-8 font-semibold border-2 border-[#063f55] bg-[#063f55] text-white hover:bg-transparent hover:text-[#063f55] transition-all duration-200 w-full"
                 >
                   <Search className="h-4 w-4 mr-2" />
                   Search
