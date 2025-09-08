@@ -66,9 +66,9 @@ export function BubbleFilterSelect({
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
           "h-auto min-h-10 px-4 py-2 rounded-full border-2 transition-all duration-200",
-          "hover:border-primary/50 focus:border-primary",
-          isExpanded && "border-primary shadow-lg",
-          value && value.length > 0 && "bg-primary/5 border-primary text-primary"
+          "hover:border-[#063f55]/50 focus:border-[#063f55]",
+          isExpanded && "border-[#063f55] shadow-lg",
+          value && value.length > 0 && "bg-[#063f55]/5 border-[#063f55] text-[#063f55]"
         )}
       >
         <span className="flex items-center gap-2">
@@ -104,8 +104,8 @@ export function BubbleFilterSelect({
                   "hover:scale-105 hover:shadow-md text-center justify-center",
                   "border-2 font-medium",
                   !value || value.length === 0
-                    ? "bg-primary text-primary-foreground border-primary" 
-                    : "hover:border-primary/50"
+                    ? "bg-[#063f55] text-white border-[#063f55]" 
+                    : "hover:border-[#063f55]/50"
                 )}
                 onClick={() => onValueChange([])}
               >
@@ -125,8 +125,8 @@ export function BubbleFilterSelect({
                       "border-2 font-medium",
                       "animate-fade-in",
                       isSelected 
-                        ? "bg-primary text-primary-foreground border-primary" 
-                        : "hover:border-primary/50"
+                        ? "bg-[#063f55] text-white border-[#063f55]" 
+                        : "hover:border-[#063f55]/50"
                     )}
                     style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => handleSelect(option.value)}
