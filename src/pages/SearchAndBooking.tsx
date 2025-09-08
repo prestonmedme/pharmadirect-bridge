@@ -593,7 +593,7 @@ const SearchAndBooking = () => {
 
       <div className="flex-1 flex">
         {/* Left Column - Filters and Results - Scrollable */}
-        <div className="w-1/2 overflow-y-auto" style={{ backgroundColor: '#063f55' }}>
+        <div className="w-1/2 overflow-y-auto bg-white">
           <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {/* Main Search Form - Styled like Home Page */}
             <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-6">
@@ -638,7 +638,7 @@ const SearchAndBooking = () => {
                   onClick={() => handleGeocodeTypedAddress()}
                   disabled={!location.trim()}
                   size="lg" 
-                  className="h-12 px-8 font-semibold"
+                  className="h-12 px-8 font-semibold border-2 border-[#c3c430] hover:border-[#c3c430]/80"
                 >
                   <Search className="h-4 w-4 mr-2" />
                   Search
@@ -650,7 +650,7 @@ const SearchAndBooking = () => {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex-1"
+                  className="flex-1 border-2 border-[#c3c430] text-[#c3c430] hover:bg-[#c3c430] hover:text-white"
                   onClick={handleUseCurrentLocation}
                 >
                   <Navigation className="h-4 w-4 mr-2" />
