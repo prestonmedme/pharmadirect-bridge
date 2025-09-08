@@ -482,68 +482,160 @@ const SearchAndBooking = () => {
       const isSearchingForCity = isCitySearch(searchAddress);
       console.log(`🏙️ Detected ${isSearchingForCity ? 'CITY' : 'ADDRESS'} search for: "${searchAddress}"`);
 
-      // Enhanced sorting with city search logic
-      const sortedResults = filteredResults.sort((a: any, b: any) => {
-        const aType = a.place_type || 'address';
-        const bType = b.place_type || 'address';
-        const aRelevance = a.relevance || 0;
-        const bRelevance = b.relevance || 0;
-        
-        // For city searches, prioritize localities and places over addresses
-        const getSpecificityScore = (type: string, isCity: boolean) => {
-          if (isCity) {
-            // For city searches, prioritize cities and places
-            if (type === 'place') return 100;      // Cities, towns
-            if (type === 'locality') return 95;    // Local areas within cities
-            if (type === 'poi') return 90;         // Points of interest
-            if (type === 'district') return 85;    // Districts/neighborhoods
-            if (type === 'address') return 30;     // Street addresses (lower priority)
-            if (type === 'region') return 20;      // States/regions
-            return 0;
-          } else {
-            // For address searches, prioritize specific addresses
-            if (type === 'address') return 100;
-            if (type === 'poi') return 90;
-            if (type === 'place') return 80;
-            if (type === 'locality') return 70;
-            if (type === 'district') return 60;
-            if (type === 'region') return 20;
-            return 0;
-          }
-        };
-        
-        const aScore = getSpecificityScore(aType, isSearchingForCity);
-        const bScore = getSpecificityScore(bType, isSearchingForCity);
-        
-        // Primary sort by specificity score
-        if (bScore !== aScore) {
-          return bScore - aScore;
-        }
-        
-        // Secondary sort by relevance score from Mapbox
-        return bRelevance - aRelevance;
-      });
+  // Calculate confidence scores for results
+  const calculateConfidence = (result: any, query: string, isCity: boolean): number => {
+    const type = result.place_type || 'address';
+    const relevance = result.relevance || 0;
+    const address = result.formatted_address.toLowerCase();
+    const queryLower = query.toLowerCase();
+    
+    let confidence = relevance * 100; // Base confidence from Mapbox relevance
+    
+    // Boost confidence for exact query matches in address
+    if (address.includes(queryLower)) {
+      confidence += 20;
+    }
+    
+    // Type-specific confidence adjustments
+    if (isCity) {
+      // For city searches, boost place/locality types
+      if (type === 'place') confidence += 30;
+      if (type === 'locality') confidence += 25;
+      if (type === 'address') confidence -= 20; // Penalize street addresses for city searches
+    } else {
+      // For address searches, boost address types
+      if (type === 'address') confidence += 30;
+      if (type === 'poi') confidence += 20;
+    }
+    
+    return Math.min(100, Math.max(0, confidence));
+  };
 
-      // Additional validation for city searches
-      if (isSearchingForCity && sortedResults.length > 0) {
-        const bestResult = sortedResults[0];
-        const resultType = bestResult.place_type || 'address';
-        
-        // If we're searching for a city but got a street address, try to find a better match
-        if (resultType === 'address') {
-          const cityResults = sortedResults.filter(r => ['place', 'locality'].includes(r.place_type));
-          if (cityResults.length > 0) {
-            console.log(`🔄 City search detected address result, switching to city result`);
-            // Move the best city result to the front
-            const bestCityResult = cityResults[0];
-            const index = sortedResults.indexOf(bestCityResult);
-            if (index > 0) {
-              sortedResults.splice(index, 1);
-              sortedResults.unshift(bestCityResult);
-            }
-          }
+  // Detect ambiguous results
+  const detectAmbiguity = (results: any[], query: string, isCity: boolean): boolean => {
+    if (results.length < 2) return false;
+    
+    const confidences = results.map(r => calculateConfidence(r, query, isCity));
+    const topConfidence = confidences[0];
+    const secondConfidence = confidences[1];
+    
+    // Consider ambiguous if:
+    // 1. Top result has low confidence (<70)
+    // 2. Multiple results have similar high confidence (difference < 15)
+    // 3. Mixed result types for the same query
+    const isAmbiguous = 
+      topConfidence < 70 || 
+      (topConfidence - secondConfidence < 15 && topConfidence > 60) ||
+      (results[0].place_type !== results[1].place_type && confidences[1] > 50);
+    
+    return isAmbiguous;
+  };
+
+  // Enhanced sorting with confidence scoring
+  const resultsWithConfidence = filteredResults.map(result => ({
+    ...result,
+    confidence: calculateConfidence(result, searchAddress, isSearchingForCity)
+  }));
+
+  const sortedResults = resultsWithConfidence.sort((a: any, b: any) => {
+    const aType = a.place_type || 'address';
+    const bType = b.place_type || 'address';
+    
+    // For city searches, prioritize localities and places over addresses
+    const getSpecificityScore = (type: string, isCity: boolean) => {
+      if (isCity) {
+        // For city searches, prioritize cities and places
+        if (type === 'place') return 100;      // Cities, towns
+        if (type === 'locality') return 95;    // Local areas within cities
+        if (type === 'poi') return 90;         // Points of interest
+        if (type === 'district') return 85;    // Districts/neighborhoods
+        if (type === 'address') return 30;     // Street addresses (lower priority)
+        if (type === 'region') return 20;      // States/regions
+        return 0;
+      } else {
+        // For address searches, prioritize specific addresses
+        if (type === 'address') return 100;
+        if (type === 'poi') return 90;
+        if (type === 'place') return 80;
+        if (type === 'locality') return 70;
+        if (type === 'district') return 60;
+        if (type === 'region') return 20;
+        return 0;
+      }
+    };
+    
+    const aScore = getSpecificityScore(aType, isSearchingForCity);
+    const bScore = getSpecificityScore(bType, isSearchingForCity);
+    
+    // Primary sort by specificity score
+    if (bScore !== aScore) {
+      return bScore - aScore;
+    }
+    
+    // Secondary sort by confidence score
+    if (b.confidence !== a.confidence) {
+      return b.confidence - a.confidence;
+    }
+    
+    // Tertiary sort by relevance score from Mapbox
+    return (b.relevance || 0) - (a.relevance || 0);
+  });
+
+  // Check for ambiguous results and handle accordingly
+  const isAmbiguous = detectAmbiguity(sortedResults, searchAddress, isSearchingForCity);
+  
+  if (isAmbiguous && sortedResults.length >= 2) {
+    console.log(`⚠️ Ambiguous search detected for "${searchAddress}"`);
+    console.log('Top results:', sortedResults.slice(0, 3).map(r => ({
+      address: r.formatted_address,
+      type: r.place_type,
+      confidence: r.confidence
+    })));
+    
+    // For ambiguous results, provide user with options
+    const topResults = sortedResults.slice(0, Math.min(3, sortedResults.length));
+    
+    // Create a confirmation dialog or show multiple options
+    // For now, we'll use the highest confidence result but show a warning
+    toast({
+      title: "Multiple locations found",
+      description: `Using: ${topResults[0].formatted_address}. If this isn't correct, please be more specific.`,
+      duration: 5000,
+    });
+  }
+
+  // Additional validation for city searches
+  if (isSearchingForCity && sortedResults.length > 0) {
+    const bestResult = sortedResults[0];
+    const resultType = bestResult.place_type || 'address';
+    
+    // If we're searching for a city but got a street address, try to find a better match
+    if (resultType === 'address' && bestResult.confidence < 60) {
+      const cityResults = sortedResults.filter(r => ['place', 'locality'].includes(r.place_type));
+      if (cityResults.length > 0) {
+        console.log(`🔄 City search detected low-confidence address result, switching to city result`);
+        // Move the best city result to the front
+        const bestCityResult = cityResults[0];
+        const index = sortedResults.indexOf(bestCityResult);
+        if (index > 0) {
+          sortedResults.splice(index, 1);
+          sortedResults.unshift(bestCityResult);
         }
       }
+    }
+  }
+
+  // Validate final result quality
+  const validateResult = (result: any, query: string): boolean => {
+    const confidence = result.confidence || 0;
+    const address = result.formatted_address.toLowerCase();
+    const queryWords = query.toLowerCase().split(' ').filter(w => w.length > 2);
+    
+    // Check if at least one significant word from query appears in result
+    const hasMatchingWord = queryWords.some(word => address.includes(word));
+    
+    return confidence > 40 && hasMatchingWord;
+  };
 
       if (sortedResults.length === 0) {
         console.log('❌ All results were filtered out as too broad');
@@ -574,6 +666,51 @@ const SearchAndBooking = () => {
       }
 
       const bestResult = sortedResults[0];
+      
+      // Validate the best result quality
+      if (!validateResult(bestResult, searchAddress)) {
+        console.log('⚠️ Best result failed validation, checking alternatives...');
+        
+        // Try to find a better validated result
+        const validResults = sortedResults.filter(r => validateResult(r, searchAddress));
+        
+        if (validResults.length === 0) {
+          // No valid results, inform user
+          toast({
+            variant: "destructive", 
+            title: "Location unclear",
+            description: `"${searchAddress}" matches multiple locations. Please be more specific (e.g., include city, state).`,
+            duration: 6000,
+          });
+          return;
+        }
+        
+        // Use the best valid result
+        const validResult = validResults[0];
+        console.log(`✅ Using validated result: ${validResult.formatted_address}`);
+        
+        const lat = validResult.position.lat;
+        const lng = validResult.position.lng;
+        const coords = { lat, lng };
+
+        setLocation(validResult.formatted_address);
+        setIsUsingPreciseCoords(true);
+        setUserLocationCoords(coords);
+        setMapCenter(coords);
+        setMapZoom(16);
+
+        getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+          setMapCenter(coords);
+          setMapZoom(12);
+        });
+
+        toast({
+          title: "Address found!",
+          description: `Using: ${validResult.formatted_address} (confidence: ${validResult.confidence.toFixed(0)}%)`,
+        });
+        return;
+      }
+      
       const lat = bestResult.position.lat;
       const lng = bestResult.position.lng;
       const coords = { lat, lng };
@@ -581,6 +718,7 @@ const SearchAndBooking = () => {
       console.log(`✅ Selected best result: ${bestResult.formatted_address}`);
       console.log(`📍 Coordinates: ${lat}, ${lng}`);
       console.log(`🏷️ Type: ${bestResult.place_type}`);
+      console.log(`🎯 Confidence: ${bestResult.confidence.toFixed(1)}%`);
 
       // Update location with the formatted address from Mapbox
       setLocation(bestResult.formatted_address);
@@ -595,9 +733,11 @@ const SearchAndBooking = () => {
         setMapZoom(12);
       });
 
+      // Show confidence in toast for transparency
+      const confidenceText = bestResult.confidence > 80 ? "" : ` (${bestResult.confidence.toFixed(0)}% confidence)`;
       toast({
         title: "Address found!",
-        description: `Searching for pharmacies within ${selectedRadius}km of ${bestResult.formatted_address}`,
+        description: `Searching for pharmacies within ${selectedRadius}km of ${bestResult.formatted_address}${confidenceText}`,
       });
     } catch (error) {
       console.error('❌ Geocoding error:', error);
