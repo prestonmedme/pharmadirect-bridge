@@ -447,16 +447,15 @@ const SearchAndBooking = () => {
 
       console.log(`📊 Found ${data.results.length} geocoding results`);
       
-      // Filter and rank results by specificity (avoid broad results)
+      // Enhanced filtering and ranking for better city vs address detection
       const filteredResults = data.results.filter((result: any) => {
         const placeType = result.place_type || 'address';
         const address = result.formatted_address || '';
         
-        console.log(`🔍 Result: ${address} (Type: ${placeType})`);
+        console.log(`🔍 Result: ${address} (Type: ${placeType}, Relevance: ${result.relevance})`);
         
-        // Reject results that are too broad - be more lenient
+        // Reject results that are too broad
         const isTooBroad = placeType === 'country' || 
-                          (placeType === 'region' && !address.includes(',')) || // Only reject regions without specific addresses
                           address.toLowerCase().trim() === 'united states';
         
         if (isTooBroad) {
@@ -469,24 +468,82 @@ const SearchAndBooking = () => {
 
       console.log(`📋 Filtered to ${filteredResults.length} specific results`);
 
-      // Sort remaining results by specificity preference
+      // Detect if this is likely a city search vs specific address search
+      const isCitySearch = (query: string): boolean => {
+        const cleanQuery = query.toLowerCase().trim();
+        // City search indicators: no numbers, no street indicators, common city patterns
+        const hasNumbers = /\d/.test(cleanQuery);
+        const hasStreetWords = /\b(street|st|avenue|ave|road|rd|drive|dr|lane|ln|blvd|boulevard|way|place|pl|court|ct|circle|cir)\b/.test(cleanQuery);
+        const isSimpleCityPattern = /^[a-z\s]+,?\s*(ca|california|ny|new york|tx|texas|fl|florida)?$/i.test(cleanQuery);
+        
+        return !hasNumbers && !hasStreetWords && (isSimpleCityPattern || cleanQuery.split(' ').length <= 3);
+      };
+
+      const isSearchingForCity = isCitySearch(searchAddress);
+      console.log(`🏙️ Detected ${isSearchingForCity ? 'CITY' : 'ADDRESS'} search for: "${searchAddress}"`);
+
+      // Enhanced sorting with city search logic
       const sortedResults = filteredResults.sort((a: any, b: any) => {
         const aType = a.place_type || 'address';
         const bType = b.place_type || 'address';
+        const aRelevance = a.relevance || 0;
+        const bRelevance = b.relevance || 0;
         
-        // Prefer specific addresses, then POIs, then localities
-        const getSpecificityScore = (type: string) => {
-          if (type === 'address') return 100;
-          if (type === 'poi') return 90;
-          if (type === 'place') return 80;
-          if (type === 'locality') return 40;
-          if (type === 'district') return 30;
-          if (type === 'region') return 20;
-          return 0;
+        // For city searches, prioritize localities and places over addresses
+        const getSpecificityScore = (type: string, isCity: boolean) => {
+          if (isCity) {
+            // For city searches, prioritize cities and places
+            if (type === 'place') return 100;      // Cities, towns
+            if (type === 'locality') return 95;    // Local areas within cities
+            if (type === 'poi') return 90;         // Points of interest
+            if (type === 'district') return 85;    // Districts/neighborhoods
+            if (type === 'address') return 30;     // Street addresses (lower priority)
+            if (type === 'region') return 20;      // States/regions
+            return 0;
+          } else {
+            // For address searches, prioritize specific addresses
+            if (type === 'address') return 100;
+            if (type === 'poi') return 90;
+            if (type === 'place') return 80;
+            if (type === 'locality') return 70;
+            if (type === 'district') return 60;
+            if (type === 'region') return 20;
+            return 0;
+          }
         };
         
-        return getSpecificityScore(bType) - getSpecificityScore(aType);
+        const aScore = getSpecificityScore(aType, isSearchingForCity);
+        const bScore = getSpecificityScore(bType, isSearchingForCity);
+        
+        // Primary sort by specificity score
+        if (bScore !== aScore) {
+          return bScore - aScore;
+        }
+        
+        // Secondary sort by relevance score from Mapbox
+        return bRelevance - aRelevance;
       });
+
+      // Additional validation for city searches
+      if (isSearchingForCity && sortedResults.length > 0) {
+        const bestResult = sortedResults[0];
+        const resultType = bestResult.place_type || 'address';
+        
+        // If we're searching for a city but got a street address, try to find a better match
+        if (resultType === 'address') {
+          const cityResults = sortedResults.filter(r => ['place', 'locality'].includes(r.place_type));
+          if (cityResults.length > 0) {
+            console.log(`🔄 City search detected address result, switching to city result`);
+            // Move the best city result to the front
+            const bestCityResult = cityResults[0];
+            const index = sortedResults.indexOf(bestCityResult);
+            if (index > 0) {
+              sortedResults.splice(index, 1);
+              sortedResults.unshift(bestCityResult);
+            }
+          }
+        }
+      }
 
       if (sortedResults.length === 0) {
         console.log('❌ All results were filtered out as too broad');
