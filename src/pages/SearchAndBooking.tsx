@@ -602,9 +602,9 @@ const SearchAndBooking = () => {
               </h2>
               
               {/* Primary Search Row */}
-              <div className="flex flex-col lg:flex-row gap-4 mb-4">
+              <div className="space-y-4 mb-4">
                 {/* Service Type */}
-                <div className="flex-1">
+                <div className="w-full">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
                     <BubbleFilterSelect
@@ -618,7 +618,7 @@ const SearchAndBooking = () => {
                 </div>
 
                 {/* Address Input */}
-                <div className="flex-1">
+                <div className="w-full">
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
                     <AddressAutocomplete
@@ -626,7 +626,7 @@ const SearchAndBooking = () => {
                       onChange={handleLocationInputChange}
                       onPlaceSelect={handlePlaceSelect}
                       placeholder="Enter your address"
-                      className="pl-10 h-12 text-base border-border/50"
+                      className="pl-10 h-12 text-base border-border/50 w-full"
                       center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
                       radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
                     />
@@ -638,7 +638,7 @@ const SearchAndBooking = () => {
                   onClick={() => handleGeocodeTypedAddress()}
                   disabled={!location.trim()}
                   size="lg" 
-                  className="h-12 px-8 font-semibold border-2 border-[#c3c430] hover:border-[#c3c430]/80"
+                  className="h-12 px-8 font-semibold border-2 border-[#c3c430] hover:border-[#c3c430]/80 w-full"
                 >
                   <Search className="h-4 w-4 mr-2" />
                   Search
