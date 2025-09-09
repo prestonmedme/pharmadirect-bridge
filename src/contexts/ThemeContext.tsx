@@ -29,7 +29,7 @@ interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   console.log('ThemeProvider: Starting ThemeProvider initialization');
   const [theme, setTheme] = useState<ThemeConfig>(defaultTheme);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     console.log('ThemeProvider: useEffect running - detecting theme async');
