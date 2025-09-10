@@ -188,38 +188,38 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-wrap gap-2 mt-4 -mx-1">
+          <div className="flex gap-1 mt-4 overflow-x-auto">
             {pharmacy.medmeConnected && (
-              <Button onClick={() => onBookAppointment?.(pharmacy)} className="flex-1 min-w-[120px]">
-                <Calendar className="h-4 w-4 mr-2" />
-                Book Now
+              <Button onClick={() => onBookAppointment?.(pharmacy)} size="sm" className="flex-shrink-0 text-xs px-2">
+                <Calendar className="h-3 w-3 mr-1" />
+                Book
               </Button>
             )}
             
             {pharmacy.phone && (
-              <Button variant="outline" onClick={handleCallPharmacy} className="flex-shrink-0">
-                <Phone className="h-4 w-4 mr-2" />
+              <Button variant="outline" onClick={handleCallPharmacy} size="sm" className="flex-shrink-0 text-xs px-2">
+                <Phone className="h-3 w-3 mr-1" />
                 Call
               </Button>
             )}
             
             {pharmacy.website && (
-              <Button variant="outline" onClick={handleVisitWebsite} className="flex-shrink-0">
-                <Globe className="h-4 w-4 mr-2" />
-                Website
+              <Button variant="outline" onClick={handleVisitWebsite} size="sm" className="flex-shrink-0 text-xs px-2">
+                <Globe className="h-3 w-3 mr-1" />
+                Web
               </Button>
             )}
             
             {pharmacy.source === 'google' && (
-              <Button variant="outline" onClick={handleViewOnGoogleMaps} className="flex-shrink-0">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View on Google
+              <Button variant="outline" onClick={handleViewOnGoogleMaps} size="sm" className="flex-shrink-0 text-xs px-2">
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Google
               </Button>
             )}
 
-            <Button variant="outline" onClick={handleGetDirections} className="flex-shrink-0">
-              <Navigation className="h-4 w-4 mr-2" />
-              Directions
+            <Button variant="outline" onClick={handleGetDirections} size="sm" className="flex-shrink-0 text-xs px-2">
+              <Navigation className="h-3 w-3 mr-1" />
+              Dir
             </Button>
           </div>
         </DrawerHeader>
