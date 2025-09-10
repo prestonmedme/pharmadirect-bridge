@@ -214,7 +214,7 @@ export const usePharmacySearch = () => {
     try {
       // Query US pharmacy data directly
       const { data: usPharmacies, error: usError } = await supabase
-        .from('pharmacy_public_view')
+        .from('us_pharmacy_data')
         .select('name, address, lat, lng')
         .not('lat', 'is', null)
         .not('lng', 'is', null);
@@ -324,7 +324,7 @@ export const usePharmacySearch = () => {
 
       // Get US pharmacies with database-level distance filtering for efficiency
       let usPharmaciesQuery = supabase
-        .from('pharmacy_public_view')
+        .from('us_pharmacy_data')
         .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
         .not('lat', 'is', null)
         .not('lng', 'is', null);
@@ -566,7 +566,7 @@ export const usePharmacySearch = () => {
 
       // Get US pharmacies
       const { data: usPharmacies, error: usError } = await supabase
-        .from('pharmacy_public_view')
+        .from('us_pharmacy_data')
         .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
         .order('name');
 
@@ -643,7 +643,7 @@ export const usePharmacySearch = () => {
       const lngDiff = radiusKm / (111.0 * Math.cos(latitude * Math.PI / 180)); // longitude varies by latitude
       
       const { data: usPharmacies, error: usError } = await supabase
-        .from('pharmacy_public_view')
+        .from('us_pharmacy_data')
         .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
         .not('lat', 'is', null)
         .not('lng', 'is', null)

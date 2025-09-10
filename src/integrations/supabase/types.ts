@@ -360,98 +360,50 @@ export type Database = {
       }
     }
     Views: {
-      pharmacy_public_view: {
-        Row: {
-          address: string | null
-          booking_link: string | null
-          category: string | null
-          clinical_services: string | null
-          clinical_services_2: string | null
-          clinical_services_lowercase: string | null
-          clinical_services_summary: string | null
-          created_at: string | null
-          health_screenings_point_of_care: string | null
-          healthcare_services: string | null
-          id: string | null
-          immunizations: string | null
-          immunizations_vaccinations: string | null
-          is_a_pharmacy: string | null
-          lat: number | null
-          lng: number | null
-          main_image_url: string | null
-          name: string | null
-          opening_hours: string | null
-          phone: string | null
-          ratings: number | null
-          score: number | null
-          specialized_health_programs: string | null
-          state_name: string | null
-          updated_at: string | null
-          website: string | null
-          zip_code: number | null
-        }
-        Insert: {
-          address?: string | null
-          booking_link?: string | null
-          category?: string | null
-          clinical_services?: string | null
-          clinical_services_2?: string | null
-          clinical_services_lowercase?: string | null
-          clinical_services_summary?: string | null
-          created_at?: string | null
-          health_screenings_point_of_care?: string | null
-          healthcare_services?: string | null
-          id?: string | null
-          immunizations?: string | null
-          immunizations_vaccinations?: string | null
-          is_a_pharmacy?: string | null
-          lat?: number | null
-          lng?: number | null
-          main_image_url?: string | null
-          name?: string | null
-          opening_hours?: string | null
-          phone?: string | null
-          ratings?: number | null
-          score?: number | null
-          specialized_health_programs?: string | null
-          state_name?: string | null
-          updated_at?: string | null
-          website?: string | null
-          zip_code?: number | null
-        }
-        Update: {
-          address?: string | null
-          booking_link?: string | null
-          category?: string | null
-          clinical_services?: string | null
-          clinical_services_2?: string | null
-          clinical_services_lowercase?: string | null
-          clinical_services_summary?: string | null
-          created_at?: string | null
-          health_screenings_point_of_care?: string | null
-          healthcare_services?: string | null
-          id?: string | null
-          immunizations?: string | null
-          immunizations_vaccinations?: string | null
-          is_a_pharmacy?: string | null
-          lat?: number | null
-          lng?: number | null
-          main_image_url?: string | null
-          name?: string | null
-          opening_hours?: string | null
-          phone?: string | null
-          ratings?: number | null
-          score?: number | null
-          specialized_health_programs?: string | null
-          state_name?: string | null
-          updated_at?: string | null
-          website?: string | null
-          zip_code?: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      can_view_sensitive_pharmacy_data: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      get_pharmacy_data_secure: {
+        Args: { include_sensitive?: boolean }
+        Returns: {
+          address: string
+          booking_link: string
+          category: string
+          clinical_services: string
+          clinical_services_2: string
+          clinical_services_lowercase: string
+          clinical_services_summary: string
+          created_at: string
+          email: string
+          health_screenings_point_of_care: string
+          healthcare_services: string
+          id: string
+          immunizations: string
+          immunizations_vaccinations: string
+          is_a_pharmacy: string
+          lat: number
+          lng: number
+          main_image_url: string
+          name: string
+          opening_hours: string
+          owner_manager_info: string
+          owner_name: string
+          owners: string
+          phone: string
+          preferred_email: string
+          ratings: number
+          score: number
+          specialized_health_programs: string
+          state_name: string
+          updated_at: string
+          website: string
+          zip_code: number
+        }[]
+      }
       get_public_pharmacy_data: {
         Args: Record<PropertyKey, never>
         Returns: {
