@@ -155,28 +155,28 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerTrigger asChild>
-            <div className="bg-[hsl(var(--medme-navy))] rounded-t-xl shadow-lg p-4 cursor-pointer">
+            <div className="bg-white border-2 border-[hsl(var(--medme-navy))] rounded-t-xl shadow-lg p-4 cursor-pointer">
               <div className="flex items-center justify-center mb-2">
-                <div className="w-12 h-1 bg-white/30 rounded-full" />
+                <div className="w-12 h-1 bg-[hsl(var(--medme-navy))]/30 rounded-full" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg text-[hsl(var(--medme-lime))]">
+                  <h3 className="font-semibold text-lg text-[hsl(var(--medme-navy))]">
                     {loading ? "Searching..." : `${pharmacyCards.length} pharmacies`}
                   </h3>
-                  <p className="text-sm text-[hsl(var(--medme-lime))]/80">
+                  <p className="text-sm text-[hsl(var(--medme-navy))]/70">
                     {pharmacyCards.length > 0 && (
                       `Showing ${Math.min(pharmacyCards.length, 12)} results`
                     )}
                   </p>
                 </div>
-                <ChevronUp className="h-5 w-5 text-[hsl(var(--medme-lime))]/60" />
+                <ChevronUp className="h-5 w-5 text-[hsl(var(--medme-navy))]/60" />
               </div>
             </div>
           </DrawerTrigger>
-          <DrawerContent className="max-h-[70vh] bg-[hsl(var(--medme-navy))]">
+          <DrawerContent className="max-h-[70vh] bg-white border-2 border-[hsl(var(--medme-navy))]">
             <DrawerHeader>
-              <DrawerTitle className="text-[hsl(var(--medme-lime))]">
+              <DrawerTitle className="text-[hsl(var(--medme-navy))]">
                 {loading ? "Searching..." : `${pharmacyCards.length} pharmacies found`}
               </DrawerTitle>
             </DrawerHeader>
