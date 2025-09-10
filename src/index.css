@@ -9,6 +9,8 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* MedMe Brand Colors Design System */
+    --medme-navy: 215 85% 20%;
+    --medme-lime: 64 55% 48%;
     --background: 0 0% 100%;
     --foreground: 195 82% 18%;
     
