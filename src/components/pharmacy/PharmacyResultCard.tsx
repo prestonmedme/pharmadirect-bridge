@@ -65,7 +65,7 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
   return (
     <Card 
       id={`pharmacy-${pharmacy.id}`}
-      className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-transparent hover:border-l-primary"
+      className="cursor-pointer hover:shadow-md transition-all duration-300 border-l-4 border-l-transparent hover:border-l-[hsl(var(--medme-lime))]"
       onClick={handleCardClick}
     >
       <CardContent className="p-4">
@@ -81,7 +81,7 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
               {pharmacy.openNow !== undefined && (
                 <Badge 
                   variant={pharmacy.openNow ? "default" : "secondary"} 
-                  className="text-xs"
+                  className={`text-xs ${pharmacy.openNow ? 'bg-[hsl(var(--medme-navy))] text-white' : ''}`}
                 >
                   {pharmacy.openNow ? "Open" : "Closed"}
                 </Badge>
@@ -140,7 +140,7 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
               <Button 
                 size="sm" 
                 onClick={handleBookClick}
-                className="whitespace-nowrap"
+                className="whitespace-nowrap bg-transparent border-2 border-[hsl(var(--medme-lime))] text-[hsl(var(--medme-lime))] hover:bg-[hsl(var(--medme-lime))] hover:text-white"
               >
                 <Calendar className="h-3 w-3 mr-1" />
                 Book
@@ -152,7 +152,7 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
                 variant="outline" 
                 size="sm" 
                 onClick={handleCallClick}
-                className="whitespace-nowrap"
+                className="whitespace-nowrap border-2 border-[hsl(var(--medme-lime))] text-[hsl(var(--medme-lime))] hover:bg-[hsl(var(--medme-lime))] hover:text-white"
               >
                 <Phone className="h-3 w-3 mr-1" />
                 Call
