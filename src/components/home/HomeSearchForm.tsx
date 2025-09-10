@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, ChevronDown } from "lucide-react";
+import { Search, MapPin, ChevronDown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MapboxAddressAutocomplete from "@/components/maps/MapboxAddressAutocomplete";
 import { BubbleFilterSelect } from "@/components/filters/BubbleFilterSelect";
@@ -52,13 +52,34 @@ const HomeSearchForm = () => {
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Service/Symptom Search */}
             <div className="flex-1">
-              <BubbleFilterSelect
-                value={selectedServices}
-                onValueChange={setSelectedServices}
-                options={PHARMACY_SERVICES}
-                placeholder="Search by symptom, specialty or clinic name"
-                className="w-full"
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                <BubbleFilterSelect
+                  value={selectedServices}
+                  onValueChange={setSelectedServices}
+                  options={PHARMACY_SERVICES}
+                  placeholder="Search by symptom, specialty or clinic name"
+                  className="min-w-[250px]"
+                />
+                {/* Selected service bubbles */}
+                {selectedServices.map((serviceValue) => {
+                  const service = PHARMACY_SERVICES.find(s => s.value === serviceValue);
+                  if (!service) return null;
+                  return (
+                    <div
+                      key={service.value}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm font-medium"
+                    >
+                      {service.label}
+                      <button
+                        onClick={() => setSelectedServices(selectedServices.filter(s => s !== service.value))}
+                        className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Address Input */}
