@@ -77,7 +77,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
       </div>
 
       {/* Top navigation bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4">
+      <div className="absolute top-0 left-0 right-0 z-20 p-4 text-[hsl(var(--medme-navy))]">
         <div className="flex items-center justify-between gap-3">
           {/* Filter button */}
           <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
