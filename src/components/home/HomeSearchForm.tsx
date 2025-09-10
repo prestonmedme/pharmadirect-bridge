@@ -95,7 +95,7 @@ const HomeSearchForm = () => {
             <Button 
               onClick={handleSearch}
               size="lg" 
-              className="h-12 px-8 font-semibold"
+              className="h-12 px-8 font-semibold bg-[hsl(var(--nav-button))] hover:bg-[hsl(var(--nav-button))]/80 text-black"
             >
               Search
             </Button>
