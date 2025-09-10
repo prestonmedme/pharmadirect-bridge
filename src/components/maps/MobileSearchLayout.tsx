@@ -77,7 +77,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
       </div>
 
       {/* Top navigation bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 text-[hsl(var(--medme-navy))]">
+      <div className="absolute top-0 left-0 right-0 z-20 p-4">
         <div className="flex items-center justify-between gap-3">
           {/* Filter button */}
           <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -85,7 +85,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white/90 backdrop-blur-sm border-0 shadow-md hover:bg-white/95"
+                className="bg-white/90 backdrop-blur-sm border-0 shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] flex-shrink-0"
               >
                 <Filter className="h-4 w-4" />
               </Button>
@@ -110,9 +110,9 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
             <DrawerTrigger asChild>
               <Button
                 variant="outline"
-                className="flex-1 bg-white/90 backdrop-blur-sm border-0 shadow-md hover:bg-white/95 justify-start px-4 py-2 h-auto min-h-10"
+                className="flex-1 max-w-[250px] bg-white/90 backdrop-blur-sm border-0 shadow-md hover:bg-white/95 justify-start px-4 py-2 h-auto min-h-10 text-[hsl(var(--medme-navy))]"
               >
-                <Search className="h-4 w-4 mr-2" />
+                <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))]" />
                 <span className="truncate text-sm">
                   {location || "Search location..."}
                 </span>
