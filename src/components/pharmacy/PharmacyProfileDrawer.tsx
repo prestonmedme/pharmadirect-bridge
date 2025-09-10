@@ -148,7 +148,7 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[85vh] max-h-[600px] max-w-xl mx-auto w-full">
+      <DrawerContent className="h-[85vh] max-h-[600px] max-w-2xl mx-auto w-full">
         <DrawerHeader className="border-b flex-shrink-0 px-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -159,21 +159,21 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
                 </Badge>
               </div>
               
-              <DrawerDescription className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
+              <DrawerDescription className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1 flex-shrink-0">
                   <MapPin className="h-3 w-3" />
-                  {pharmacy.address.line1}, {pharmacy.address.city}
+                  <span className="truncate max-w-[200px]">{pharmacy.address.line1}, {pharmacy.address.city}</span>
                 </span>
                 
                 {pharmacy.rating?.value && (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 flex-shrink-0">
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                     {pharmacy.rating.value} ({pharmacy.rating.count} reviews)
                   </span>
                 )}
                 
                 {pharmacy.openNow !== undefined && (
-                  <Badge variant={pharmacy.openNow ? "default" : "secondary"} className="text-xs">
+                  <Badge variant={pharmacy.openNow ? "default" : "secondary"} className="text-xs flex-shrink-0">
                     {pharmacy.openNow ? "Open" : "Closed"}
                   </Badge>
                 )}
@@ -188,36 +188,36 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2 mt-4">
+          <div className="flex flex-wrap gap-2 mt-4 -mx-1">
             {pharmacy.medmeConnected && (
-              <Button onClick={() => onBookAppointment?.(pharmacy)} className="flex-1">
+              <Button onClick={() => onBookAppointment?.(pharmacy)} className="flex-1 min-w-[120px]">
                 <Calendar className="h-4 w-4 mr-2" />
                 Book Now
               </Button>
             )}
             
             {pharmacy.phone && (
-              <Button variant="outline" onClick={handleCallPharmacy}>
+              <Button variant="outline" onClick={handleCallPharmacy} className="flex-shrink-0">
                 <Phone className="h-4 w-4 mr-2" />
                 Call
               </Button>
             )}
             
             {pharmacy.website && (
-              <Button variant="outline" onClick={handleVisitWebsite}>
+              <Button variant="outline" onClick={handleVisitWebsite} className="flex-shrink-0">
                 <Globe className="h-4 w-4 mr-2" />
                 Website
               </Button>
             )}
             
             {pharmacy.source === 'google' && (
-              <Button variant="outline" onClick={handleViewOnGoogleMaps}>
+              <Button variant="outline" onClick={handleViewOnGoogleMaps} className="flex-shrink-0">
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View on Google
               </Button>
             )}
 
-            <Button variant="outline" onClick={handleGetDirections}>
+            <Button variant="outline" onClick={handleGetDirections} className="flex-shrink-0">
               <Navigation className="h-4 w-4 mr-2" />
               Directions
             </Button>
