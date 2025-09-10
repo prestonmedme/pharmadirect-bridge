@@ -66,8 +66,8 @@ export function BubbleFilterSelect({
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
           "h-auto min-h-10 px-4 py-2 rounded-full border-2 transition-all duration-200",
-          "hover:border-[#063f55]/50 focus:border-[#063f55]",
-          isExpanded && "border-[#063f55] shadow-lg",
+          "hover:border-[hsl(var(--nav-button))] hover:text-[hsl(var(--nav-button))] hover:bg-white focus:border-[hsl(var(--nav-button))]",
+          isExpanded && "border-[hsl(var(--nav-button))] shadow-lg",
           value && value.length > 0 && "bg-[#063f55]/5 border-[#063f55] text-[#063f55]"
         )}
       >
