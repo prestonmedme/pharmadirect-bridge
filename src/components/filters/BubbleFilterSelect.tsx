@@ -125,8 +125,8 @@ export function BubbleFilterSelect({
                       "border-2 font-medium",
                       "animate-fade-in",
                       isSelected 
-                        ? "bg-white text-[hsl(var(--nav-button))] border-[hsl(var(--nav-button))]" 
-                        : "hover:border-[#063f55]/50"
+                        ? "bg-[#063f55] text-white border-[#063f55] hover:bg-white hover:text-[hsl(var(--nav-button))] hover:border-[hsl(var(--nav-button))]" 
+                        : "hover:border-[hsl(var(--nav-button))] hover:text-[hsl(var(--nav-button))] hover:bg-white"
                     )}
                     style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => handleSelect(option.value)}
