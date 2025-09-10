@@ -360,7 +360,96 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pharmacy_public_view: {
+        Row: {
+          address: string | null
+          booking_link: string | null
+          category: string | null
+          clinical_services: string | null
+          clinical_services_2: string | null
+          clinical_services_lowercase: string | null
+          clinical_services_summary: string | null
+          created_at: string | null
+          health_screenings_point_of_care: string | null
+          healthcare_services: string | null
+          id: string | null
+          immunizations: string | null
+          immunizations_vaccinations: string | null
+          is_a_pharmacy: string | null
+          lat: number | null
+          lng: number | null
+          main_image_url: string | null
+          name: string | null
+          opening_hours: string | null
+          phone: string | null
+          ratings: number | null
+          score: number | null
+          specialized_health_programs: string | null
+          state_name: string | null
+          updated_at: string | null
+          website: string | null
+          zip_code: number | null
+        }
+        Insert: {
+          address?: string | null
+          booking_link?: string | null
+          category?: string | null
+          clinical_services?: string | null
+          clinical_services_2?: string | null
+          clinical_services_lowercase?: string | null
+          clinical_services_summary?: string | null
+          created_at?: string | null
+          health_screenings_point_of_care?: string | null
+          healthcare_services?: string | null
+          id?: string | null
+          immunizations?: string | null
+          immunizations_vaccinations?: string | null
+          is_a_pharmacy?: string | null
+          lat?: number | null
+          lng?: number | null
+          main_image_url?: string | null
+          name?: string | null
+          opening_hours?: string | null
+          phone?: string | null
+          ratings?: number | null
+          score?: number | null
+          specialized_health_programs?: string | null
+          state_name?: string | null
+          updated_at?: string | null
+          website?: string | null
+          zip_code?: number | null
+        }
+        Update: {
+          address?: string | null
+          booking_link?: string | null
+          category?: string | null
+          clinical_services?: string | null
+          clinical_services_2?: string | null
+          clinical_services_lowercase?: string | null
+          clinical_services_summary?: string | null
+          created_at?: string | null
+          health_screenings_point_of_care?: string | null
+          healthcare_services?: string | null
+          id?: string | null
+          immunizations?: string | null
+          immunizations_vaccinations?: string | null
+          is_a_pharmacy?: string | null
+          lat?: number | null
+          lng?: number | null
+          main_image_url?: string | null
+          name?: string | null
+          opening_hours?: string | null
+          phone?: string | null
+          ratings?: number | null
+          score?: number | null
+          specialized_health_programs?: string | null
+          state_name?: string | null
+          updated_at?: string | null
+          website?: string | null
+          zip_code?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
