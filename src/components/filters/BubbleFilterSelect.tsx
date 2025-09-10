@@ -91,12 +91,12 @@ export function BubbleFilterSelect({
 
       {/* Expanded bubbles */}
       {isExpanded && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50">
+        <div className="absolute top-full left-0 mt-2 z-50 w-full max-w-[90vw] sm:max-w-lg">
           <div className={cn(
-            "bg-white border border-border rounded-xl shadow-lg p-4 max-w-full",
+            "bg-white border border-border rounded-xl shadow-lg p-4",
             "animate-fade-in"
           )}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {/* All services option */}
               <Badge
                 variant={!value || value.length === 0 ? "default" : "outline"}
@@ -123,7 +123,7 @@ export function BubbleFilterSelect({
                     className={cn(
                       "cursor-pointer px-3 py-2 rounded-full transition-all duration-200",
                       "hover:scale-105 hover:shadow-md text-center justify-center",
-                      "border-2 font-medium whitespace-nowrap",
+                      "border-2 font-medium whitespace-nowrap text-xs",
                       "animate-fade-in",
                       isSelected 
                         ? "bg-[#063f55] text-white border-[#063f55] hover:bg-white hover:text-[hsl(var(--nav-button))] hover:border-[hsl(var(--nav-button))]" 
