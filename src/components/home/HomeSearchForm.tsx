@@ -113,26 +113,32 @@ const HomeSearchForm = () => {
         {/* Service category pills */}
         <div className="text-center">
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            {PHARMACY_SERVICES.map((service) => (
-              <button
-                key={service.value}
-                onClick={() => {
-                  const isSelected = selectedServices.includes(service.value);
-                  if (isSelected) {
-                    setSelectedServices(selectedServices.filter(s => s !== service.value));
-                  } else {
-                    setSelectedServices([...selectedServices, service.value]);
-                  }
-                }}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${
-                  selectedServices.includes(service.value)
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {service.label}
-              </button>
-            ))}
+            {PHARMACY_SERVICES.map((service, index) => {
+              const isSelected = selectedServices.includes(service.value);
+              const isEvenIndex = index % 2 === 0;
+              const bgColor = isEvenIndex ? "bg-[#063f55]" : "bg-[hsl(var(--nav-button))]";
+              const hoverBgColor = isEvenIndex ? "hover:bg-[#063f55]/80" : "hover:bg-[hsl(var(--nav-button))]/80";
+              
+              return (
+                <button
+                  key={service.value}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedServices(selectedServices.filter(s => s !== service.value));
+                    } else {
+                      setSelectedServices([...selectedServices, service.value]);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 text-white ${
+                    isSelected
+                      ? `${bgColor} shadow-md`
+                      : `${bgColor} ${hoverBgColor}`
+                  }`}
+                >
+                  {service.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
