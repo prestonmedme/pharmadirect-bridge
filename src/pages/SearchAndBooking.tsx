@@ -18,6 +18,8 @@ import { PharmacyCard } from "@/types/pharmacy";
 import { adaptPharmacyToCard } from "@/hooks/usePharmacyAdapter";
 import { PharmacyProfileDrawer } from "@/components/pharmacy/PharmacyProfileDrawer";
 import { PharmacyResultsList } from "@/components/pharmacy/PharmacyResultsList";
+import { MobileSearchLayout } from "@/components/maps/MobileSearchLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   MapPin, 
@@ -36,6 +38,7 @@ import medmeLogo from '@/assets/medme-logo.svg';
 const SearchAndBooking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   // Service options for the bubble filter
   const serviceOptions = [
@@ -518,208 +521,232 @@ const SearchAndBooking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex flex-col">
-      {/* Header */}
-      <div className="border-b shadow-sm flex-shrink-0" style={{ backgroundColor: '#063f55' }}>
-        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-semibold text-[#c3c430]">Pharmacy Services</h1>
-              <p className="text-sm text-gray-200">Find appointments and services</p>
+    <>
+      {isMobile ? (
+        <MobileSearchLayout
+          pharmacyCards={pharmacyCards}
+          onPharmacySelect={handlePharmacySelect}
+          mapCenter={mapCenter}
+          mapZoom={mapZoom}
+          userLocation={userLocationCoords}
+          showSearchThisArea={showSearchThisArea}
+          onSearchThisArea={handleSearchThisArea}
+          location={location}
+          onLocationChange={handleLocationInputChange}
+          onPlaceSelect={handlePlaceSelect}
+          onUseCurrentLocation={handleUseCurrentLocation}
+          serviceOptions={serviceOptions}
+          selectedServices={selectedServices}
+          onServicesChange={setSelectedServices}
+          loading={loading}
+          onBookAppointment={handleBookAppointment}
+          calculatePharmacyDistance={calculatePharmacyDistance}
+        />
+      ) : (
+        <div className="min-h-screen bg-gradient-subtle flex flex-col">
+          {/* Header */}
+          <div className="border-b shadow-sm flex-shrink-0" style={{ backgroundColor: '#063f55' }}>
+            <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-white hover:bg-white/10">
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <div>
+                  <h1 className="text-xl font-semibold text-[#c3c430]">Pharmacy Services</h1>
+                  <p className="text-sm text-gray-200">Find appointments and services</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="flex-1 flex">
-        {/* Left Column - Filters and Results - Scrollable */}
-        <div className="w-1/2 overflow-y-auto bg-white">
-          <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-            {/* Main Search Form - Styled like Home Page */}
-            <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-6">
-              <h2 className="text-xl font-semibold text-[#063f55] mb-4">
-                Choose a location near you
-              </h2>
-              
-              {/* Primary Search Row */}
-              <div className="space-y-4 mb-4">
-                {/* Service Type */}
-                <div className="w-full">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                    <BubbleFilterSelect
-                      value={selectedServices}
-                      onValueChange={setSelectedServices}
-                      options={serviceOptions}
-                      placeholder="Search by symptom or service"
-                      className="pl-10 h-12 text-base border-border/50"
-                    />
+          <div className="flex-1 flex">
+            {/* Left Column - Filters and Results - Scrollable */}
+            <div className="w-1/2 overflow-y-auto bg-white">
+              <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+                {/* Main Search Form - Styled like Home Page */}
+                <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-6">
+                  <h2 className="text-xl font-semibold text-[#063f55] mb-4">
+                    Choose a location near you
+                  </h2>
+                  
+                  {/* Primary Search Row */}
+                  <div className="space-y-4 mb-4">
+                    {/* Service Type */}
+                    <div className="w-full">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                        <BubbleFilterSelect
+                          value={selectedServices}
+                          onValueChange={setSelectedServices}
+                          options={serviceOptions}
+                          placeholder="Search by symptom or service"
+                          className="pl-10 h-12 text-base border-border/50"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Address Input */}
+                    <div className="w-full">
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                        <AddressAutocomplete
+                          value={location}
+                          onChange={handleLocationInputChange}
+                          onPlaceSelect={handlePlaceSelect}
+                          placeholder="Enter your address"
+                          className="pl-10 h-12 text-base border-border/50 w-full"
+                          center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
+                          radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Search Button */}
+                    <Button 
+                      onClick={() => handleGeocodeTypedAddress()}
+                      disabled={!location.trim()}
+                      size="lg" 
+                      className="h-12 px-8 font-semibold border-2 border-[#063f55] bg-[#063f55] text-white hover:bg-transparent hover:text-[#063f55] transition-all duration-200 w-full"
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      Search
+                    </Button>
                   </div>
+
+                  {/* Action Buttons Row */}
+                  <div className="flex gap-2 mb-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 border-2 border-[#c3c430] text-[#c3c430] hover:bg-[#c3c430] hover:text-white"
+                      onClick={handleUseCurrentLocation}
+                    >
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Use current location
+                    </Button>
+                  </div>
+
+                  {/* Advanced Filters */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* MedMe Filter */}
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="medme-filter" 
+                        checked={medmeOnly}
+                        onCheckedChange={(checked) => setMedmeOnly(checked === true)}
+                      />
+                      <label 
+                        htmlFor="medme-filter" 
+                        className="text-sm font-medium text-foreground cursor-pointer"
+                      >
+                        MedMe pharmacies only
+                      </label>
+                    </div>
+
+                    {/* Radius Filter */}
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-1 block">
+                        Search Radius
+                      </label>
+                      <Select 
+                        value={selectedRadius.toString()} 
+                        onValueChange={(value) => {
+                          const radius = parseInt(value);
+                          setSelectedRadius(radius);
+                          
+                          if (userLocationCoords) {
+                            toast({
+                              title: "Radius updated",
+                              description: `Searching within ${radius}km radius`,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select radius" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5 km</SelectItem>
+                          <SelectItem value="10">10 km</SelectItem>
+                          <SelectItem value="25">25 km</SelectItem>
+                          <SelectItem value="50">50 km</SelectItem>
+                          <SelectItem value="100">100 km</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Selected Services Display */}
+                  {selectedServices.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedServices.map(service => {
+                          const option = serviceOptions.find(opt => opt.value === service);
+                          return (
+                            <Badge
+                              key={service}
+                              variant="secondary"
+                              className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
+                            >
+                              {option?.label || service}
+                              <X 
+                                className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
+                                onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
+                              />
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Address Input */}
-                <div className="w-full">
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                    <AddressAutocomplete
-                      value={location}
-                      onChange={handleLocationInputChange}
-                      onPlaceSelect={handlePlaceSelect}
-                      placeholder="Enter your address"
-                      className="pl-10 h-12 text-base border-border/50 w-full"
-                      center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
-                      radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
-                    />
+                {/* Pharmacy List */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Searching for pharmacies...
+                        </div>
+                      ) : (
+                        `${pharmacyCards.length} pharmacies ${location.trim() ? `near ${location}` : 'available'}`
+                      )}
+                    </h3>
+                    <Button variant="ghost" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filters
+                    </Button>
                   </div>
-                </div>
 
-                {/* Search Button */}
-                <Button 
-                  onClick={() => handleGeocodeTypedAddress()}
-                  disabled={!location.trim()}
-                  size="lg" 
-                  className="h-12 px-8 font-semibold border-2 border-[#063f55] bg-[#063f55] text-white hover:bg-transparent hover:text-[#063f55] transition-all duration-200 w-full"
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  Search
-                </Button>
-              </div>
-
-              {/* Action Buttons Row */}
-              <div className="flex gap-2 mb-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 border-2 border-[#c3c430] text-[#c3c430] hover:bg-[#c3c430] hover:text-white"
-                  onClick={handleUseCurrentLocation}
-                >
-                  <Navigation className="h-4 w-4 mr-2" />
-                  Use current location
-                </Button>
-              </div>
-
-              {/* Advanced Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* MedMe Filter */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="medme-filter" 
-                    checked={medmeOnly}
-                    onCheckedChange={(checked) => setMedmeOnly(checked === true)}
+                  <PharmacyResultsList
+                    pharmacies={pharmacyCards}
+                    loading={loading}
+                    onPharmacySelect={handlePharmacySelect}
+                    onBookAppointment={handleBookAppointment}
+                    calculateDistance={calculatePharmacyDistance}
+                    userLocation={userLocationCoords}
                   />
-                  <label 
-                    htmlFor="medme-filter" 
-                    className="text-sm font-medium text-foreground cursor-pointer"
-                  >
-                    MedMe pharmacies only
-                  </label>
-                </div>
-
-                {/* Radius Filter */}
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">
-                    Search Radius
-                  </label>
-                  <Select 
-                    value={selectedRadius.toString()} 
-                    onValueChange={(value) => {
-                      const radius = parseInt(value);
-                      setSelectedRadius(radius);
-                      
-                      if (userLocationCoords) {
-                        toast({
-                          title: "Radius updated",
-                          description: `Searching within ${radius}km radius`,
-                        });
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select radius" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 km</SelectItem>
-                      <SelectItem value="10">10 km</SelectItem>
-                      <SelectItem value="25">25 km</SelectItem>
-                      <SelectItem value="50">50 km</SelectItem>
-                      <SelectItem value="100">100 km</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
-
-              {/* Selected Services Display */}
-              {selectedServices.length > 0 && (
-                <div className="mt-4">
-                  <div className="flex flex-wrap gap-2">
-                    {selectedServices.map(service => {
-                      const option = serviceOptions.find(opt => opt.value === service);
-                      return (
-                        <Badge
-                          key={service}
-                          variant="secondary"
-                          className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-primary/20"
-                        >
-                          {option?.label || service}
-                          <X 
-                            className="h-3 w-3 cursor-pointer hover:bg-destructive/20 rounded-full" 
-                            onClick={() => setSelectedServices(selectedServices.filter(s => s !== service))}
-                          />
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Pharmacy List */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-foreground">
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Searching for pharmacies...
-                    </div>
-                  ) : (
-                    `${pharmacyCards.length} pharmacies ${location.trim() ? `near ${location}` : 'available'}`
-                  )}
-                </h3>
-                <Button variant="ghost" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-              </div>
-
-              <PharmacyResultsList
+            {/* Right Column - Map */}
+            <div className="w-1/2 h-screen sticky top-0 relative overflow-hidden">
+              <MapSection
                 pharmacies={pharmacyCards}
-                loading={loading}
                 onPharmacySelect={handlePharmacySelect}
-                onBookAppointment={handleBookAppointment}
-                calculateDistance={calculatePharmacyDistance}
+                center={mapCenter}
+                zoom={mapZoom}
                 userLocation={userLocationCoords}
+                showSearchThisArea={showSearchThisArea}
+                onSearchThisArea={handleSearchThisArea}
               />
             </div>
           </div>
         </div>
-
-        {/* Right Column - Map */}
-        <div className="w-1/2 h-screen sticky top-0 relative overflow-hidden">
-          <MapSection
-            pharmacies={pharmacyCards}
-            onPharmacySelect={handlePharmacySelect}
-            center={mapCenter}
-            zoom={mapZoom}
-            userLocation={userLocationCoords}
-            showSearchThisArea={showSearchThisArea}
-            onSearchThisArea={handleSearchThisArea}
-          />
-        </div>
-      </div>
+      )}
 
       <BookingDialog
         open={bookingDialogOpen}
@@ -734,7 +761,7 @@ const SearchAndBooking = () => {
         onOpenChange={setProfileDrawerOpen}
         onBookAppointment={handleBookAppointment}
       />
-    </div>
+    </>
   );
 };
 
