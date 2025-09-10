@@ -173,7 +173,10 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
                 )}
                 
                 {pharmacy.openNow !== undefined && (
-                  <Badge variant={pharmacy.openNow ? "default" : "secondary"} className="text-xs flex-shrink-0">
+                  <Badge 
+                    variant={pharmacy.openNow ? "default" : "secondary"} 
+                    className={`text-xs flex-shrink-0 ${pharmacy.openNow ? 'bg-[hsl(215,85%,20%)] text-white hover:bg-[hsl(215,85%,15%)]' : ''}`}
+                  >
                     {pharmacy.openNow ? "Open" : "Closed"}
                   </Badge>
                 )}
@@ -197,27 +200,27 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
             )}
             
             {pharmacy.phone && (
-              <Button variant="outline" onClick={handleCallPharmacy} size="sm" className="flex-shrink-0 text-xs px-2">
+              <Button variant="outline" onClick={handleCallPharmacy} size="sm" className="flex-shrink-0 text-xs px-2 border-2 border-[hsl(64,55%,48%)] text-[hsl(64,55%,48%)] hover:bg-[hsl(64,55%,48%)] hover:text-white">
                 <Phone className="h-3 w-3 mr-1" />
                 Call
               </Button>
             )}
             
             {pharmacy.website && (
-              <Button variant="outline" onClick={handleVisitWebsite} size="sm" className="flex-shrink-0 text-xs px-2">
+              <Button variant="outline" onClick={handleVisitWebsite} size="sm" className="flex-shrink-0 text-xs px-2 border-2 border-[hsl(64,55%,48%)] text-[hsl(64,55%,48%)] hover:bg-[hsl(64,55%,48%)] hover:text-white">
                 <Globe className="h-3 w-3 mr-1" />
                 Web
               </Button>
             )}
             
             {pharmacy.source === 'google' && (
-              <Button variant="outline" onClick={handleViewOnGoogleMaps} size="sm" className="flex-shrink-0 text-xs px-2">
+              <Button variant="outline" onClick={handleViewOnGoogleMaps} size="sm" className="flex-shrink-0 text-xs px-2 border-2 border-[hsl(64,55%,48%)] text-[hsl(64,55%,48%)] hover:bg-[hsl(64,55%,48%)] hover:text-white">
                 <ExternalLink className="h-3 w-3 mr-1" />
                 Google
               </Button>
             )}
 
-            <Button variant="outline" onClick={handleGetDirections} size="sm" className="flex-shrink-0 text-xs px-2">
+            <Button variant="outline" onClick={handleGetDirections} size="sm" className="flex-shrink-0 text-xs px-2 border-2 border-[hsl(64,55%,48%)] text-[hsl(64,55%,48%)] hover:bg-[hsl(64,55%,48%)] hover:text-white">
               <Navigation className="h-3 w-3 mr-1" />
               Dir
             </Button>
