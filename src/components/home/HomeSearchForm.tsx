@@ -52,13 +52,13 @@ const HomeSearchForm = () => {
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Service/Symptom Search */}
             <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 min-h-[60px] p-2">
                 <BubbleFilterSelect
                   value={selectedServices}
                   onValueChange={setSelectedServices}
                   options={PHARMACY_SERVICES}
                   placeholder="Search by symptom, specialty or clinic name"
-                  className="min-w-[250px]"
+                  className="min-w-[280px]"
                 />
                 {/* Selected service bubbles */}
                 {selectedServices.map((serviceValue) => {
@@ -67,12 +67,12 @@ const HomeSearchForm = () => {
                   return (
                     <div
                       key={service.value}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm font-medium"
+                      className="inline-flex items-center gap-1 px-3 py-2 bg-white border-2 border-[hsl(var(--nav-button))] text-[hsl(var(--nav-button))] rounded-full text-sm font-medium hover:bg-[hsl(var(--nav-button))]/5 transition-all"
                     >
                       {service.label}
                       <button
                         onClick={() => setSelectedServices(selectedServices.filter(s => s !== service.value))}
-                        className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
+                        className="ml-1 hover:bg-[hsl(var(--nav-button))]/20 rounded-full p-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
