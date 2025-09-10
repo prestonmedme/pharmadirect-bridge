@@ -174,9 +174,9 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
               </div>
             </div>
           </DrawerTrigger>
-          <DrawerContent className="max-h-[70vh]">
+          <DrawerContent className="max-h-[70vh] bg-[hsl(var(--medme-navy))]">
             <DrawerHeader>
-              <DrawerTitle>
+              <DrawerTitle className="text-[hsl(var(--medme-lime))]">
                 {loading ? "Searching..." : `${pharmacyCards.length} pharmacies found`}
               </DrawerTitle>
             </DrawerHeader>
