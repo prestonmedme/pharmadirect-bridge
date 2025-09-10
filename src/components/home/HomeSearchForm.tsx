@@ -48,17 +48,17 @@ const HomeSearchForm = () => {
     <section className="py-8 bg-background">
       <div className="container max-w-4xl mx-auto px-4">
         {/* Search inputs */}
-        <div className="bg-white rounded-2xl border border-border shadow-card p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Service/Symptom Search */}
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 min-h-[60px] p-2">
+        <div className="bg-white rounded-2xl border border-border shadow-card p-4 sm:p-6 mb-8">
+          <div className="space-y-4">
+            {/* Service/Symptom Search - positioned above address */}
+            <div className="w-full">
+              <div className="flex flex-wrap items-center gap-2 min-h-[50px] p-2">
                 <BubbleFilterSelect
                   value={selectedServices}
                   onValueChange={setSelectedServices}
                   options={PHARMACY_SERVICES}
                   placeholder="Search by symptom, specialty or clinic name"
-                  className="min-w-[280px]"
+                  className="w-full max-w-none"
                 />
                 {/* Selected service bubbles */}
                 {selectedServices.map((serviceValue) => {
@@ -83,30 +83,33 @@ const HomeSearchForm = () => {
               </div>
             </div>
 
-            {/* Address Input */}
-            <div className="flex-1">
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                <MapboxAddressAutocomplete
-                  value={address}
-                  onChange={setAddress}
-                  placeholder="Enter your address"
-                  className="pl-10 h-12 text-base border-border/50"
-                  onPlaceSelect={(result) => {
-                    setAddress(result.formatted_address);
-                  }}
-                />
+            {/* Address Input and Search Button Row */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Address Input */}
+              <div className="flex-1">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                  <MapboxAddressAutocomplete
+                    value={address}
+                    onChange={setAddress}
+                    placeholder="Enter your address"
+                    className="pl-10 h-12 text-base border-border/50 w-full"
+                    onPlaceSelect={(result) => {
+                      setAddress(result.formatted_address);
+                    }}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Search Button */}
-            <Button 
-              onClick={handleSearch}
-              size="lg" 
-              className="h-12 px-8 font-semibold bg-[hsl(var(--nav-button))] hover:bg-[hsl(var(--nav-button))]/80 text-white"
-            >
-              Search
-            </Button>
+              {/* Search Button */}
+              <Button 
+                onClick={handleSearch}
+                size="lg" 
+                className="h-12 px-6 sm:px-8 font-semibold bg-[hsl(var(--nav-button))] hover:bg-[hsl(var(--nav-button))]/80 text-white flex-shrink-0"
+              >
+                Search
+              </Button>
+            </div>
           </div>
         </div>
 
