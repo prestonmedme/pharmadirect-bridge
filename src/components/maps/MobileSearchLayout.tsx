@@ -155,13 +155,13 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerTrigger asChild>
-            <div className="bg-white rounded-t-xl shadow-lg p-4 cursor-pointer">
+            <div className="bg-[hsl(var(--medme-navy))] rounded-t-xl shadow-lg p-4 cursor-pointer">
               <div className="flex items-center justify-center mb-2">
                 <div className="w-12 h-1 bg-gray-300 rounded-full" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg">
+                  <h3 className="font-semibold text-lg text-[hsl(var(--medme-lime))]">
                     {loading ? "Searching..." : `${pharmacyCards.length} pharmacies`}
                   </h3>
                   <p className="text-sm text-gray-600">
