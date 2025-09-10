@@ -157,20 +157,20 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
           <DrawerTrigger asChild>
             <div className="bg-[hsl(var(--medme-navy))] rounded-t-xl shadow-lg p-4 cursor-pointer">
               <div className="flex items-center justify-center mb-2">
-                <div className="w-12 h-1 bg-gray-300 rounded-full" />
+                <div className="w-12 h-1 bg-white/30 rounded-full" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-lg text-[hsl(var(--medme-lime))]">
                     {loading ? "Searching..." : `${pharmacyCards.length} pharmacies`}
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-[hsl(var(--medme-lime))]/80">
                     {pharmacyCards.length > 0 && (
                       `Showing ${Math.min(pharmacyCards.length, 12)} results`
                     )}
                   </p>
                 </div>
-                <ChevronUp className="h-5 w-5 text-gray-400" />
+                <ChevronUp className="h-5 w-5 text-[hsl(var(--medme-lime))]/60" />
               </div>
             </div>
           </DrawerTrigger>
