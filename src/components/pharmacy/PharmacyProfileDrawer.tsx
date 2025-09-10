@@ -148,8 +148,8 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[85vh] max-h-[600px] max-w-lg mx-auto w-full">
-        <DrawerHeader className="border-b flex-shrink-0">
+      <DrawerContent className="h-[85vh] max-h-[600px] max-w-xl mx-auto w-full">
+        <DrawerHeader className="border-b flex-shrink-0 px-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
