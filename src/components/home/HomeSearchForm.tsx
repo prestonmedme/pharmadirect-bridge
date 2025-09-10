@@ -67,12 +67,13 @@ const HomeSearchForm = () => {
                   return (
                     <div
                       key={service.value}
-                      className="inline-flex items-center gap-1 px-3 py-2 bg-white border-2 border-[hsl(var(--nav-button))] text-[hsl(var(--nav-button))] rounded-full text-sm font-medium hover:bg-[hsl(var(--nav-button))]/5 transition-all"
+                      className="inline-flex items-center gap-1 px-3 py-2 bg-[#063f55] text-white border-2 border-[#063f55] rounded-full text-sm font-medium hover:shadow-md transition-all"
                     >
                       {service.label}
+                      <span className="text-xs ml-1">✓</span>
                       <button
                         onClick={() => setSelectedServices(selectedServices.filter(s => s !== service.value))}
-                        className="ml-1 hover:bg-[hsl(var(--nav-button))]/20 rounded-full p-0.5 transition-colors"
+                        className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
