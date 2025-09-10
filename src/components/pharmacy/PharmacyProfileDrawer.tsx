@@ -148,8 +148,8 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[90vh] max-w-2xl mx-auto">
-        <DrawerHeader className="border-b">
+      <DrawerContent className="h-[85vh] max-h-[600px] max-w-lg mx-auto w-full">
+        <DrawerHeader className="border-b flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -224,15 +224,15 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
           </div>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden min-h-0">
           {loading ? (
-            <div className="p-6 space-y-4">
+            <div className="p-4 space-y-4">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-4 w-1/2" />
               <Skeleton className="h-20 w-full" />
             </div>
           ) : error ? (
-            <div className="p-6 text-center">
+            <div className="p-4 text-center">
               <p className="text-destructive">{error}</p>
               <Button variant="outline" onClick={() => window.location.reload()} className="mt-2">
                 Retry
@@ -240,7 +240,7 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
             </div>
           ) : (
             <Tabs defaultValue="overview" className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-3 mx-6 mt-4">
+              <TabsList className="grid w-full grid-cols-3 mx-4 mt-2 flex-shrink-0">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="services">Services</TabsTrigger>
                 {pharmacy.medmeConnected && (
@@ -248,17 +248,17 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
                 )}
               </TabsList>
 
-              <div className="flex-1 overflow-y-auto p-6">
-                <TabsContent value="overview" className="space-y-4 mt-0">
+              <div className="flex-1 overflow-y-auto px-4 pb-4 min-h-0">
+                <TabsContent value="overview" className="space-y-4 mt-4">
                   <OverviewTab pharmacy={pharmacy} details={details} />
                 </TabsContent>
 
-                <TabsContent value="services" className="space-y-4 mt-0">
+                <TabsContent value="services" className="space-y-4 mt-4">
                   <ServicesTab pharmacy={pharmacy} details={details} />
                 </TabsContent>
 
                 {pharmacy.medmeConnected && (
-                  <TabsContent value="availability" className="space-y-4 mt-0">
+                  <TabsContent value="availability" className="space-y-4 mt-4">
                     <AvailabilityTab pharmacy={pharmacy} details={details} onBookAppointment={onBookAppointment} />
                   </TabsContent>
                 )}
