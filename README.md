@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# USA Pharmacy Directory
+
+**Repository replaced with usapharmacydirectory content on September 10, 2025**
 
 ## Project info
 
