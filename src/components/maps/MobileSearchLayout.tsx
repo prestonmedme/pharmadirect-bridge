@@ -157,7 +157,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
           <DrawerTrigger asChild>
             <div className="bg-white border-2 border-[hsl(var(--medme-navy))] rounded-t-xl shadow-lg p-4 cursor-pointer">
               <div className="flex items-center justify-center mb-2">
-                <div className="w-12 h-1 bg-[hsl(var(--medme-navy))]/30 rounded-full" />
+                <div className="w-12 h-1 bg-gray-300 rounded-full" />
               </div>
               <div className="flex items-center justify-between">
                 <div>
