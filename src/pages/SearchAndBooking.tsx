@@ -596,6 +596,25 @@ const SearchAndBooking = () => {
                       </div>
                     </div>
 
+                    {/* Filter Display Area - Space for filter bubbles */}
+                    {selectedServices && selectedServices.length > 0 && (
+                      <div className="w-full min-h-[60px] py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {selectedServices.map((serviceValue) => {
+                            const service = serviceOptions.find(opt => opt.value === serviceValue);
+                            return service ? (
+                              <span
+                                key={serviceValue}
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[#063f55] text-white"
+                              >
+                                {service.label}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Search Button */}
                     <Button 
                       onClick={() => handleGeocodeTypedAddress()}
