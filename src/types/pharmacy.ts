@@ -14,6 +14,7 @@ export type PharmacyCard = {
   placeAttributionHtml?: string;    // required when source='google'
   placeId?: string;                 // Google Places lookup
   medmeId?: string;                 // MedMe lookup
+  logoUrl?: string;                 // Custom logo URL for MedMe pharmacies
 };
 
 export type PharmacyDetails = PharmacyCard & {

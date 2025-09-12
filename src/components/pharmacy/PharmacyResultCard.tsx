@@ -74,9 +74,18 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-lg">{pharmacy.name}</h3>
               {pharmacy.source === 'medme' && (
-                <Badge variant="default" className="text-xs">
-                  MedMe
-                </Badge>
+                <div className="flex items-center gap-1">
+                  {pharmacy.logoUrl && (
+                    <img 
+                      src={pharmacy.logoUrl} 
+                      alt="MedMe" 
+                      className="h-5 w-5 rounded object-contain"
+                    />
+                  )}
+                  <Badge variant="default" className="text-xs">
+                    MedMe
+                  </Badge>
+                </div>
               )}
               {pharmacy.openNow !== undefined && (
                 <Badge 

@@ -45,6 +45,7 @@ export const adaptPharmacyToCard = (pharmacy: Pharmacy): PharmacyCard => {
       new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Day after
     ] : undefined,
     placeId: undefined, // Mapbox-based implementation doesn't use Google Place IDs
-    medmeId: pharmacy.type === 'medme' ? pharmacy.id : undefined
+    medmeId: pharmacy.type === 'medme' ? pharmacy.id : undefined,
+    logoUrl: pharmacy.logoUrl // Pass through logo URL
   };
 };

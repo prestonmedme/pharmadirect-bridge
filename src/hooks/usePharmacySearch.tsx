@@ -22,6 +22,7 @@ export interface Pharmacy {
   type?: 'regular' | 'medme' | 'us';
   displayData?: PharmacyDisplayData;
   distance?: number;
+  logoUrl?: string; // Add logo URL support
 }
 
 export interface MedMePharmacy {
@@ -100,7 +101,8 @@ export const usePharmacySearch = () => {
       latitude: usPharmacy.lat || null,
       longitude: usPharmacy.lng || null,
       services: null,
-      type: 'us'
+      type: 'us',
+      logoUrl: (usPharmacy as any).logoUrl // Preserve logo URL if present
     };
   };
 
@@ -627,16 +629,16 @@ export const usePharmacySearch = () => {
       console.log(`✅ Found ${regularPharmacies?.length || 0} regular pharmacies`);
 
       // Get MedMe pharmacies (using only available columns)
-      const { data: medmePharmacies, error: medmeError } = await supabase
+      const { data: basicMedmePharmacies, error: basicMedmeError } = await supabase
         .from('medme_pharmacies')
         .select('id, pharmacy_id, is_active')
         .eq('is_active', true);
 
-      if (medmeError) {
-        console.warn('⚠️ Error fetching MedMe pharmacies:', medmeError);
+      if (basicMedmeError) {
+        console.warn('⚠️ Error fetching MedMe pharmacies:', basicMedmeError);
       }
 
-      console.log(`✅ Found ${medmePharmacies?.length || 0} active MedMe pharmacies`);
+      console.log(`✅ Found ${basicMedmePharmacies?.length || 0} active MedMe pharmacies`);
 
       // Get US pharmacies with database-level distance filtering for efficiency
       const latDiff = radiusKm / 111.0; // 1 degree latitude ≈ 111km
@@ -644,7 +646,7 @@ export const usePharmacySearch = () => {
       
       const { data: usPharmacies, error: usError } = await supabase
         .from('us_pharmacy_data')
-        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
+        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng, main_image_url')
         .not('lat', 'is', null)
         .not('lng', 'is', null)
         .gte('lat', latitude - latDiff)
@@ -658,17 +660,50 @@ export const usePharmacySearch = () => {
 
       console.log(`✅ Found ${usPharmacies?.length || 0} US pharmacies in database search area`);
 
-      // For now, skip MedMe pharmacies since they don't have location data in the current schema
-      // TODO: Enhance MedMe pharmacies with location data from another source if needed
+      // For now, fetch MedMe pharmacies by joining with pharmacy location data
+      const { data: medmePharmacies, error: medmeError } = await supabase
+        .from('medme_pharmacies')
+        .select(`
+          pharmacy_id,
+          is_active,
+          pharmacies!inner(*)
+        `)
+        .eq('is_active', true);
+
+      if (medmeError) {
+        console.warn('⚠️ Error fetching MedMe pharmacies:', medmeError);
+      }
+
+      // For now, skip the complex join and handle MedMe pharmacies from US data
       const validMedmePharmacies: any[] = [];
 
-      console.log(`✅ ${validMedmePharmacies.length} MedMe pharmacies with valid coordinates (currently skipped due to missing location data)`);
+      console.log(`✅ ${validMedmePharmacies.length} MedMe pharmacies with valid coordinates (using simplified approach)`);
+
+      console.log(`✅ ${validMedmePharmacies.length} MedMe pharmacies with valid coordinates`);
+
+      // Also check US pharmacy data for MedMe pharmacies (Preston's Pills)
+      const medmeUSPharmacies = (usPharmacies || []).filter(up => 
+        up.main_image_url === '/medme-logo.png' || up.name === "Preston's Pills"
+      );
+      
+      console.log(`✅ Found ${medmeUSPharmacies.length} MedMe pharmacies in US data`);
 
       // Combine and convert all pharmacies
       let allPharmacies: Pharmacy[] = [
         ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
-        ...(usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy)),
-        ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
+        ...(usPharmacies || [])
+          .filter(up => up.main_image_url !== '/medme-logo.png' && up.name !== "Preston's Pills") // Exclude MedMe ones from regular US data
+          .map((up: any) => convertUSPharmacy(up as USPharmacy)),
+        ...medmeUSPharmacies.map((up: any) => ({
+          ...convertUSPharmacy(up as USPharmacy),
+          type: 'medme' as const,
+          logoUrl: '/medme-logo.png'
+        })),
+        ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy({
+          ...mp,
+          medmeId: mp.medmeId,
+          logoUrl: mp.logoUrl
+        } as MedMePharmacy & { logoUrl: string }))
       ];
 
       console.log(`📊 Total pharmacies before radius filtering: ${allPharmacies.length}`);
