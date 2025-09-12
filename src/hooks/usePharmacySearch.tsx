@@ -324,10 +324,13 @@ export const usePharmacySearch = () => {
         console.log(`✅ Fetched ${medmePharmacies?.length || 0} active MedMe pharmacies`);
       }
 
+      // Build a set of MedMe-linked pharmacy IDs
+      const medmePharmacyIds = new Set((medmePharmacies || []).map((m: any) => m.pharmacy_id));
+
       // Get US pharmacies with database-level distance filtering for efficiency
       let usPharmaciesQuery = supabase
         .from('us_pharmacy_data')
-        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
+        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng, main_image_url')
         .not('lat', 'is', null)
         .not('lng', 'is', null);
 
@@ -360,19 +363,29 @@ export const usePharmacySearch = () => {
       console.log('Fetched US pharmacies:', usPharmacies?.length);
       console.log('First few US pharmacies:', usPharmacies?.slice(0, 3));
 
-      // Filter MedMe pharmacies (now only basic info available)
-      const validMedmePharmacies = (medmePharmacies || []).filter((mp: any) => mp.is_active);
-      console.log(`✅ Active MedMe pharmacies: ${validMedmePharmacies.length}`);
+      // Map regular pharmacies; mark MedMe-linked ones as type 'medme' and add logo
+      const mappedRegularOrMedme = (regularPharmacies || []).map(p => ({
+        ...p,
+        type: medmePharmacyIds.has(p.id) ? ('medme' as const) : ('regular' as const),
+        logoUrl: medmePharmacyIds.has(p.id) ? '/medme-logo.png' : undefined,
+      }));
 
-      // Combine and convert pharmacies
-      let allPharmacies: Pharmacy[] = [
-        ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
-        ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy))
-      ];
+      // Build a set of MedMe names to avoid duplicates from US data
+      const medmeNames = new Set(mappedRegularOrMedme.filter(p => p.type === 'medme').map(p => p.name));
 
-      // Add US pharmacies (with database-level filtering already applied)
-      const convertedUSPharmacies = (usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy));
+      // Filter US data to exclude MedMe-branded entries (by image or name)
+      const filteredUSRaw = (usPharmacies || []).filter(up =>
+        up.main_image_url !== '/medme-logo.png' && !medmeNames.has(up.name || '') && up.name !== "Preston's Pills"
+      );
+
+      // Convert US pharmacies (after filtering)
+      const convertedUSPharmacies = filteredUSRaw.map((up: any) => convertUSPharmacy(up as USPharmacy));
       console.log(`🇺🇸 US pharmacies after database filtering: ${convertedUSPharmacies.length}`);
+      
+      // Combine pharmacies (do not include placeholder MedMe objects)
+      let allPharmacies: Pharmacy[] = [
+        ...mappedRegularOrMedme,
+      ];
       
       // Filter by MedMe only if requested
       if (filters.medmeOnly) {
@@ -564,23 +577,35 @@ export const usePharmacySearch = () => {
         console.warn('Error fetching MedMe pharmacies:', medmeError);
       }
 
+      const medmePharmacyIds = new Set((medmePharmacies || []).map((m: any) => m.pharmacy_id));
+
       console.log(`✅ Found ${medmePharmacies?.length || 0} active MedMe pharmacies (location data not available in current schema)`);
 
       // Get US pharmacies
       const { data: usPharmacies, error: usError } = await supabase
         .from('us_pharmacy_data')
-        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng')
+        .select('id, name, address, phone, zip_code, state_name, website, opening_hours, ratings, lat, lng, main_image_url')
         .order('name');
 
       if (usError) {
         console.warn('Error fetching US pharmacies:', usError);
       }
 
+      // Map regular pharmacies and mark MedMe-linked ones
+      const mappedRegularOrMedme = (regularPharmacies || []).map(p => ({
+        ...p,
+        type: medmePharmacyIds.has(p.id) ? ('medme' as const) : ('regular' as const),
+        logoUrl: medmePharmacyIds.has(p.id) ? '/medme-logo.png' : undefined,
+      }));
+
+      const medmeNames = new Set(mappedRegularOrMedme.filter(p => p.type === 'medme').map(p => p.name));
+
+      const filteredUS = (usPharmacies || []).filter(up => up.main_image_url !== '/medme-logo.png' && !medmeNames.has(up.name || '') && up.name !== "Preston's Pills");
+
       // Combine all pharmacies
       const allPharmacies: Pharmacy[] = [
-        ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
-        ...(medmePharmacies || []).map((mp: any) => convertMedMePharmacy(mp as MedMePharmacy)),
-        ...(usPharmacies || []).map((up: any) => convertUSPharmacy(up as USPharmacy))
+        ...mappedRegularOrMedme,
+        ...filteredUS.map((up: any) => convertUSPharmacy(up as USPharmacy))
       ];
 
       // First, quickly load pharmacies with basic display data
