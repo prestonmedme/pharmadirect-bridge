@@ -193,7 +193,17 @@ export const PharmacyProfileDrawer: React.FC<PharmacyProfileDrawerProps> = ({
           {/* Action buttons */}
           <div className="flex gap-1 mt-4 overflow-x-auto">
             {pharmacy.medmeConnected && (
-              <Button onClick={() => onBookAppointment?.(pharmacy)} size="sm" className="flex-shrink-0 text-xs px-2">
+              <Button 
+                onClick={() => {
+                  if (pharmacy.name === "Preston's Pills") {
+                    window.open('https://rexall.medmeapp.com/schedule', '_blank');
+                  } else {
+                    onBookAppointment?.(pharmacy);
+                  }
+                }} 
+                size="sm" 
+                className="flex-shrink-0 text-xs px-2"
+              >
                 <Calendar className="h-3 w-3 mr-1" />
                 Book
               </Button>
@@ -418,7 +428,16 @@ const AvailabilityTab: React.FC<{
                       <p className="font-medium">{date}</p>
                       <p className="text-sm text-muted-foreground">{time}</p>
                     </div>
-                    <Button size="sm" onClick={() => onBookAppointment?.(pharmacy)}>
+                    <Button 
+                      size="sm" 
+                      onClick={() => {
+                        if (pharmacy.name === "Preston's Pills") {
+                          window.open('https://rexall.medmeapp.com/schedule', '_blank');
+                        } else {
+                          onBookAppointment?.(pharmacy);
+                        }
+                      }}
+                    >
                       Book
                     </Button>
                   </div>
