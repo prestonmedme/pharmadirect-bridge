@@ -184,7 +184,7 @@ const SearchAndBooking = () => {
     setUserLocationCoords(coords);
     
     // Search in this area using selected radius
-    getNearbyPharmacies(lat, lng, Math.max(selectedRadius, 5)); // Use selected radius with minimum 5km
+    getNearbyPharmacies(lat, lng, Math.max(selectedRadius, 5), medmeOnly); // Use selected radius with minimum 5km
     setShowSearchThisArea(false);
     
     toast({
@@ -218,7 +218,7 @@ const SearchAndBooking = () => {
     
     // Search for nearby pharmacies using selected radius
     console.log(`🔍 Autocomplete: Searching for pharmacies within ${selectedRadius}km of selected location`);
-    getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+    getNearbyPharmacies(lat, lng, selectedRadius, medmeOnly).then(() => {
       // After pharmacies load, ensure map centers and fits area for better UX
       setMapCenter(coords);
       setMapZoom(12);
@@ -309,10 +309,18 @@ const SearchAndBooking = () => {
     // Only trigger if we have coords AND radius actually changed (not initial set)
     if (userLocationCoords && prevRadiusRef.current !== null && prevRadiusRef.current !== selectedRadius) {
       console.log(`🔄 Radius changed from ${prevRadiusRef.current}km to ${selectedRadius}km - re-searching`);
-      getNearbyPharmacies(userLocationCoords.lat, userLocationCoords.lng, selectedRadius);
+      getNearbyPharmacies(userLocationCoords.lat, userLocationCoords.lng, selectedRadius, medmeOnly);
     }
     prevRadiusRef.current = selectedRadius;
   }, [selectedRadius, userLocationCoords, getNearbyPharmacies]); // Include getNearbyPharmacies to avoid stale closure
+
+  // Re-run nearby search when MedMe filter toggles with precise coordinates
+  useEffect(() => {
+    if (userLocationCoords) {
+      console.log('🔁 MedMe filter toggled - refreshing nearby search');
+      getNearbyPharmacies(userLocationCoords.lat, userLocationCoords.lng, selectedRadius, medmeOnly);
+    }
+  }, [medmeOnly, userLocationCoords, selectedRadius, getNearbyPharmacies]);
 
   // Don't load ALL pharmacies on initial page load for performance
   // Instead, wait for user to select a location or use current location
@@ -345,7 +353,7 @@ const SearchAndBooking = () => {
           
           // Also load nearby pharmacies automatically with default radius
           console.log('🔍 Auto-loading nearby pharmacies for detected user location');
-          getNearbyPharmacies(latitude, longitude, selectedRadius).then(() => {
+          getNearbyPharmacies(latitude, longitude, selectedRadius, medmeOnly).then(() => {
             setMapCenter(coords);
             setMapZoom(12);
           });
@@ -374,7 +382,7 @@ const SearchAndBooking = () => {
           setMapZoom(14);
           
           // Use the enhanced nearby search with selected radius
-          getNearbyPharmacies(latitude, longitude, selectedRadius);
+          getNearbyPharmacies(latitude, longitude, selectedRadius, medmeOnly);
           
           toast({
             title: "Location updated",
@@ -478,7 +486,7 @@ const SearchAndBooking = () => {
 
       // Search for nearby pharmacies
       console.log(`🔍 Searching for pharmacies within ${selectedRadius}km`);
-      getNearbyPharmacies(lat, lng, selectedRadius).then(() => {
+      getNearbyPharmacies(lat, lng, selectedRadius, medmeOnly).then(() => {
         setMapCenter(coords);
         setMapZoom(12);
       });
