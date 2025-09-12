@@ -78,27 +78,21 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
 
       {/* Top navigation bar */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
-        <div className={cn(
-          "transition-all duration-300 ease-in-out",
-          (isSearchExpanded || isFilterExpanded) ? "flex-col space-y-4" : "flex items-center gap-3"
-        )}>
-          {/* Filter button and expanded filter */}
-          <div className={cn(
-            "transition-all duration-300 ease-in-out",
-            isSearchExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100",
-            isFilterExpanded ? "w-full" : ""
-          )}>
-            {!isFilterExpanded ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsFilterExpanded(true)}
-                className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] w-10 h-10 p-0"
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-            ) : (
-              <div className="bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-md p-4 space-y-4 animate-fade-in">
+        <div className="flex items-center gap-3">
+          {/* Filter button and dropdown */}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+              className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] w-10 h-10 p-0"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+            
+            {/* Filter dropdown */}
+            {isFilterExpanded && (
+              <div className="absolute top-12 left-0 w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-lg p-4 space-y-4 animate-fade-in z-50">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Filters</h3>
                   <Button
@@ -120,25 +114,22 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
             )}
           </div>
 
-          {/* Search bar - expands when clicked */}
-          <div className={cn(
-            "transition-all duration-300 ease-in-out flex-1 min-w-0",
-            isFilterExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100",
-            isSearchExpanded ? "w-full" : ""
-          )}>
-            {!isSearchExpanded ? (
-              <Button
-                variant="outline"
-                onClick={() => setIsSearchExpanded(true)}
-                className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-10 text-[hsl(var(--medme-navy))] max-w-full"
-              >
-                <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))] flex-shrink-0" />
-                <span className="truncate text-sm">
-                  {location || "Search location..."}
-                </span>
-              </Button>
-            ) : (
-              <div className="bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-md p-4 space-y-4 animate-fade-in">
+          {/* Search button and dropdown */}
+          <div className="relative flex-1 min-w-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+              className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-10 text-[hsl(var(--medme-navy))] max-w-full"
+            >
+              <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))] flex-shrink-0" />
+              <span className="truncate text-sm">
+                {location || "Search location..."}
+              </span>
+            </Button>
+            
+            {/* Search dropdown */}
+            {isSearchExpanded && (
+              <div className="absolute top-12 left-0 right-0 bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-lg p-4 space-y-4 animate-fade-in z-50">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Search Location</h3>
                   <Button
