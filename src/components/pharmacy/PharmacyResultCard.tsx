@@ -45,7 +45,12 @@ export const PharmacyResultCard: React.FC<PharmacyResultCardProps> = ({
       'general',
       pharmacy.source === 'medme'
     );
-    onBookAppointment?.(pharmacy);
+    
+    if (pharmacy.name === "Preston's Pills") {
+      window.open('https://rexall.medmeapp.com/schedule', '_blank');
+    } else {
+      onBookAppointment?.(pharmacy);
+    }
   };
 
   const handleCallClick = (e: React.MouseEvent) => {
