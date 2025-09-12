@@ -78,109 +78,128 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
 
       {/* Top navigation bar */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
-        <div className="flex items-center gap-3">
-          {/* Filter button and dropdown */}
-          <div className="relative">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-              className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] w-10 h-10 p-0"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-            
-            {/* Filter dropdown */}
-            {isFilterExpanded && (
-              <div className="absolute top-12 left-0 w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-lg p-4 space-y-4 animate-fade-in z-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Filters</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsFilterExpanded(false)}
-                    className="text-[hsl(var(--medme-navy))]"
-                  >
-                    ✕
-                  </Button>
-                </div>
-                <BubbleFilterSelect
-                  options={serviceOptions}
-                  value={selectedServices}
-                  onValueChange={onServicesChange}
-                  placeholder="Select services..."
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Search button and dropdown */}
-          <div className="relative flex-1 min-w-0">
-            <Button
-              variant="outline"
-              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-              className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-10 text-[hsl(var(--medme-navy))] max-w-full"
-            >
-              <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))] flex-shrink-0" />
-              <span className="truncate text-sm">
-                {location || "Search location..."}
-              </span>
-            </Button>
-            
-            {/* Search dropdown */}
-            {isSearchExpanded && (
-              <div className="absolute top-12 left-0 right-0 bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-lg p-4 space-y-4 animate-fade-in z-50">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Search Location</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsSearchExpanded(false)}
-                    className="text-[hsl(var(--medme-navy))]"
-                  >
-                    ✕
-                  </Button>
-                </div>
-                <AddressAutocomplete
-                  value={location}
-                  onChange={onLocationChange}
-                  onPlaceSelect={(result) => {
-                    onPlaceSelect(result);
-                    setIsSearchExpanded(false);
-                  }}
-                  placeholder="Enter address or location..."
-                  className="w-full"
-                  center={userLocation}
-                  radiusKm={25}
-                />
-                <div className="flex gap-2 w-full">
-                  <Button
-                    onClick={() => {
-                      onUseCurrentLocation();
+        <div className="space-y-3">
+          {/* Search button with filter icon */}
+          <div className="relative flex items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Button
+                variant="outline"
+                onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-10 text-[hsl(var(--medme-navy))] max-w-full"
+              >
+                <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))] flex-shrink-0" />
+                <span className="truncate text-sm">
+                  {location || "Search location..."}
+                </span>
+              </Button>
+              
+              {/* Search dropdown */}
+              {isSearchExpanded && (
+                <div className="absolute top-12 left-0 right-0 bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-lg p-4 space-y-4 animate-fade-in z-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Search Location</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsSearchExpanded(false)}
+                      className="text-[hsl(var(--medme-navy))]"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                  <AddressAutocomplete
+                    value={location}
+                    onChange={onLocationChange}
+                    onPlaceSelect={(result) => {
+                      onPlaceSelect(result);
                       setIsSearchExpanded(false);
                     }}
-                    variant="outline"
-                    className="flex-1 text-xs px-2 py-2 h-9"
-                  >
-                    Current Location
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (location.trim()) {
-                        // Trigger search with current location value
-                        onLocationChange(location);
+                    placeholder="Enter address or location..."
+                    className="w-full"
+                    center={userLocation}
+                    radiusKm={25}
+                  />
+                  <div className="flex gap-2 w-full">
+                    <Button
+                      onClick={() => {
+                        onUseCurrentLocation();
                         setIsSearchExpanded(false);
-                      }
-                    }}
-                    variant="default"
-                    className="flex-1 text-xs px-2 py-2 h-9"
-                  >
-                    Enter
-                  </Button>
+                      }}
+                      variant="outline"
+                      className="flex-1 text-xs px-2 py-2 h-9"
+                    >
+                      Current Location
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (location.trim()) {
+                          // Trigger search with current location value
+                          onLocationChange(location);
+                          setIsSearchExpanded(false);
+                        }
+                      }}
+                      variant="default"
+                      className="flex-1 text-xs px-2 py-2 h-9"
+                    >
+                      Enter
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Filter button */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFilterExpanded(!isFilterExpanded)}
+                className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] w-10 h-10 p-0"
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              
+              {/* Filter dropdown */}
+              {isFilterExpanded && (
+                <div className="absolute top-12 right-0 w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-lg p-4 space-y-4 animate-fade-in z-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Filters</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsFilterExpanded(false)}
+                      className="text-[hsl(var(--medme-navy))]"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                  <BubbleFilterSelect
+                    options={serviceOptions}
+                    value={selectedServices}
+                    onValueChange={onServicesChange}
+                    placeholder="Select services..."
+                  />
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Selected filters display */}
+          {selectedServices.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {selectedServices.map((serviceValue) => {
+                const service = serviceOptions.find(opt => opt.value === serviceValue);
+                return service ? (
+                  <div 
+                    key={serviceValue}
+                    className="bg-[hsl(var(--medme-navy))]/10 border border-[hsl(var(--medme-navy))]/20 rounded-full px-3 py-1 text-xs text-[hsl(var(--medme-navy))] backdrop-blur-sm"
+                  >
+                    {service.label}
+                  </div>
+                ) : null;
+              })}
+            </div>
+          )}
         </div>
       </div>
 
