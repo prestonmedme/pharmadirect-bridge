@@ -153,16 +153,16 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
                   center={userLocation}
                   radiusKm={25}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full">
                   <Button
                     onClick={() => {
                       onUseCurrentLocation();
                       setIsSearchExpanded(false);
                     }}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 text-xs px-2 py-2 h-9"
                   >
-                    Use Current Location
+                    Current Location
                   </Button>
                   <Button
                     onClick={() => {
@@ -173,7 +173,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
                       }
                     }}
                     variant="default"
-                    className="flex-1"
+                    className="flex-1 text-xs px-2 py-2 h-9"
                   >
                     Enter
                   </Button>
