@@ -57,7 +57,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
   onBookAppointment,
   calculatePharmacyDistance,
 }) => {
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -79,43 +79,51 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
       {/* Top navigation bar */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
         <div className={cn(
-          "transition-all duration-300 ease-in-out",
-          isSearchExpanded ? "flex-col gap-4" : "flex items-center justify-between gap-3"
+          "transition-all duration-300 ease-in-out space-y-4",
+          (isSearchExpanded || isFilterExpanded) ? "flex-col" : "flex items-center justify-between gap-3"
         )}>
-          {/* Filter button - hidden when search is expanded */}
+          {/* Filter button and expanded filter */}
           <div className={cn(
             "transition-all duration-300 ease-in-out",
-            isSearchExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100"
+            isSearchExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100",
+            isFilterExpanded ? "w-full" : "flex-shrink-0"
           )}>
-            <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <DrawerTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] flex-shrink-0"
-                >
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent className="max-h-[80vh]">
-                <DrawerHeader>
-                  <DrawerTitle>Filters</DrawerTitle>
-                </DrawerHeader>
-                <div className="p-4">
-                  <BubbleFilterSelect
-                    options={serviceOptions}
-                    value={selectedServices}
-                    onValueChange={onServicesChange}
-                    placeholder="Select services..."
-                  />
+            {!isFilterExpanded ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFilterExpanded(true)}
+                className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] flex-shrink-0"
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+            ) : (
+              <div className="bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-md p-4 space-y-4 animate-fade-in">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Filters</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsFilterExpanded(false)}
+                    className="text-[hsl(var(--medme-navy))]"
+                  >
+                    ✕
+                  </Button>
                 </div>
-              </DrawerContent>
-            </Drawer>
+                <BubbleFilterSelect
+                  options={serviceOptions}
+                  value={selectedServices}
+                  onValueChange={onServicesChange}
+                  placeholder="Select services..."
+                />
+              </div>
+            )}
           </div>
 
           {/* Search bar - expands when clicked */}
           <div className={cn(
             "transition-all duration-300 ease-in-out",
+            isFilterExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100",
             isSearchExpanded ? "w-full" : "flex-1 max-w-[250px]"
           )}>
             {!isSearchExpanded ? (
