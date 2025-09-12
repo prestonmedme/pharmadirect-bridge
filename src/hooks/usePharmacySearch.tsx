@@ -633,7 +633,7 @@ export const usePharmacySearch = () => {
   };
 
   // Get pharmacies near a specific location with enhanced filtering
-  const getNearbyPharmacies = async (latitude: number, longitude: number, radiusKm: number = 25, medmeOnly?: boolean) => {
+  const getNearbyPharmacies = async (latitude: number, longitude: number, radiusKm: number = 25) => {
     try {
       setLoading(true);
       setError(null);
@@ -664,8 +664,6 @@ export const usePharmacySearch = () => {
       }
 
       console.log(`✅ Found ${basicMedmePharmacies?.length || 0} active MedMe pharmacies`);
-
-      const medmePharmacyIds = new Set((basicMedmePharmacies || []).map((m: any) => m.pharmacy_id));
 
       // Get US pharmacies with database-level distance filtering for efficiency
       const latDiff = radiusKm / 111.0; // 1 degree latitude ≈ 111km
@@ -715,29 +713,23 @@ export const usePharmacySearch = () => {
       
       console.log(`✅ Found ${medmeUSPharmacies.length} MedMe pharmacies in US data`);
 
-      // Map regular pharmacies and mark MedMe-linked ones
-      const mappedRegularOrMedme = (regularPharmacies || []).map(p => ({
-        ...p,
-        type: medmePharmacyIds.has(p.id) ? ('medme' as const) : ('regular' as const),
-        logoUrl: medmePharmacyIds.has(p.id) ? '/medme-logo.png' : undefined,
-      }));
-
-      // Filter US data to avoid duplicates of MedMe entries
-      const medmeNames = new Set(mappedRegularOrMedme.filter(p => p.type === 'medme').map(p => p.name));
-      const filteredUS = (usPharmacies || []).filter(up =>
-        up.main_image_url !== '/medme-logo.png' && !medmeNames.has(up.name || '') && up.name !== "Preston's Pills"
-      );
-
-      // Combine and convert pharmacies
+      // Combine and convert all pharmacies
       let allPharmacies: Pharmacy[] = [
-        ...mappedRegularOrMedme,
-        ...filteredUS.map((up: any) => convertUSPharmacy(up as USPharmacy))
+        ...(regularPharmacies || []).map(p => ({ ...p, type: 'regular' as const })),
+        ...(usPharmacies || [])
+          .filter(up => up.main_image_url !== '/medme-logo.png' && up.name !== "Preston's Pills") // Exclude MedMe ones from regular US data
+          .map((up: any) => convertUSPharmacy(up as USPharmacy)),
+        ...medmeUSPharmacies.map((up: any) => ({
+          ...convertUSPharmacy(up as USPharmacy),
+          type: 'medme' as const,
+          logoUrl: '/medme-logo.png'
+        })),
+        ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy({
+          ...mp,
+          medmeId: mp.medmeId,
+          logoUrl: mp.logoUrl
+        } as MedMePharmacy & { logoUrl: string }))
       ];
-
-      // Apply MedMe-only filter if requested
-      if (medmeOnly) {
-        allPharmacies = allPharmacies.filter(p => p.type === 'medme');
-      }
 
       console.log(`📊 Total pharmacies before radius filtering: ${allPharmacies.length}`);
 
