@@ -571,33 +571,28 @@ const SearchAndBooking = () => {
                   
                   {/* Primary Search Row */}
                   <div className="space-y-4 mb-4">
-                    {/* Service Type */}
+                    {/* Address Input with Filter Button */}
                     <div className="w-full">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                      <div className="flex gap-2">
                         <BubbleFilterSelect
                           value={selectedServices}
                           onValueChange={setSelectedServices}
                           options={serviceOptions}
                           placeholder="Search by symptom or service"
-                          className="pl-10 h-12 text-base border-border/50"
+                          className="flex-shrink-0"
                         />
-                      </div>
-                    </div>
-
-                    {/* Address Input */}
-                    <div className="w-full">
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                        <AddressAutocomplete
-                          value={location}
-                          onChange={handleLocationInputChange}
-                          onPlaceSelect={handlePlaceSelect}
-                          placeholder="Enter your address"
-                          className="pl-10 h-12 text-base border-border/50 w-full"
-                          center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
-                          radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
-                        />
+                        <div className="relative flex-1">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+                          <AddressAutocomplete
+                            value={location}
+                            onChange={handleLocationInputChange}
+                            onPlaceSelect={handlePlaceSelect}
+                            placeholder="Enter your address"
+                            className="pl-10 h-12 text-base border-border/50 w-full"
+                            center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
+                            radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
+                          />
+                        </div>
                       </div>
                     </div>
 
