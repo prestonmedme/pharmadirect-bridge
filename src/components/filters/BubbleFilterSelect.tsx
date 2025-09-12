@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -60,34 +60,24 @@ export function BubbleFilterSelect({
 
   return (
     <div className={cn("relative", className)}>
-      {/* Primary bubble/trigger */}
+      {/* Filter icon trigger */}
       <Button
         variant="outline"
+        size="sm"
         onClick={() => setIsExpanded(!isExpanded)}
         className={cn(
-          "h-auto min-h-10 px-3 py-2 rounded-full border-2 transition-all duration-200",
-          "bg-[#063f55] text-white border-[#063f55] max-w-xs w-auto -ml-2",
-          "hover:border-[hsl(var(--nav-button))] hover:text-[hsl(var(--nav-button))] hover:bg-white focus:border-[hsl(var(--nav-button))]",
+          "w-10 h-10 p-0 rounded-lg border-2 transition-all duration-200",
+          "bg-white/90 backdrop-blur-sm border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))]",
           isExpanded && "border-[hsl(var(--nav-button))] shadow-lg",
-          value && value.length > 0 && "bg-[#063f55]/5 border-[#063f55] text-[#063f55]",
-          "justify-start text-left"
+          value && value.length > 0 && "bg-[hsl(var(--medme-navy))]/10 border-[hsl(var(--medme-navy))]"
         )}
       >
-        <span className="flex items-center gap-2">
-          <span className="font-medium">{getDisplayLabel()}</span>
-          {value && value.length > 0 && (
-            <X 
-              className="h-4 w-4 ml-1 hover:bg-destructive/10 rounded-full p-0.5" 
-              onClick={handleClearAll}
-            />
-          )}
-          <ChevronDown 
-            className={cn(
-              "h-4 w-4 transition-transform duration-200",
-              isExpanded && "rotate-180"
-            )} 
-          />
-        </span>
+        <Filter className="h-4 w-4" />
+        {value && value.length > 0 && (
+          <span className="absolute -top-1 -right-1 bg-[hsl(var(--medme-navy))] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {value.length}
+          </span>
+        )}
       </Button>
 
       {/* Expanded bubbles */}
