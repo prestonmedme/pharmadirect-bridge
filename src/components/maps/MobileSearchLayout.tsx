@@ -58,7 +58,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
   calculatePharmacyDistance,
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
@@ -78,57 +78,76 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
 
       {/* Top navigation bar */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4">
-        <div className="flex items-center justify-between gap-3">
-          {/* Filter button */}
-          <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <DrawerTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] flex-shrink-0"
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="max-h-[80vh]">
-              <DrawerHeader>
-                <DrawerTitle>Filters</DrawerTitle>
-              </DrawerHeader>
-              <div className="p-4">
-                <BubbleFilterSelect
-                  options={serviceOptions}
-                  value={selectedServices}
-                  onValueChange={onServicesChange}
-                  placeholder="Select services..."
-                />
-              </div>
-            </DrawerContent>
-          </Drawer>
+        <div className={cn(
+          "transition-all duration-300 ease-in-out",
+          isSearchExpanded ? "flex-col gap-4" : "flex items-center justify-between gap-3"
+        )}>
+          {/* Filter button - hidden when search is expanded */}
+          <div className={cn(
+            "transition-all duration-300 ease-in-out",
+            isSearchExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100"
+          )}>
+            <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <DrawerTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 text-[hsl(var(--medme-navy))] flex-shrink-0"
+                >
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[80vh]">
+                <DrawerHeader>
+                  <DrawerTitle>Filters</DrawerTitle>
+                </DrawerHeader>
+                <div className="p-4">
+                  <BubbleFilterSelect
+                    options={serviceOptions}
+                    value={selectedServices}
+                    onValueChange={onServicesChange}
+                    placeholder="Select services..."
+                  />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </div>
 
-          {/* Address search bubble */}
-          <Drawer open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-            <DrawerTrigger asChild>
+          {/* Search bar - expands when clicked */}
+          <div className={cn(
+            "transition-all duration-300 ease-in-out",
+            isSearchExpanded ? "w-full" : "flex-1 max-w-[250px]"
+          )}>
+            {!isSearchExpanded ? (
               <Button
                 variant="outline"
-                className="flex-1 max-w-[250px] bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-auto min-h-10 text-[hsl(var(--medme-navy))]"
+                onClick={() => setIsSearchExpanded(true)}
+                className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-auto min-h-10 text-[hsl(var(--medme-navy))]"
               >
                 <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))]" />
                 <span className="truncate text-sm">
                   {location || "Search location..."}
                 </span>
               </Button>
-            </DrawerTrigger>
-            <DrawerContent className="max-h-[80vh]">
-              <DrawerHeader>
-                <DrawerTitle>Search Location</DrawerTitle>
-              </DrawerHeader>
-              <div className="p-4 space-y-4">
+            ) : (
+              <div className="bg-white/95 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] rounded-lg shadow-md p-4 space-y-4 animate-fade-in">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-[hsl(var(--medme-navy))]">Search Location</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsSearchExpanded(false)}
+                    className="text-[hsl(var(--medme-navy))]"
+                  >
+                    ✕
+                  </Button>
+                </div>
                 <AddressAutocomplete
                   value={location}
                   onChange={onLocationChange}
                   onPlaceSelect={(result) => {
                     onPlaceSelect(result);
-                    setIsSearchOpen(false);
+                    setIsSearchExpanded(false);
                   }}
                   placeholder="Enter address or location..."
                   className="w-full"
@@ -138,7 +157,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
                 <Button
                   onClick={() => {
                     onUseCurrentLocation();
-                    setIsSearchOpen(false);
+                    setIsSearchExpanded(false);
                   }}
                   variant="outline"
                   className="w-full"
@@ -146,8 +165,8 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
                   Use Current Location
                 </Button>
               </div>
-            </DrawerContent>
-          </Drawer>
+            )}
+          </div>
         </div>
       </div>
 
