@@ -122,7 +122,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
 
           {/* Search bar - expands when clicked */}
           <div className={cn(
-            "transition-all duration-300 ease-in-out flex-1",
+            "transition-all duration-300 ease-in-out flex-1 min-w-0",
             isFilterExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100",
             isSearchExpanded ? "w-full" : ""
           )}>
@@ -130,9 +130,9 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
               <Button
                 variant="outline"
                 onClick={() => setIsSearchExpanded(true)}
-                className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-10 text-[hsl(var(--medme-navy))]"
+                className="w-full bg-white/90 backdrop-blur-sm border-2 border-[hsl(var(--medme-navy))] shadow-md hover:bg-white/95 justify-start px-4 py-2 h-10 text-[hsl(var(--medme-navy))] max-w-full"
               >
-                <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))]" />
+                <Search className="h-4 w-4 mr-2 text-[hsl(var(--medme-navy))] flex-shrink-0" />
                 <span className="truncate text-sm">
                   {location || "Search location..."}
                 </span>
