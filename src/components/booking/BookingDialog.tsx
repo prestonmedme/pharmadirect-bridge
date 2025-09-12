@@ -57,7 +57,7 @@ export const BookingDialog = ({ open, onOpenChange, pharmacy, preselectedService
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!pharmacy || !selectedDate || !user) {
+    if (!pharmacy || !selectedDate) {
       return;
     }
 
@@ -109,26 +109,6 @@ export const BookingDialog = ({ open, onOpenChange, pharmacy, preselectedService
       formData.patient_name.trim()
     );
   };
-
-  if (!user) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sign In Required</DialogTitle>
-          </DialogHeader>
-          <div className="text-center py-6">
-            <p className="text-muted-foreground mb-4">
-              Please sign in to book an appointment.
-            </p>
-            <Button onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
