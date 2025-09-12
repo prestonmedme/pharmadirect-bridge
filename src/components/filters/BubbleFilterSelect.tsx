@@ -82,12 +82,12 @@ export function BubbleFilterSelect({
 
       {/* Expanded bubbles */}
       {isExpanded && (
-        <div className="absolute top-full left-0 mt-2 z-50 w-full max-w-[90vw] sm:max-w-lg">
+        <div className="absolute top-full left-0 mt-2 z-50 w-full max-w-[95vw] sm:max-w-2xl lg:max-w-4xl">
           <div className={cn(
             "bg-white border border-border rounded-xl shadow-lg p-4",
             "animate-fade-in"
           )}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {/* All services option */}
               <Badge
                 variant={!value || value.length === 0 ? "default" : "outline"}
