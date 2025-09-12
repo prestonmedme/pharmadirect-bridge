@@ -722,7 +722,8 @@ export const usePharmacySearch = () => {
         ...medmeUSPharmacies.map((up: any) => ({
           ...convertUSPharmacy(up as USPharmacy),
           type: 'medme' as const,
-          logoUrl: '/medme-logo.png'
+          logoUrl: '/medme-logo.png',
+          website: up.name === "Preston's Pills" ? 'https://rexall.medmeapp.com/schedule' : (up.website || null)
         })),
         ...validMedmePharmacies.map((mp: any) => convertMedMePharmacy({
           ...mp,
