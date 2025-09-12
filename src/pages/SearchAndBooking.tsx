@@ -289,7 +289,7 @@ const SearchAndBooking = () => {
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [location, isUsingPreciseCoords, userLocationCoords, medmeOnly, selectedServices, selectedRadius]); // Add filter dependencies
+  }, [location, isUsingPreciseCoords, userLocationCoords]); // Remove dependencies that cause infinite loops
 
   // Reset precise coords flag when user starts typing manually
   const handleLocationInputChange = (newLocation: string) => {
