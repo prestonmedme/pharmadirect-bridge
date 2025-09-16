@@ -39,8 +39,9 @@ const App = () => {
                   <Routes>
                     <Route path="/" element={<CountrySelector />} />
                     <Route path="/:country" element={<RegionalWrapper />}>
-                      <Route index element={<SearchAndBooking />} />
-                      <Route path=":region" element={<SearchAndBooking />} />
+                      <Route index element={<Index />} />
+                      <Route path="search" element={<SearchAndBooking />} />
+                      <Route path=":region" element={<Index />} />
                       <Route path=":region/search" element={<SearchAndBooking />} />
                     </Route>
                     <Route path="/login" element={<Login />} />
