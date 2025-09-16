@@ -6,9 +6,7 @@ const CountrySelector = () => {
   const navigate = useNavigate();
 
   const handleCountrySelect = (country: string) => {
-    // For now, just navigate to the home page with country parameter
-    // Later we'll add state/province selection
-    navigate(`/?country=${country}`);
+    navigate(`/${country.toLowerCase()}`);
   };
 
   return (

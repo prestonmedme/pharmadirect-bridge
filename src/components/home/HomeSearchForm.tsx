@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, ChevronDown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useGeographic } from "@/contexts/GeographicContext";
 import MapboxAddressAutocomplete from "@/components/maps/MapboxAddressAutocomplete";
 import { BubbleFilterSelect } from "@/components/filters/BubbleFilterSelect";
 
@@ -23,8 +24,13 @@ const HomeSearchForm = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [address, setAddress] = useState("");
   const navigate = useNavigate();
+  const { country, region } = useGeographic();
 
   const handleSearch = () => {
+    if (!country || !region) {
+      return; // Can't search without country and region
+    }
+
     const searchParams = new URLSearchParams();
     
     if (address) {
@@ -35,7 +41,7 @@ const HomeSearchForm = () => {
       searchParams.set("service", selectedServices[0]); // For now, use first selected service
     }
 
-    navigate(`/search?${searchParams.toString()}`);
+    navigate(`/${country}/${region}/search?${searchParams.toString()}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

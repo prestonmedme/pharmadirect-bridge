@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import CountrySelector from "./pages/CountrySelector";
-import CountrySelectorWrapper from "./components/routing/CountrySelectorWrapper";
+import RegionalWrapper from "./components/routing/RegionalWrapper";
 import SearchAndBooking from "./pages/SearchAndBooking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -37,9 +37,12 @@ const App = () => {
               <BrowserRouter>
                 <ErrorBoundary>
                   <Routes>
-                    <Route path="/country-select" element={<CountrySelector />} />
-                    <Route path="/" element={<CountrySelectorWrapper><Index /></CountrySelectorWrapper>} />
-                    <Route path="/search" element={<SearchAndBooking />} />
+                    <Route path="/" element={<CountrySelector />} />
+                    <Route path="/:country" element={<RegionalWrapper />}>
+                      <Route index element={<Index />} />
+                      <Route path=":region" element={<Index />} />
+                      <Route path=":region/search" element={<SearchAndBooking />} />
+                    </Route>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />

@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BubbleFilterSelect } from "@/components/filters/BubbleFilterSelect";
 import { Checkbox } from "@/components/ui/checkbox";
-import { usePharmacySearch, type Pharmacy } from "@/hooks/usePharmacySearch";
+import { useGeographicPharmacySearch } from "@/hooks/useGeographicPharmacySearch";
+import { useGeographic } from "@/contexts/GeographicContext";
 import { generateStableDisplayData, type PharmacyDisplayData } from "@/lib/pharmacyDataUtils";
 import { useToast } from "@/hooks/use-toast";
 import { MapSection } from "@/components/maps/MapSection";
@@ -63,21 +64,18 @@ const SearchAndBooking = () => {
   const [userLocationCoords, setUserLocationCoords] = useState<MapPosition | null>(null);
   const [isUsingPreciseCoords, setIsUsingPreciseCoords] = useState<boolean>(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
-  const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
   const [selectedPharmacyCard, setSelectedPharmacyCard] = useState<PharmacyCard | null>(null);
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false);
    // Default to showing California center
    const [mapCenter, setMapCenter] = useState<MapPosition>({ lat: 36.7783, lng: -119.4179 });
   const [mapZoom, setMapZoom] = useState<number>(4);
   const [showSearchThisArea, setShowSearchThisArea] = useState<boolean>(false);
-  const { pharmacies, loading, searchPharmacies, getAllPharmacies, getNearbyPharmacies, calculateDistance } = usePharmacySearch();
-
-  // Convert pharmacies to PharmacyCard format
-  const pharmacyCards: PharmacyCard[] = pharmacies.map(adaptPharmacyToCard);
+  const { country, region, isUS, isCA } = useGeographic();
+  const { pharmacies: pharmacyCards, loading, searchPharmacies, getNearbyPharmacies } = useGeographicPharmacySearch();
 
 
-  const handleBookNow = (pharmacy: Pharmacy) => {
-    setSelectedPharmacy(pharmacy);
+  const handleBookNow = (pharmacy: PharmacyCard) => {
+    setSelectedPharmacyCard(pharmacy);
     setBookingDialogOpen(true);
   };
 
@@ -132,9 +130,9 @@ const SearchAndBooking = () => {
 
   // Handle marker click on map
   const handleMarkerClick = (markerId: string) => {
-    const pharmacy = pharmacies.find(p => p.id === markerId);
+    const pharmacy = pharmacyCards.find(p => p.id === markerId);
     if (pharmacy) {
-      setSelectedPharmacy(pharmacy);
+      setSelectedPharmacyCard(pharmacy);
       // Optionally scroll to the pharmacy in the list
       const pharmacyElement = document.getElementById(`pharmacy-${markerId}`);
       if (pharmacyElement) {
@@ -765,7 +763,7 @@ const SearchAndBooking = () => {
       <BookingDialog
         open={bookingDialogOpen}
         onOpenChange={setBookingDialogOpen}
-        pharmacy={selectedPharmacy}
+        pharmacy={selectedPharmacyCard}
         preselectedService={selectedServices.length > 0 ? selectedServices[0] : undefined}
       />
 
