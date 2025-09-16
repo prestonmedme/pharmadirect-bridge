@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useGeographicPharmacySearch } from "@/hooks/useGeographicPharmacySearch";
 import { useGeographic } from "@/contexts/GeographicContext";
 import { generateStableDisplayData, type PharmacyDisplayData } from "@/lib/pharmacyDataUtils";
+import type { Pharmacy } from "@/hooks/usePharmacySearch";
 import { useToast } from "@/hooks/use-toast";
 import { MapSection } from "@/components/maps/MapSection";
 import AddressAutocomplete from "@/components/maps/AddressAutocomplete";
@@ -93,40 +94,47 @@ const SearchAndBooking = () => {
 
   // Handle booking from PharmacyCard
   const handleBookAppointment = (pharmacyCard: PharmacyCard) => {
-    // Convert back to Pharmacy for existing booking dialog
-    const originalPharmacy = pharmacies.find(p => p.id === pharmacyCard.id);
-    if (originalPharmacy) {
-      handleBookNow(originalPharmacy);
-    }
+    handleBookNow(pharmacyCard);
+  };
+
+  // Haversine distance calculation (km)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
   // Calculate distance for pharmacy cards
   const calculatePharmacyDistance = (pharmacyCard: PharmacyCard, userLoc?: MapPosition): string => {
     if (!userLoc) return '';
     const distance = calculateDistance(
-      userLoc.lat, 
-      userLoc.lng, 
-      pharmacyCard.location.lat, 
+      userLoc.lat,
+      userLoc.lng,
+      pharmacyCard.location.lat,
       pharmacyCard.location.lng
     );
     return `${distance.toFixed(1)} km`;
   };
 
-  // Convert pharmacies to map markers
-  const createMarkersFromPharmacies = (): MapMarker[] => {
-    return pharmacies
-      .filter(pharmacy => pharmacy.latitude && pharmacy.longitude)
-      .map(pharmacy => ({
-        id: pharmacy.id,
-        position: {
-          lat: pharmacy.latitude!,
-          lng: pharmacy.longitude!
-        },
-        title: pharmacy.name,
-        content: `${pharmacy.name}\n${pharmacy.address}`,
-        type: 'pharmacy' // Add required type property
-      }));
-  };
+  // Convert PharmacyCard to legacy Pharmacy for BookingDialog
+  const cardToLegacyPharmacy = (card: PharmacyCard): Pharmacy => ({
+    id: card.id,
+    name: card.name,
+    address: `${card.address.line1}, ${card.address.city}, ${card.address.state} ${card.address.zipCode}`,
+    city: card.address.city,
+    state: card.address.state,
+    zip_code: card.address.zipCode,
+    phone: card.phone || null,
+    website: card.website || null,
+    latitude: card.location.lat,
+    longitude: card.location.lng,
+    services: card.attributes || [],
+    type: isUS ? 'us' : 'regular',
+    displayData: undefined,
+  });
 
   // Handle marker click on map
   const handleMarkerClick = (markerId: string) => {
@@ -272,16 +280,14 @@ const SearchAndBooking = () => {
       if (location.trim()) {
         console.log(`🔍 Manual search: Searching for "${location}"`);
         searchPharmacies({ 
-          location, 
-          service: selectedServices.length > 0 ? selectedServices : undefined, 
-          medmeOnly, 
+          q: location, 
+          services: selectedServices.length > 0 ? selectedServices : undefined, 
           radiusKm: selectedRadius 
         });
       } else {
         // Show all pharmacies when no location is specified
         searchPharmacies({ 
-          service: selectedServices.length > 0 ? selectedServices : undefined, 
-          medmeOnly 
+          services: selectedServices.length > 0 ? selectedServices : undefined
         });
       }
     }, 500); // 500ms debounce
@@ -498,25 +504,7 @@ const SearchAndBooking = () => {
     }
   };
 
-  // Get stable display info for pharmacy - uses pre-computed data to avoid cycling
-  const getPharmacyDisplayInfo = (pharmacy: Pharmacy, index: number): PharmacyDisplayData & { 
-    distance: string; 
-    type: string;
-  } => {
-    // Use pre-computed display data if available, otherwise generate stable data
-    const displayData = pharmacy.displayData || generateStableDisplayData(pharmacy.id, pharmacy.name, index);
-    
-    // Calculate distance display
-    const distance = pharmacy.distance 
-      ? `${pharmacy.distance.toFixed(1)} km` 
-      : calculateDistanceFromUser(pharmacy) || displayData.distance || `${(Math.random() * 5 + 0.5).toFixed(1)} km`;
-    
-    return {
-      ...displayData,
-      distance,
-      type: pharmacy.type || "regular"
-    };
-  };
+  const selectedPharmacyLegacy: Pharmacy | null = selectedPharmacyCard ? cardToLegacyPharmacy(selectedPharmacyCard) : null;
 
   return (
     <>
@@ -763,7 +751,7 @@ const SearchAndBooking = () => {
       <BookingDialog
         open={bookingDialogOpen}
         onOpenChange={setBookingDialogOpen}
-        pharmacy={selectedPharmacyCard}
+        pharmacy={selectedPharmacyLegacy}
         preselectedService={selectedServices.length > 0 ? selectedServices[0] : undefined}
       />
 
