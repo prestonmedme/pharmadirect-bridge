@@ -100,6 +100,7 @@ const HomeSearchForm = () => {
                     onChange={setAddress}
                     placeholder="Enter your address"
                     className="pl-10 h-12 text-base border-border/50 w-full"
+                    country={country}
                     onPlaceSelect={(result) => {
                       setAddress(result.formatted_address);
                     }}

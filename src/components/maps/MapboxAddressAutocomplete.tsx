@@ -12,6 +12,7 @@ interface MapboxAddressAutocompleteProps {
   className?: string;
   center?: MapPosition | null;
   radiusKm?: number;
+  country?: string;
 }
 
 const MapboxAddressAutocomplete: React.FC<MapboxAddressAutocompleteProps> = ({
@@ -21,7 +22,8 @@ const MapboxAddressAutocomplete: React.FC<MapboxAddressAutocompleteProps> = ({
   placeholder = "Enter address or location",
   className,
   center,
-  radiusKm
+  radiusKm,
+  country
 }) => {
   const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +50,7 @@ const MapboxAddressAutocomplete: React.FC<MapboxAddressAutocompleteProps> = ({
           query: query.trim(),
           center,
           radiusKm,
-          country: 'us'
+          country: country || 'us'
         }
       });
 
