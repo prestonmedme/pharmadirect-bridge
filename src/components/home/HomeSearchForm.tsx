@@ -27,8 +27,8 @@ const HomeSearchForm = () => {
   const { country, region } = useGeographic();
 
   const handleSearch = () => {
-    if (!country || !region) {
-      return; // Can't search without country and region
+    if (!country) {
+      return; // Can't search without country
     }
 
     const searchParams = new URLSearchParams();
@@ -41,7 +41,7 @@ const HomeSearchForm = () => {
       searchParams.set("service", selectedServices[0]); // For now, use first selected service
     }
 
-    navigate(`/${country}/${region}/search?${searchParams.toString()}`);
+    navigate(`/${country}/search?${searchParams.toString()}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
