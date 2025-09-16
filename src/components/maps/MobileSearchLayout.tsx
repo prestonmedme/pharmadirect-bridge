@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGeographic } from '@/contexts/GeographicContext';
 import { MapSection } from '@/components/maps/MapSection';
 import { PharmacyResultsList } from '@/components/pharmacy/PharmacyResultsList';
 import { BubbleFilterSelect } from '@/components/filters/BubbleFilterSelect';
@@ -57,6 +58,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
   onBookAppointment,
   calculatePharmacyDistance,
 }) => {
+  const { country } = useGeographic();
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -154,6 +156,7 @@ export const MobileSearchLayout: React.FC<MobileSearchLayoutProps> = ({
                     className="w-full"
                     center={userLocation}
                     radiusKm={25}
+                    country={country}
                   />
                   <div className="flex gap-2 w-full">
                     <Button

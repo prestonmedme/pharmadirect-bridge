@@ -422,13 +422,18 @@ const SearchAndBooking = () => {
       // Use the same approach as autocomplete - simple and direct
       const geocodeParams: any = {
         query: searchAddress,
-        country: 'us'
+        country: country || 'us'
       };
 
       // Add proximity bias if we have valid coordinates
-      if (userLocationCoords && 
-          userLocationCoords.lat >= 24 && userLocationCoords.lat <= 49 && // US latitude range
-          userLocationCoords.lng >= -125 && userLocationCoords.lng <= -66) { // US longitude range
+      const isValidUSCoords = userLocationCoords &&
+        userLocationCoords.lat >= 24 && userLocationCoords.lat <= 49 &&
+        userLocationCoords.lng >= -125 && userLocationCoords.lng <= -66;
+      const isValidCACoords = userLocationCoords &&
+        userLocationCoords.lat >= 41 && userLocationCoords.lat <= 83 &&
+        userLocationCoords.lng >= -141 && userLocationCoords.lng <= -52;
+      
+      if ((isUS && isValidUSCoords) || (isCA && isValidCACoords)) {
         geocodeParams.center = userLocationCoords;
         geocodeParams.radiusKm = selectedRadius;
         console.log('🎯 Using proximity bias:', userLocationCoords);
@@ -577,6 +582,7 @@ const SearchAndBooking = () => {
                             className="pl-10 h-12 text-base border-border/50 w-full"
                             center={isUsingPreciseCoords && userLocationCoords ? userLocationCoords : undefined}
                             radiusKm={isUsingPreciseCoords && userLocationCoords ? selectedRadius : undefined}
+                            country={country}
                           />
                         </div>
                       </div>
