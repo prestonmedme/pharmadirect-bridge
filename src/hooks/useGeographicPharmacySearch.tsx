@@ -68,8 +68,35 @@ export const useGeographicPharmacySearch = () => {
           return adaptPharmacyToCard(legacyPharmacy);
         }
         
-        // For CA pharmacies, we'll need to implement the conversion once we have the data structure
-        return adaptPharmacyToCard(pharmacy);
+        // For CA pharmacies, convert Canadian pharmacy data format
+        const legacyPharmacy = {
+          id: pharmacy.medme_id || pharmacy.id,
+          name: pharmacy.name || 'Unknown Pharmacy',
+          address: pharmacy.street_address || `${pharmacy.address_street_number || ''} ${pharmacy.address_street_name || ''}`.trim(),
+          city: pharmacy.address_city || '',
+          state: pharmacy.province || region || '',
+          zip_code: pharmacy.address_postal_code || '',
+          phone: '', // Not available in the CSV
+          website: pharmacy.website,
+          services: [], // Default empty services array
+          latitude: pharmacy.lat,
+          longitude: pharmacy.lng,
+          type: 'medme' as const, // All CA pharmacies are MedMe connected
+          displayData: {
+            rating: 0, // No rating data in the CSV
+            reviews: 0,
+            isAvailable: true,
+            services: [],
+            nextAvailable: 'Today',
+            hours: { 
+              isOpen: true,
+              hours: '9:00 AM - 9:00 PM',
+              status: 'Open',
+              nextChange: 'Closes 9:00 PM'
+            }
+          }
+        };
+        return adaptPharmacyToCard(legacyPharmacy);
       });
 
       setPharmacies(adaptedResults);

@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      ca_pharmacy_data: {
+        Row: {
+          address_city: string
+          address_country: string | null
+          address_po_box: string | null
+          address_postal_code: string | null
+          address_province: string | null
+          address_street_name: string | null
+          address_street_number: string | null
+          address_unit: string | null
+          created_at: string
+          domain: string | null
+          enterprise: string | null
+          google_place_id: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          medme_id: string
+          name: string
+          province: string
+          store_no: string | null
+          street_address: string | null
+          tenant_id: string | null
+          time_zone: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address_city: string
+          address_country?: string | null
+          address_po_box?: string | null
+          address_postal_code?: string | null
+          address_province?: string | null
+          address_street_name?: string | null
+          address_street_number?: string | null
+          address_unit?: string | null
+          created_at?: string
+          domain?: string | null
+          enterprise?: string | null
+          google_place_id?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          medme_id: string
+          name: string
+          province: string
+          store_no?: string | null
+          street_address?: string | null
+          tenant_id?: string | null
+          time_zone?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address_city?: string
+          address_country?: string | null
+          address_po_box?: string | null
+          address_postal_code?: string | null
+          address_province?: string | null
+          address_street_name?: string | null
+          address_street_number?: string | null
+          address_unit?: string | null
+          created_at?: string
+          domain?: string | null
+          enterprise?: string | null
+          google_place_id?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          medme_id?: string
+          name?: string
+          province?: string
+          store_no?: string | null
+          street_address?: string | null
+          tenant_id?: string | null
+          time_zone?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       medme_pharmacies: {
         Row: {
           created_at: string
