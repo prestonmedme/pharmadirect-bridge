@@ -43,7 +43,7 @@ export const GeographicProvider: React.FC<GeographicProviderProps> = ({ children
     if (urlCountry && (urlCountry === 'us' || urlCountry === 'ca')) {
       setCountryState(urlCountry as Country);
       setRegionState(urlRegion || null);
-      setValid(validateCountryRegion(urlCountry, urlRegion));
+      setValid(true); // Country is valid, region is optional
     } else {
       setCountryState(null);
       setRegionState(null);

@@ -5,11 +5,6 @@ export class USPharmacyAdapter implements PharmacyDataAdapter {
   async search(params: PharmacySearchParams): Promise<any[]> {
     let query = supabase.from('us_pharmacy_data').select('*');
     
-    // Filter by region (state) if provided
-    if (params.region) {
-      query = query.eq('state_name', params.region);
-    }
-    
     // Filter by name if search query provided
     if (params.q) {
       query = query.ilike('name', `%${params.q}%`);

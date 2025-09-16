@@ -21,7 +21,7 @@ const RegionalWrapper: React.FC = () => {
 
   return (
     <GeographicProvider>
-      {region ? <Outlet /> : <RegionGate />}
+      <Outlet />
     </GeographicProvider>
   );
 };
