@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
+import CountrySelector from "./pages/CountrySelector";
+import CountrySelectorWrapper from "./components/routing/CountrySelectorWrapper";
 import SearchAndBooking from "./pages/SearchAndBooking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -35,7 +37,8 @@ const App = () => {
               <BrowserRouter>
                 <ErrorBoundary>
                   <Routes>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/country-select" element={<CountrySelector />} />
+                    <Route path="/" element={<CountrySelectorWrapper><Index /></CountrySelectorWrapper>} />
                     <Route path="/search" element={<SearchAndBooking />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
