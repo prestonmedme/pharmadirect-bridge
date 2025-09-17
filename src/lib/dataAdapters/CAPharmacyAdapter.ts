@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 export class CAPharmacyAdapter implements PharmacyDataAdapter {
   async search(params: PharmacySearchParams): Promise<any[]> {
     try {
-      let query = supabase
-        .from('pharmacies_ca')
+      let query = (supabase as any)
+        .from('ca_medme_pharmacies')
         .select('*');
 
       // Filter by region (province) if specified
@@ -48,8 +48,8 @@ export class CAPharmacyAdapter implements PharmacyDataAdapter {
 
   async getById(id: string): Promise<any | null> {
     try {
-      const { data, error } = await supabase
-        .from('pharmacies_ca')
+      const { data, error } = await (supabase as any)
+        .from('ca_medme_pharmacies')
         .select('*')
         .eq('id', id)
         .single();
