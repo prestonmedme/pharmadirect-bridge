@@ -5,6 +5,7 @@ import { Menu, X, MapPin, User, Globe, LogOut, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useGeographic } from "@/contexts/GeographicContext";
 import { DynamicLogo } from '@/components/branding/DynamicLogo';
 
 const Header = () => {
@@ -12,6 +13,13 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { country, region } = useGeographic();
+
+  const getSearchPath = () => {
+    if (!country) return '/search';
+    const basePath = `/${country}`;
+    return region ? `${basePath}/${region}/search` : `${basePath}/search`;
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur supports-[backdrop-filter]:bg-[#073e54]/60" style={{ backgroundColor: '#073e54' }}>
@@ -37,10 +45,10 @@ const Header = () => {
               Home
             </button>
             <button 
-              onClick={() => navigate('/search')}
+              onClick={() => navigate(getSearchPath())}
               className={cn(
                 "text-white hover:text-gray-200 transition-colors font-medium flex items-center gap-1",
-                location.pathname === '/search' && "text-gray-200"
+                location.pathname.includes('/search') && "text-gray-200"
               )}
             >
               <MapPin className="h-4 w-4" />
