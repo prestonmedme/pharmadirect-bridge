@@ -31,30 +31,30 @@ const CountrySelector = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 text-center px-6 pt-12 pb-20 lg:pt-16 lg:pb-28">
+      <section className="relative z-10 text-center px-6 pt-8 pb-12 lg:pt-12 lg:pb-16">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
             Operating System for<br />
             <span className="text-primary-lighter">Pharmacies of the Future</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-white/90 mb-6 max-w-3xl mx-auto leading-relaxed">
             Streamline pharmacy workflows to deliver clinical services at scale,
             build patient relationships, and diversify revenue.
           </p>
           
           {/* Feature highlights */}
-          <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-white/80 mb-12">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-white/80 mb-8">
             <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              <span className="font-medium">Find Pharmacies</span>
+              <MapPin className="h-4 w-4" />
+              <span className="font-medium text-sm">Find Pharmacies</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <span className="font-medium">Book Services</span>
+              <Users className="h-4 w-4" />
+              <span className="font-medium text-sm">Book Services</span>
             </div>
             <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              <span className="font-medium">Trusted Network</span>
+              <Shield className="h-4 w-4" />
+              <span className="font-medium text-sm">Trusted Network</span>
             </div>
           </div>
         </div>
@@ -73,7 +73,7 @@ const CountrySelector = () => {
       </div>
 
       {/* Country Selection Section */}
-      <section className="relative z-10 bg-background py-20 lg:py-28">
+      <section className="relative z-10 bg-background py-12 lg:py-16">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
