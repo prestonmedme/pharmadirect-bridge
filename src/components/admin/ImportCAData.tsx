@@ -71,7 +71,7 @@ export const ImportCAData: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm text-muted-foreground">
-          Import Canadian pharmacy data from the CSV file into the database. 
+          Import Canadian pharmacy data from the CSV file into the pharmacies_ca table. 
           This will populate the CA site with MedMe-connected pharmacies across Canada.
         </div>
         

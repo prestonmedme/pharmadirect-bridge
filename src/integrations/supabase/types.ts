@@ -14,87 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      ca_pharmacy_data: {
-        Row: {
-          address_city: string
-          address_country: string | null
-          address_po_box: string | null
-          address_postal_code: string | null
-          address_province: string | null
-          address_street_name: string | null
-          address_street_number: string | null
-          address_unit: string | null
-          created_at: string
-          domain: string | null
-          enterprise: string | null
-          google_place_id: string | null
-          id: string
-          lat: number | null
-          lng: number | null
-          medme_id: string
-          name: string
-          province: string
-          store_no: string | null
-          street_address: string | null
-          tenant_id: string | null
-          time_zone: string | null
-          updated_at: string
-          website: string | null
-        }
-        Insert: {
-          address_city: string
-          address_country?: string | null
-          address_po_box?: string | null
-          address_postal_code?: string | null
-          address_province?: string | null
-          address_street_name?: string | null
-          address_street_number?: string | null
-          address_unit?: string | null
-          created_at?: string
-          domain?: string | null
-          enterprise?: string | null
-          google_place_id?: string | null
-          id?: string
-          lat?: number | null
-          lng?: number | null
-          medme_id: string
-          name: string
-          province: string
-          store_no?: string | null
-          street_address?: string | null
-          tenant_id?: string | null
-          time_zone?: string | null
-          updated_at?: string
-          website?: string | null
-        }
-        Update: {
-          address_city?: string
-          address_country?: string | null
-          address_po_box?: string | null
-          address_postal_code?: string | null
-          address_province?: string | null
-          address_street_name?: string | null
-          address_street_number?: string | null
-          address_unit?: string | null
-          created_at?: string
-          domain?: string | null
-          enterprise?: string | null
-          google_place_id?: string | null
-          id?: string
-          lat?: number | null
-          lng?: number | null
-          medme_id?: string
-          name?: string
-          province?: string
-          store_no?: string | null
-          street_address?: string | null
-          tenant_id?: string | null
-          time_zone?: string | null
-          updated_at?: string
-          website?: string | null
-        }
-        Relationships: []
-      }
       medme_pharmacies: {
         Row: {
           created_at: string
@@ -169,6 +88,87 @@ export type Database = {
           state?: string
           updated_at?: string
           zip_code?: string
+        }
+        Relationships: []
+      }
+      pharmacies_ca: {
+        Row: {
+          created_at: string | null
+          domain: string | null
+          enterprise: string | null
+          google_place_id: string | null
+          id: string
+          name: string
+          "Pharmacy Address__city": string | null
+          "Pharmacy Address__country": string | null
+          "Pharmacy Address__latitude": number | null
+          "Pharmacy Address__longitude": number | null
+          "Pharmacy Address__po_box": string | null
+          "Pharmacy Address__postal_code": string | null
+          "Pharmacy Address__province": string | null
+          "Pharmacy Address__street_address": string | null
+          "Pharmacy Address__street_name": string | null
+          "Pharmacy Address__street_number": string | null
+          "Pharmacy Address__unit": string | null
+          province: string
+          province_code: string | null
+          store_no: string | null
+          tenant_id: string
+          time_zone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string | null
+          enterprise?: string | null
+          google_place_id?: string | null
+          id: string
+          name: string
+          "Pharmacy Address__city"?: string | null
+          "Pharmacy Address__country"?: string | null
+          "Pharmacy Address__latitude"?: number | null
+          "Pharmacy Address__longitude"?: number | null
+          "Pharmacy Address__po_box"?: string | null
+          "Pharmacy Address__postal_code"?: string | null
+          "Pharmacy Address__province"?: string | null
+          "Pharmacy Address__street_address"?: string | null
+          "Pharmacy Address__street_name"?: string | null
+          "Pharmacy Address__street_number"?: string | null
+          "Pharmacy Address__unit"?: string | null
+          province: string
+          province_code?: string | null
+          store_no?: string | null
+          tenant_id: string
+          time_zone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string | null
+          enterprise?: string | null
+          google_place_id?: string | null
+          id?: string
+          name?: string
+          "Pharmacy Address__city"?: string | null
+          "Pharmacy Address__country"?: string | null
+          "Pharmacy Address__latitude"?: number | null
+          "Pharmacy Address__longitude"?: number | null
+          "Pharmacy Address__po_box"?: string | null
+          "Pharmacy Address__postal_code"?: string | null
+          "Pharmacy Address__province"?: string | null
+          "Pharmacy Address__street_address"?: string | null
+          "Pharmacy Address__street_name"?: string | null
+          "Pharmacy Address__street_number"?: string | null
+          "Pharmacy Address__unit"?: string | null
+          province?: string
+          province_code?: string | null
+          store_no?: string | null
+          tenant_id?: string
+          time_zone?: string | null
+          updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -517,12 +517,48 @@ export type Database = {
           zip_code: number
         }[]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      normalize_ca_province: {
+        Args: { addr_prov: string; prov: string }
+        Returns: string
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
     }
     Enums: {

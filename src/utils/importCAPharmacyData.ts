@@ -1,33 +1,9 @@
 /**
  * Utility to import Canadian pharmacy data from CSV to Supabase
- * This is a one-time data import script
+ * This imports directly into the pharmacies_ca table with CSV-compatible structure
  */
 
 import { supabase } from '@/integrations/supabase/client';
-
-interface CSVPharmacyData {
-  id: string;
-  name: string;
-  tenant_id?: string;
-  store_no?: string;
-  enterprise?: string;
-  domain?: string;
-  province: string;
-  time_zone?: string;
-  website?: string;
-  'Pharmacy Address__unit'?: string;
-  'Pharmacy Address__street_number'?: string;
-  'Pharmacy Address__street_name'?: string;
-  'Pharmacy Address__city': string;
-  'Pharmacy Address__province'?: string;
-  'Pharmacy Address__postal_code'?: string;
-  'Pharmacy Address__po_box'?: string;
-  'Pharmacy Address__latitude'?: string;
-  'Pharmacy Address__longitude'?: string;
-  'Pharmacy Address__street_address'?: string;
-  'Pharmacy Address__country'?: string;
-  google_place_id?: string;
-}
 
 const parseCSVLine = (line: string): string[] => {
   const result: string[] = [];
@@ -47,35 +23,6 @@ const parseCSVLine = (line: string): string[] => {
   }
   result.push(current.trim());
   return result;
-};
-
-const convertToDBFormat = (csvRow: CSVPharmacyData) => {
-  const lat = csvRow['Pharmacy Address__latitude'] ? parseFloat(csvRow['Pharmacy Address__latitude']) : null;
-  const lng = csvRow['Pharmacy Address__longitude'] ? parseFloat(csvRow['Pharmacy Address__longitude']) : null;
-
-  return {
-    medme_id: csvRow.id,
-    name: csvRow.name,
-    tenant_id: csvRow.tenant_id || null,
-    store_no: csvRow.store_no || null,
-    enterprise: csvRow.enterprise || null,
-    domain: csvRow.domain || null,
-    province: csvRow.province,
-    time_zone: csvRow.time_zone || null,
-    website: csvRow.website || null,
-    address_unit: csvRow['Pharmacy Address__unit'] || null,
-    address_street_number: csvRow['Pharmacy Address__street_number'] || null,
-    address_street_name: csvRow['Pharmacy Address__street_name'] || null,
-    address_city: csvRow['Pharmacy Address__city'],
-    address_province: csvRow['Pharmacy Address__province'] || null,
-    address_postal_code: csvRow['Pharmacy Address__postal_code'] || null,
-    address_po_box: csvRow['Pharmacy Address__po_box'] || null,
-    lat: lat,
-    lng: lng,
-    street_address: csvRow['Pharmacy Address__street_address'] || null,
-    address_country: csvRow['Pharmacy Address__country'] || 'Canada',
-    google_place_id: csvRow.google_place_id || null,
-  };
 };
 
 export const importCAPharmacyData = async (): Promise<{success: boolean; message: string; imported: number}> => {
@@ -118,18 +65,24 @@ export const importCAPharmacyData = async (): Promise<{success: boolean; message
         // Create object from headers and values
         const csvRow: any = {};
         headers.forEach((header, index) => {
-          csvRow[header] = values[index] || '';
+          const value = values[index] || '';
+          
+          // Parse numeric fields
+          if (header === 'Pharmacy Address__latitude' || header === 'Pharmacy Address__longitude') {
+            csvRow[header] = value ? parseFloat(value) : null;
+          } else {
+            csvRow[header] = value || null;
+          }
         });
         
         // Skip rows with missing essential data
-        if (!csvRow.id || !csvRow.name || !csvRow['Pharmacy Address__city']) {
-          console.warn(`Row ${i + 1}: Missing essential data (id, name, or city)`);
+        if (!csvRow.id || !csvRow.name) {
+          console.warn(`Row ${i + 1}: Missing essential data (id or name)`);
           skippedRows++;
           continue;
         }
         
-        const dbRow = convertToDBFormat(csvRow as CSVPharmacyData);
-        pharmacies.push(dbRow);
+        pharmacies.push(csvRow);
         
       } catch (error) {
         console.warn(`Row ${i + 1}: Parse error - ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -151,7 +104,7 @@ export const importCAPharmacyData = async (): Promise<{success: boolean; message
       const batch = pharmacies.slice(i, i + batchSize);
       
       const { error } = await supabase
-        .from('ca_pharmacy_data')
+        .from('pharmacies_ca')
         .insert(batch);
       
       if (error) {
@@ -183,7 +136,7 @@ export const importCAPharmacyData = async (): Promise<{success: boolean; message
 export const clearCAPharmacyData = async (): Promise<{success: boolean; message: string}> => {
   try {
     const { error } = await supabase
-      .from('ca_pharmacy_data')
+      .from('pharmacies_ca')
       .delete()
       .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
     

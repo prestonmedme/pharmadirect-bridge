@@ -5,17 +5,17 @@ export class CAPharmacyAdapter implements PharmacyDataAdapter {
   async search(params: PharmacySearchParams): Promise<any[]> {
     try {
       let query = supabase
-        .from('ca_pharmacy_data')
+        .from('pharmacies_ca')
         .select('*');
 
       // Filter by region (province) if specified
       if (params.region) {
-        query = query.eq('province', params.region.toUpperCase());
+        query = query.eq('province_code', params.region.toUpperCase());
       }
 
       // Text search across name and city
       if (params.q) {
-        query = query.or(`name.ilike.%${params.q}%,address_city.ilike.%${params.q}%`);
+        query = query.or(`name.ilike.%${params.q}%,"Pharmacy Address__city".ilike.%${params.q}%`);
       }
 
       // Location-based search
@@ -26,10 +26,10 @@ export class CAPharmacyAdapter implements PharmacyDataAdapter {
         const lngDelta = params.radiusKm / (111 * Math.cos(params.lat * Math.PI / 180));
         
         query = query
-          .gte('lat', params.lat - latDelta)
-          .lte('lat', params.lat + latDelta)
-          .gte('lng', params.lng - lngDelta)
-          .lte('lng', params.lng + lngDelta);
+          .gte('"Pharmacy Address__latitude"', params.lat - latDelta)
+          .lte('"Pharmacy Address__latitude"', params.lat + latDelta)
+          .gte('"Pharmacy Address__longitude"', params.lng - lngDelta)
+          .lte('"Pharmacy Address__longitude"', params.lng + lngDelta);
       }
 
       const { data, error } = await query.limit(50);
@@ -49,9 +49,9 @@ export class CAPharmacyAdapter implements PharmacyDataAdapter {
   async getById(id: string): Promise<any | null> {
     try {
       const { data, error } = await supabase
-        .from('ca_pharmacy_data')
+        .from('pharmacies_ca')
         .select('*')
-        .eq('medme_id', id)
+        .eq('id', id)
         .single();
 
       if (error) {

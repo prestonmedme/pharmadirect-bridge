@@ -70,17 +70,18 @@ export const useGeographicPharmacySearch = () => {
         
         // For CA pharmacies, convert Canadian pharmacy data format
         const legacyPharmacy = {
-          id: pharmacy.medme_id || pharmacy.id,
+          id: pharmacy.id,
           name: pharmacy.name || 'Unknown Pharmacy',
-          address: pharmacy.street_address || `${pharmacy.address_street_number || ''} ${pharmacy.address_street_name || ''}`.trim(),
-          city: pharmacy.address_city || '',
-          state: pharmacy.province || region || '',
-          zip_code: pharmacy.address_postal_code || '',
+          address: pharmacy["Pharmacy Address__street_address"] || 
+                  `${pharmacy["Pharmacy Address__street_number"] || ''} ${pharmacy["Pharmacy Address__street_name"] || ''}`.trim(),
+          city: pharmacy["Pharmacy Address__city"] || '',
+          state: pharmacy.province_code || pharmacy.province || region || '',
+          zip_code: pharmacy["Pharmacy Address__postal_code"] || '',
           phone: '', // Not available in the CSV
           website: pharmacy.website,
           services: [], // Default empty services array
-          latitude: pharmacy.lat,
-          longitude: pharmacy.lng,
+          latitude: pharmacy["Pharmacy Address__latitude"],
+          longitude: pharmacy["Pharmacy Address__longitude"],
           type: 'medme' as const, // All CA pharmacies are MedMe connected
           displayData: {
             rating: 0, // No rating data in the CSV
