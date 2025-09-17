@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { DynamicLogo } from "@/components/branding/DynamicLogo";
+import { MapPin, Users, Shield } from "lucide-react";
 
 const CountrySelector = () => {
   const navigate = useNavigate();
@@ -10,107 +11,157 @@ const CountrySelector = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/90 via-primary to-primary-dark relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-hero relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,_hsl(var(--primary-light))_0%,_transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,_hsl(var(--primary-light))_0%,_transparent_50%)]" />
+      </div>
+
       {/* Header */}
       <header className="relative z-10 flex justify-between items-center p-6 lg:p-8">
-        <div className="flex items-center space-x-2">
-          <DynamicLogo className="h-8 w-auto" />
-          <span className="text-white font-bold text-xl">medme</span>
+        <div className="flex items-center space-x-3">
+          <DynamicLogo className="h-10 w-auto" />
+          <span className="text-white font-bold text-2xl tracking-tight">medme</span>
         </div>
-        <nav className="hidden md:flex items-center space-x-6 text-white">
-          <a href="#about" className="hover:text-primary-light transition-colors">About</a>
-          <a href="#blog" className="hover:text-primary-light transition-colors">Blog</a>
+        <nav className="hidden md:flex items-center space-x-8 text-white/90">
+          <a href="#about" className="hover:text-white transition-colors font-medium">About</a>
+          <a href="#blog" className="hover:text-white transition-colors font-medium">Blog</a>
         </nav>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 text-center px-6 pt-16 pb-24 lg:pt-24 lg:pb-32">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-          Operating System for<br />
-          Pharmacies of the Future
-        </h1>
-        <p className="text-lg md:text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed">
-          Streamline pharmacy workflows to deliver clinical services at scale,
-          build patient relationships, and diversify revenue.
-        </p>
-      </section>
-
-      {/* Curved Divider */}
-      <div className="relative">
-        <svg
-          className="absolute inset-x-0 bottom-0 text-background"
-          fill="currentColor"
-          viewBox="0 0 1000 300"
-          preserveAspectRatio="none"
-        >
-          <path d="M0,300 C200,100 400,0 600,50 C800,100 900,200 1000,150 L1000,300 Z" />
-        </svg>
-      </div>
-
-      {/* Country Selection Section */}
-      <section className="relative z-10 bg-background py-16 lg:py-24">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12">
-            Choose your country
-          </h2>
+      <section className="relative z-10 text-center px-6 pt-12 pb-20 lg:pt-16 lg:pb-28">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">
+            Operating System for<br />
+            <span className="text-primary-lighter">Pharmacies of the Future</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
+            Streamline pharmacy workflows to deliver clinical services at scale,
+            build patient relationships, and diversify revenue.
+          </p>
           
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-8 lg:gap-12">
-            {/* Canada */}
-            <div className="flex flex-col items-center group cursor-pointer" onClick={() => handleCountrySelect('CA')}>
-              <div className="w-24 h-16 md:w-32 md:h-20 bg-white rounded-lg shadow-lg border-2 border-border hover:border-primary transition-all duration-300 group-hover:scale-105 flex items-center justify-center mb-4">
-                <div className="w-16 h-10 md:w-20 md:h-12 bg-red-500 rounded flex items-center justify-center relative">
-                  <div className="w-3 h-6 md:w-4 md:h-8 bg-white rounded-sm flex items-center justify-center">
-                    <div className="w-2 h-4 md:w-3 h-6 border-l-2 border-r-2 border-red-500"></div>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleCountrySelect('CA')}
-              >
-                CA Site
-              </Button>
+          {/* Feature highlights */}
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-white/80 mb-12">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              <span className="font-medium">Find Pharmacies</span>
             </div>
-
-            {/* United States */}
-            <div className="flex flex-col items-center group cursor-pointer" onClick={() => handleCountrySelect('US')}>
-              <div className="w-24 h-16 md:w-32 md:h-20 bg-white rounded-lg shadow-lg border-2 border-border hover:border-primary transition-all duration-300 group-hover:scale-105 flex items-center justify-center mb-4">
-                <div className="w-16 h-10 md:w-20 md:h-12 relative">
-                  {/* US Flag representation */}
-                  <div className="w-full h-full bg-gradient-to-b from-red-500 via-red-500 to-red-500 rounded flex flex-col">
-                    <div className="flex-1 bg-red-500"></div>
-                    <div className="flex-1 bg-white"></div>
-                    <div className="flex-1 bg-red-500"></div>
-                    <div className="flex-1 bg-white"></div>
-                    <div className="flex-1 bg-red-500"></div>
-                    <div className="absolute top-0 left-0 w-6 h-6 md:w-8 md:h-8 bg-blue-800 rounded-sm flex items-center justify-center">
-                      <div className="text-white text-xs">★</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-                onClick={() => handleCountrySelect('US')}
-              >
-                US Site
-              </Button>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              <span className="font-medium">Book Services</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              <span className="font-medium">Trusted Network</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Bottom Section */}
-      <section className="bg-primary text-white py-16">
+      {/* Elegant Transition */}
+      <div className="relative">
+        <svg
+          className="absolute inset-x-0 bottom-0 text-background"
+          fill="currentColor"
+          viewBox="0 0 1000 200"
+          preserveAspectRatio="none"
+        >
+          <path d="M0,200 C300,50 700,50 1000,200 L1000,200 Z" />
+        </svg>
+      </div>
+
+      {/* Country Selection Section */}
+      <section className="relative z-10 bg-background py-20 lg:py-28">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+              Choose Your Region
+            </h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Select your country to access pharmacy services and clinical care in your area
+            </p>
+          </div>
+          
+          <div className="flex flex-col lg:flex-row justify-center items-stretch gap-8 lg:gap-12 max-w-4xl mx-auto">
+            {/* Canada */}
+            <div className="flex-1 group cursor-pointer" onClick={() => handleCountrySelect('CA')}>
+              <div className="bg-card rounded-2xl shadow-card border border-border hover:border-primary/30 hover:shadow-lg-medical transition-all duration-300 group-hover:scale-[1.02] p-8 text-center h-full flex flex-col">
+                <div className="mb-6">
+                  <div className="w-20 h-14 mx-auto bg-white rounded-xl shadow-medical border-2 border-border flex items-center justify-center mb-4">
+                    {/* Simplified Canadian Flag */}
+                    <div className="w-12 h-8 bg-red-500 rounded flex items-center justify-center relative">
+                      <div className="w-2 h-5 bg-white rounded-sm"></div>
+                      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500 text-xs font-bold">🍁</div>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">Canada</h3>
+                  <p className="text-muted-foreground">Access Canadian pharmacy network and provincial health services</p>
+                </div>
+                <div className="mt-auto">
+                  <Button 
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-semibold shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCountrySelect('CA');
+                    }}
+                  >
+                    Enter Canada Site
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* United States */}
+            <div className="flex-1 group cursor-pointer" onClick={() => handleCountrySelect('US')}>
+              <div className="bg-card rounded-2xl shadow-card border border-border hover:border-primary/30 hover:shadow-lg-medical transition-all duration-300 group-hover:scale-[1.02] p-8 text-center h-full flex flex-col">
+                <div className="mb-6">
+                  <div className="w-20 h-14 mx-auto bg-white rounded-xl shadow-medical border-2 border-border flex items-center justify-center mb-4">
+                    {/* Simplified US Flag */}
+                    <div className="w-12 h-8 relative overflow-hidden rounded">
+                      <div className="absolute inset-0 bg-gradient-to-b from-red-500 via-white to-red-500"></div>
+                      <div className="absolute top-0 left-0 w-5 h-4 bg-blue-800 flex items-center justify-center">
+                        <div className="text-white text-[8px] font-bold">★</div>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">United States</h3>
+                  <p className="text-muted-foreground">Connect with US pharmacy network and state-specific services</p>
+                </div>
+                <div className="mt-auto">
+                  <Button 
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-semibold shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCountrySelect('US');
+                    }}
+                  >
+                    Enter US Site
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Footer */}
+      <section className="bg-gradient-primary text-white py-16 lg:py-20">
         <div className="container mx-auto px-6 text-center">
-          <h3 className="text-2xl md:text-3xl font-bold mb-4">
-            Ready to Enhance
-          </h3>
-          <p className="text-lg text-white/90">
-            Your Pharmacy Operations?
-          </p>
+          <div className="max-w-3xl mx-auto">
+            <h3 className="text-3xl md:text-4xl font-bold mb-6">
+              Ready to Transform Your
+            </h3>
+            <p className="text-xl md:text-2xl text-white/90 mb-8">
+              Pharmacy Experience?
+            </p>
+            <p className="text-lg text-white/80">
+              Join thousands of pharmacies and patients already using MedMe to streamline healthcare delivery
+            </p>
+          </div>
         </div>
       </section>
     </div>
