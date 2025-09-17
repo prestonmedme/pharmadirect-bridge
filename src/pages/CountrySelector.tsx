@@ -30,33 +30,15 @@ const CountrySelector = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative z-10 text-center px-6 pt-8 pb-12 lg:pt-12 lg:pb-16">
+      {/* Main Section */}
+      <section className="relative z-10 text-center px-6 pt-16 pb-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-            Operating System for<br />
-            <span className="text-primary-lighter">Pharmacies of the Future</span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+            Choose Your Region
           </h1>
-          <p className="text-lg md:text-xl text-white/90 mb-6 max-w-3xl mx-auto leading-relaxed">
-            Streamline pharmacy workflows to deliver clinical services at scale,
-            build patient relationships, and diversify revenue.
+          <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+            Select your country to access pharmacy services and clinical care in your area
           </p>
-          
-          {/* Feature highlights */}
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-white/80 mb-8">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span className="font-medium text-sm">Find Pharmacies</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="font-medium text-sm">Book Services</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="font-medium text-sm">Trusted Network</span>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -74,16 +56,7 @@ const CountrySelector = () => {
 
       {/* Country Selection Section */}
       <section className="relative z-10 bg-background py-12 lg:py-16">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              Choose Your Region
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Select your country to access pharmacy services and clinical care in your area
-            </p>
-          </div>
-          
+        <div className="container mx-auto px-6">          
           <div className="flex flex-col lg:flex-row justify-center items-stretch gap-8 lg:gap-12 max-w-4xl mx-auto">
             {/* Canada */}
             <div className="flex-1 group cursor-pointer" onClick={() => handleCountrySelect('CA')}>
