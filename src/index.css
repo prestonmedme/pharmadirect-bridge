@@ -9,44 +9,44 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* MedMe Brand Colors Design System */
-    --medme-navy: 215 85% 20%;
-    --medme-lime: 64 55% 48%;
+    --medme-navy: 198 85% 19%;
+    --medme-lime: 61 61% 48%;
     --background: 0 0% 100%;
-    --foreground: 195 82% 18%;
+    --foreground: 198 85% 19%;
     
     /* Custom colors */
-    --nav-button: 64 55% 48%;
-    --hero-bg: 197 85% 18%;
-    --hero-text: 64 55% 48%;
+    --nav-button: 61 61% 48%;
+    --hero-bg: 198 85% 19%;
+    --hero-text: 61 61% 48%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 85% 18%;
+    --card-foreground: 198 85% 19%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 85% 18%;
+    --popover-foreground: 198 85% 19%;
 
     /* Primary - MedMe Dark Teal */
-    --primary: 200 85% 18%;
+    --primary: 198 85% 19%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 200 75% 28%;
-    --primary-lighter: 200 30% 90%;
-    --primary-dark: 200 90% 12%;
+    --primary-light: 198 75% 30%;
+    --primary-lighter: 198 30% 90%;
+    --primary-dark: 198 90% 15%;
 
     --secondary: 0 0% 100%;
-    --secondary-foreground: 200 85% 18%;
+    --secondary-foreground: 198 85% 19%;
 
-    --muted: 200 10% 96%;
-    --muted-foreground: 200 30% 45%;
+    --muted: 198 10% 96%;
+    --muted-foreground: 198 30% 45%;
 
-    --accent: 200 85% 18%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 61 61% 48%;
+    --accent-foreground: 198 85% 19%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 20% 85%;
-    --input: 200 10% 90%;
-    --ring: 200 85% 18%;
+    --border: 198 20% 85%;
+    --input: 198 10% 90%;
+    --ring: 198 85% 19%;
 
     /* MedMe Brand Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
