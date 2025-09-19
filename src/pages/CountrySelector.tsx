@@ -20,7 +20,7 @@ const CountrySelector = () => {
           <img 
             src={medmeLogo} 
             alt="MedMe Logo" 
-            className="h-12 w-auto"
+            className="h-6 w-auto"
           />
         </div>
         <nav className="hidden md:flex items-center space-x-8 text-white/90">
