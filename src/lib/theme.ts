@@ -15,14 +15,14 @@ export interface ThemeConfig {
 }
 
 export const defaultTheme: ThemeConfig = {
-  logoUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjMDA3YWNjIj5NZWRNZTwvdGV4dD48L3N2Zz4=',
-  primaryColor: '#007acc',
-  secondaryColor: '#00b2a9',
+  logoUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjMDczZTU0Ij5NZWRNZTwvdGV4dD48L3N2Zz4=',
+  primaryColor: '#073e54',
+  secondaryColor: '#ffffff',
   fontFamily: 'Inter, sans-serif',
   ctaStyle: 'rounded',
   gradientEnabled: true,
-  gradientStartColor: '#007acc',
-  gradientEndColor: '#00b2a9'
+  gradientStartColor: '#073e54',
+  gradientEndColor: '#c3c430'
 };
 
 export const exampleThemes: Record<string, ThemeConfig> = {
