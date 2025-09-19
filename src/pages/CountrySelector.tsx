@@ -39,8 +39,8 @@ const CountrySelector = () => {
               <span className="text-accent">Pharmacies of the Future</span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              Streamline pharmacy workflows to deliver clinical services at scale,
-              build patient relationships, and diversify revenue.
+              Find trusted pharmacies and clinical services in your area,
+              book appointments seamlessly, and access healthcare when you need it most.
             </p>
           </div>
 
