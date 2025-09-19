@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DynamicLogo } from "@/components/branding/DynamicLogo";
 import canadaFlag from "@/assets/flags/canada-flag.png";
 import usFlag from "@/assets/flags/us-flag.png";
+import medmeLogo from "@/assets/medme-logo-updated.png";
 
 const CountrySelector = () => {
   const navigate = useNavigate();
@@ -16,8 +17,11 @@ const CountrySelector = () => {
       {/* Header */}
       <header className="flex justify-between items-center p-6 lg:p-8">
         <div className="flex items-center space-x-3">
-          <DynamicLogo className="h-10 w-auto" />
-          <span className="text-white font-bold text-2xl tracking-tight">medme</span>
+          <img 
+            src={medmeLogo} 
+            alt="MedMe Logo" 
+            className="h-12 w-auto"
+          />
         </div>
         <nav className="hidden md:flex items-center space-x-8 text-white/90">
           <a href="#about" className="hover:text-white transition-colors font-medium">About</a>
