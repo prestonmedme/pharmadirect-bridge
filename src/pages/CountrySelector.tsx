@@ -57,7 +57,7 @@ const CountrySelector = () => {
                 onClick={() => handleCountrySelect('CA')}
               >
                 <div className="text-center">
-                  <div className="w-32 h-24 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg border-4 border-border hover:border-primary transition-colors duration-300">
+                  <div className="w-32 h-24 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg border-4 border-border hover:border-accent transition-colors duration-300">
                     <img 
                       src={canadaFlag} 
                       alt="Canada Flag" 
@@ -74,7 +74,7 @@ const CountrySelector = () => {
                 onClick={() => handleCountrySelect('US')}
               >
                 <div className="text-center">
-                  <div className="w-32 h-24 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg border-4 border-border hover:border-primary transition-colors duration-300">
+                  <div className="w-32 h-24 mx-auto mb-6 rounded-xl overflow-hidden shadow-lg border-4 border-border hover:border-accent transition-colors duration-300">
                     <img 
                       src={usFlag} 
                       alt="United States Flag" 
